@@ -1,10 +1,14 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+.DS_Store
 *.py[cod]
 *$py.class
-
+env/
 # C extensions
 *.so
+processed_images/*
+# Ignoring sqlite files
+*.sqlite*
 
 # Distribution / packaging
 .Python
@@ -20,12 +24,10 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
+
 *.egg
-MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -40,16 +42,13 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
-.nox/
 .coverage
 .coverage.*
 .cache
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
 .hypothesis/
-.pytest_cache/
 
 # Translations
 *.mo
@@ -58,8 +57,6 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -70,6 +67,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/*
 
 # PyBuilder
 target/
@@ -77,26 +75,11 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# IPython
-profile_default/
-ipython_config.py
-
 # pyenv
 .python-version
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
-__pypackages__/
-
-# Celery stuff
+# celery beat schedule file
 celerybeat-schedule
-celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
@@ -107,8 +90,6 @@ celerybeat.pid
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -122,8 +103,62 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-.dmypy.json
-dmypy.json
 
-# Pyre type checker
-.pyre/
+# Librarian Key
+.librarian.key
+
+# Sphinx File
+*.rst
+
+# CircleCI
+.circleci/*
+
+bin
+develop-eggs
+dist
+downloads
+eggs
+parts
+src/*.egg-info
+lib
+lib64
+.idea/
+
+env/
+gateway/settings/local_settings/
+gateway/settings/config/*
+librarian.key
+cloudfront/
+geoip_files/
+
+venv
+
+# Removing pyc files
+*.pyc
+*/*.pyc
+*/*/*.pyc
+*/*/*/*.pyc
+
+data
+data/
+
+*.db
+outfile_*
+*.fits
+*.mp4
+aiaprep
+aiaprep/
+crop_hmi_afterprep
+crop_hmi_afterprep/
+aligned_data
+aligned_data/
+ldr
+ldr/
+mask
+mask/
+souvik
+souvik/
+._.DS_Store
+.DS_Store
+*DS_Store
+
