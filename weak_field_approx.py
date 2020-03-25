@@ -6,7 +6,8 @@ def calculate_b_los(
     stokes_V,
     wavelength_arr,
     lambda0,
-    lambda_range,
+    lambda_range_min,
+    lambda_range_max,
     g_eff
 ):
     '''
@@ -14,15 +15,16 @@ def calculate_b_los(
     stokes_V: Array of Stokes V
     wavelength_arr: Units is nm
     lambda0: Units is nm
-    lambda_range: Units is nm
+    lambda_range_min: Units is nm
+    lambda_range_max: Units is nm
     g_eff: Effective lande g factor
     '''
 
     indices = np.where(
         (
-            np.array(wavelength_arr) > (lambda0 - lambda_range)
+            np.array(wavelength_arr) > (lambda0 + lambda_range_min)
         ) & (
-            np.array(wavelength_arr) < (lambda0 + lambda_range)
+            np.array(wavelength_arr) < (lambda0 + lambda_range_max)
         )
     )[0]
 
@@ -41,3 +43,64 @@ def calculate_b_los(
     denominator = np.sum(np.square(derivative))
 
     return -numerator / (constant * denominator)
+
+
+def calculate_b_transverse_wing(
+    stokes_I,
+    stokes_Q,
+    stokes_U,
+    wavelength_arr,
+    lambda0,
+    lambda_range_min,
+    lambda_range_max,
+    g_eff
+):
+
+    norm_Q = np.array(stokes_Q) / np.array(stokes_I)
+
+    norm_U = np.array(stokes_U) / np.array(stokes_I)
+
+    total_linear_polarization = np.sqrt(
+        np.add(
+            np.square(
+                norm_Q
+            ),
+            np.square(
+                norm_U
+            )
+        )
+    )
+
+    indices = np.where(
+        (
+            np.array(wavelength_arr) > (lambda0 + lambda_range_min)
+        ) & (
+            np.array(wavelength_arr) < (lambda0 + lambda_range_max)
+        )
+    )[0]
+
+    wavelength = np.array(wavelength_arr)[indices]
+
+    intensity = np.array(stokes_I)[indices]
+
+    # norm_Q_cropped = norm_Q[indices]
+
+    # norm_U_cropped = norm_U[indices]
+
+    total_linear_polarization_cropped = total_linear_polarization[indices]
+
+    derivative = np.abs(np.gradient(intensity, wavelength * 10))
+
+    constant = (4.6686e-10 * (lambda0 * 10)**2)**2 * g_eff
+
+    diff_lambda = 1 / (np.abs(wavelength - lambda0) * 10)
+
+    numerator = 4 * np.sum(
+        total_linear_polarization_cropped * diff_lambda * derivative
+    ) / (
+        3 * constant
+    )
+
+    denominator = np.sum(np.square(diff_lambda) * np.square(derivative))
+
+    return np.sqrt(numerator / denominator)
