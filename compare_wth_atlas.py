@@ -1,13 +1,20 @@
 from pathlib import Path
 from helita.sim import rh15d
 import numpy as np
-import scipy.interpolate
 import matplotlib.pyplot as plt
+
+
+AIR_TO_VACCUM_LIMIT = 199.9352
 
 
 def get_indices_for_wavelength(wave, wav_start, wav_end):
 
-    return np.where((wave.data >= wav_start) & (wave.data < wav_end))[0]
+    if not isinstance(wave, np.ndarray):
+        wavedata = wave.data
+    else:
+        wavedata = wave
+
+    return np.where((wavedata >= wav_start) & (wavedata < wav_end))[0]
 
 
 def get_wavelength_points(wave, indices):
@@ -18,7 +25,9 @@ def get_intensity_points(intensity, indices, x=0, y=0):
     return intensity.data[x][y][indices]
 
 
-def get_catalog_interpolation_function(
+def get_catalog_intensity(
+    wav_start,
+    wav_end,
     base_dir=None,
     catalog_filename=None
 ):
@@ -33,23 +42,17 @@ def get_catalog_interpolation_function(
 
     catalog_6563 = np.loadtxt(catalog_file_path)
 
-    f = scipy.interpolate.interp1d(catalog_6563.T[0], catalog_6563.T[1])
+    # vaccum_wavelengths = air_to_vaccum(catalog_6563.T[0] / 10)
 
-    return f
+    vaccum_wavelengths = catalog_6563.T[0] / 10
 
-
-def get_catalog_intensity(
-    wavelength_points,
-    base_dir=None,
-    catalog_filename=None
-):
-
-    f = get_catalog_interpolation_function(
-        base_dir=base_dir,
-        catalog_filename=catalog_filename
+    indices = get_indices_for_wavelength(
+        vaccum_wavelengths,
+        wav_start,
+        wav_end
     )
 
-    return f(wavelength_points * 10)
+    return vaccum_wavelengths[indices], catalog_6563.T[1][indices]
 
 
 def index_and_continuous_wavelength(wave, cont_wave=658.8174):
@@ -126,25 +129,26 @@ def get_normalised_model_intensities(
 
 
 def get_normalised_catalog_intensities(
-    wavelength_points,
+    wav_start,
+    wav_end,
     continuum_wavelength=658.8174,
     base_dir=None,
-    catalog_filename=None
+    catalog_filename=normalise_intensity
 ):
 
-    catalog_intensity = get_catalog_intensity(
-        wavelength_points,
+    catalog_wavelength, catalog_intensity = get_catalog_intensity(
+        wav_start=wav_start,
+        wav_end=wav_end,
         base_dir=base_dir,
         catalog_filename=catalog_filename
     )
 
-    catalog_continuum_intensity = get_catalog_intensity(
-        continuum_wavelength,
-        base_dir=base_dir,
-        catalog_filename=catalog_filename
-    )
+    index = np.argmin(np.abs(catalog_wavelength - continuum_wavelength))
 
-    return normalise_intensity(catalog_intensity, catalog_continuum_intensity)
+    catalog_continuum_intensity = catalog_intensity[index]
+
+    return catalog_wavelength, \
+        normalise_intensity(catalog_intensity, catalog_continuum_intensity)
 
 
 def get_normalised_intensities(
@@ -158,7 +162,7 @@ def get_normalised_intensities(
     catalog_filename='catalog_6563.txt'
 ):
 
-    wavelength_points, model_intensity, continuum_wavelength = get_normalised_model_intensities(
+    model_wavelength, model_intensity, continuum_wavelength = get_normalised_model_intensities(
         base_dir=model_base_dir,
         wav_start=653,
         wav_end=659,
@@ -167,51 +171,108 @@ def get_normalised_intensities(
         y=0
     )
 
-    catalog_intensity = get_normalised_catalog_intensities(
-        wavelength_points,
+    catalog_wavelength, catalog_intensity = get_normalised_catalog_intensities(
+        wav_start=wav_start,
+        wav_end=wav_end,
         continuum_wavelength=continuum_wavelength,
         base_dir=catalog_base_dir,
         catalog_filename=catalog_filename
     )
 
-    return wavelength_points, model_intensity, \
-        catalog_intensity, continuum_wavelength
+    return model_wavelength, model_intensity, \
+        catalog_wavelength, catalog_intensity, continuum_wavelength
+
+
+def air_to_vaccum(wavelengths):
+
+    wavelengths = wavelengths.copy()
+
+    lambda_vaccum = np.zeros_like(wavelengths)
+
+    for index, wave in enumerate(wavelengths):
+        if wave >= AIR_TO_VACCUM_LIMIT:
+            wave_square = (1e7 / wave)**2
+
+            increase = 1.0000834213 + 2.406030e6 / \
+                (1.30E+10 - wave_square) + 1.5997e4 /\
+                (3.89e9 - wave_square)
+
+            lambda_vaccum[index] = wave * increase
+        else:
+            lambda_vaccum[index] = wave
+
+    return lambda_vaccum
 
 
 def plot_model_and_catalog_intensities(
-    wavelength_points,
+    model_wavelength,
     model_intensity,
+    catalog_wavelength,
     catalog_intensity,
     continuum_wavelength=658.8174,
-    mag_field=None
+    mag_field=None,
+    mode=None,
+    filename=None
 ):
 
     plt.plot(
-        wavelength_points,
+        model_wavelength,
         model_intensity,
-        label='FALC {}'.format(
-            'FIELD FREE' if mag_field is None else '{} nm'.format(mag_field)
-        )
+        label='FALC'
     )
 
     plt.plot(
-        wavelength_points,
+        catalog_wavelength,
         catalog_intensity,
         label='Atlas Spectrum'
     )
 
     plt.ylabel(
-        'Normalised intensity w.r.t continuum wavelength {} nm'.format(
+        r'I/$I_{{ref}}$'.format(
             continuum_wavelength
         )
     )
 
-    plt.xlabel('Wavelength in nm')
+    plt.xlabel('Wavelength (Units: nm)')
 
-    plt.title('FALC vs Atlas')
+    plt.title(
+        'FALC vs Atlas (Magnetic Field: {} Guass Vertical, Mode: {})'.format(
+            mag_field, mode
+        )
+    )
 
     plt.legend()
 
     plt.tight_layout()
 
-    plt.show()
+    if not filename:
+        plt.show()
+    else:
+        plt.savefig(filename, dpi=900, format='png')
+
+    plt.clf()
+    plt.cla()
+
+
+def do_everything(path_to_folder, path_save_file, mag_field, mode):
+    model_wavelength, model_intensity, catalog_wavelength, catalog_intensity, continuum_wavelength = get_normalised_intensities(
+        model_base_dir=path_to_folder,
+        catalog_base_dir=None,
+        wav_start=653,
+        wav_end=659,
+        cont_wave=658.8174,
+        x=0,
+        y=0,
+        catalog_filename='catalog_6563.txt'
+    )
+
+    plot_model_and_catalog_intensities(
+        model_wavelength,
+        model_intensity,
+        catalog_wavelength,
+        catalog_intensity,
+        continuum_wavelength=658.8174,
+        mag_field=mag_field,
+        mode=mode,
+        filename=path_save_file
+    )
