@@ -30,7 +30,7 @@ def save_instrument_profile(fwhm, no_wavelength_points):
 
 
 def get_tau(f_rhout, f_atmos):
-    height = f_atmos['z'][()][0][0]
+    height = f_atmos['z'][()][0]
 
     index500 = np.argmin(
         np.abs(
@@ -82,10 +82,18 @@ def generate_atmosphere_file_from_rh(
 
     for key in remove_snapshot_keys:
         conv_factor = conversion_factor.get(key, 1)
-        f_out[key] = f_atmos[key][()][0] * conv_factor
+        try:
+            f_out[key] = f_atmos[key][()][0] * conv_factor
+        except Exception:
+            pass
 
     for key in as_is_keys:
         f_out[key] = f_atmos[key][()]
+
+    f_out['hydrogen_populations'] = np.sum(
+        f_atmos['hydrogen_populations'][()][0],
+        axis=0
+    )
 
     f_out['tau'] = get_tau(f_rhout, f_atmos)
 
