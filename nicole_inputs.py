@@ -71,7 +71,8 @@ def generate_atmosphere_file_from_rh(
         'electron_density': 1e-6,
         'velocity_z': 1e2,
         'velocity_turbulent': 1e2,
-        'density': 1e-3
+        'density': 1e-3,
+        'hydrogen_populations': 1e-6
     }
 
     f_rhout = h5py.File(rh_out, 'r')
@@ -90,12 +91,17 @@ def generate_atmosphere_file_from_rh(
     for key in as_is_keys:
         f_out[key] = f_atmos[key][()]
 
+    hp_conv_factor = conversion_factor.get(
+        'hydrogen_populations',
+        1
+    )
+
     f_out['hydrogen_populations'] = np.sum(
-        f_atmos['hydrogen_populations'][()][0],
+        f_atmos['hydrogen_populations'][()][0] * hp_conv_factor,
         axis=0
     )
 
-    f_out['tau'] = get_tau(f_rhout, f_atmos)
+    f_out['tau'] = np.log(get_tau(f_rhout, f_atmos))
 
     f_out['straylight_fraction'] = straylight_fraction
 
