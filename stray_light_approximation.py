@@ -44,8 +44,13 @@ def mean_squarred_error(line_profile, atlas_profile):
     )
 
 
-def approximate_stray_light_and_sigma(line_profile, atlas_profile):
-    fwhm = np.linspace(2, 10, 20)
+def approximate_stray_light_and_sigma(
+    line_profile,
+    atlas_profile,
+    continuum=1.0,
+    indices=None
+):
+    fwhm = np.linspace(2, 30, 50)
 
     sigma = fwhm / 2.355
 
@@ -63,14 +68,20 @@ def approximate_stray_light_and_sigma(line_profile, atlas_profile):
 
     for i, _sig in enumerate(sigma):
         for j, k_value in enumerate(k_values):
-            degraded_atlas = (atlas_profile + k_value) / (1 + k_value)
+            # degraded_atlas = (
+            #     atlas_profile + (k_value * continuum)
+            # ) / (1 + k_value)
+            # degraded_atlas = scipy.ndimage.gaussian_filter(
+            #     degraded_atlas,
+            #     _sig
+            # )
             degraded_atlas = scipy.ndimage.gaussian_filter(
-                degraded_atlas,
+                (1 - k_value) * atlas_profile,
                 _sig
-            )
+            ) + (k_value * continuum)
             result_atlas[i][j] = degraded_atlas
             result[i][j] = mean_squarred_error(
-                degraded_atlas,
-                line_profile
+                degraded_atlas[indices] / degraded_atlas[indices][0],
+                line_profile / line_profile[0]
             )
     return result, result_atlas
