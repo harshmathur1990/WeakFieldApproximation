@@ -1,0 +1,4 @@
+1. Plot Intensity Contour on other maps to identify the pore in line core image, temperature, magnetic field and velocity maps.
+2. Use The photospheric lines in Ca II and H alpha to constrain magnetic field.
+3. Use 3 nodes in Vlos.
+4. Use H alpha flat data to correct for stray light contrast degradation.
