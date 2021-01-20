@@ -1,0 +1,8 @@
+1. 50 to 2000 Gauss vertical with and without macroturbulent veocities (0.5, 1, 2, 3, 4, 5 Km/sec).
+2. vertical B as a linearly increasing function of log of optical depth with B (log optical depth = 0) as 4000, 3500, 3000, ...500) with and without macroturbulent veocities (0.5, 1, 2, 3, 4, 5 Km/sec).
+3. Same as 2 but with vlos with linear dependency on log tau (0 at log tau = 0, 5 Km/sec at log tau = -5).
+4. same as 2 but with constant vlos but at log tau at -4.5 jumps to some value say 5 Km/sec.
+5. constant magnetic field with transverse component with magnitude in range (125, 250, 500, 750, 1000, 1250, 1500) with inclinations in range of (0, 10, 20,...90) and fixed azimuth of 22.5 degree with and without macroturbulent velocities.
+6. all of the above with and without MO effects.
+7. constant transverse magnetic field of 0 to 1500 Gauss with scattering ON and with mu from 1 to 0.1.
+8. Add noise of 10e-3 to 10e-4 of continuum intensity to spectral profiles and redo the calculations of WFA and also modify the sampling from 5 mA to 20 mA or whatever suits better.

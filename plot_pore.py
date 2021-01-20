@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 base_input_path = Path(
-    '/Volumes/Harsh 9599771751/Spinor_2008/inversions/buerrero_approach/plots_pore_v1'
+    '/home/harsh/Spinor_2008/pore_v14'
 )
 # profile_files = [
 #     base_input_path / 'cycle_1_profs_sw_t_7_vt_0_vl_3.nc',
@@ -25,7 +25,7 @@ base_input_path = Path(
 profile_files = [
     # base_input_path / 'falc_vlos_guess_cycle_1_t_5_vl_2_vt_2_profs.nc',
     # base_input_path / 'v10_falc_vlos_guess_cycle_2_t_5_vl_5_vt_5_profs.nc'
-    base_input_path / 'falc_no_vturb_pore_8_x_12_cw_cycle_1_t_5_vl_2_vt_2_blon_2_profs.nc'
+    base_input_path / 'pore_profile_cycle_3_t_8_vl_5_vt_1_blong_2_profs.nc'
 ]
 # atmos_files = [
 #     base_input_path / 'cycle_1_fl_atmos_sw_t_7_vt_0_vl_3.n',
@@ -35,23 +35,26 @@ profile_files = [
 atmos_files = [
     # base_input_path / 'falc_vlos_guess_cycle_1_t_5_vl_2_vt_2_atmos.nc',
     # base_input_path / 'v10_falc_vlos_guess_cycle_2_t_5_vl_5_vt_5_atmos.nc'
-    base_input_path / 'falc_no_vturb_pore_8_x_12_cw_cycle_1_t_5_vl_2_vt_2_blon_2_atmos.nc'
+    base_input_path / 'pore_profile_cycle_3_t_8_vl_5_vt_1_blong_2_atmos.nc'
 ]
 # observed_file = Path(
 #     '/Volumes/Harsh 9599771751/Oslo Work/merged_rps.nc'
 # )
+# observed_file = Path(
+#     '/home/harsh/CourseworkRepo/2008 Sp Data/final_data/FOV_19_35_1_20_250_285.nc'
+# )
 observed_file = Path(
-    base_input_path / 'Corrected_pore_0_9_36_48.nc'
+    base_input_path / 'PoreProfile.nc'
 )
 falc_file = Path(
-    '/Volumes/Harsh 9599771751/Oslo Work/model_atmos/falc_nicole_for_stic.nc'
+    '/home/harsh/OsloAnalysis/falc_nicole_for_stic.nc'
 )
 median_prof_file = Path(
-    '/Users/harshmathur/CourseworkRepo/2008 Sp Data/buerro_approach_to_stray_light/corrected_data_buererro_for_stic.nc'
+    '/home/harsh/CourseworkRepo/2008 Sp Data/buerro_approach_to_stray_light/corrected_data_buererro_for_stic.nc'
 )
 
 median_atmos_file = Path(
-    '/Users/harshmathur/CourseworkRepo/2008 Sp Data/buerro_approach_to_stray_light/no_vturb_initial/stic_try/plots_v2/falc_no_vturb_cycle_1_t_5_vl_2_vt_2_atmos.nc'
+    '/home/harsh/CourseworkRepo/2008 Sp Data/buerro_approach_to_stray_light/no_vturb_initial/stic_try/plots_v2/falc_no_vturb_cycle_1_t_5_vl_2_vt_2_atmos.nc'
 )
 profiles = [h5py.File(filename, 'r') for filename in profile_files]
 atmos = [h5py.File(filename, 'r') for filename in atmos_files]
@@ -69,9 +72,12 @@ red = '#f6416c'
 brown = '#ffde7d'
 green = '#00b8a9'
 
-for i in range(8):
-    for j in range(12):
+# for i in range(1, 20):
+#     for j in range(250, 285):
 
+for j in range(250, 251):
+
+        i = 1
         plt.close('all')
         plt.clf()
         plt.cla()
@@ -83,15 +89,15 @@ for i in range(8):
         # plotting the observed profile
         axs[0][0].plot(
             observed['wav'][indices],
-            observed['profiles'][0, i, j, indices, 0],
+            observed['profiles'][0, i-1, j-250, indices, 0],
             color=red,
             linewidth=0.5
         )
-
+        #import ipdb;ipdb.set_trace()
         # plotting the inverted profile
         axs[0][0].plot(
-            profiles[0]['wav'],
-            profiles[0]['profiles'][0, i, j, :, 0],
+            profiles[0]['wav'][()],
+            profiles[0]['profiles'][0, i-1, j-250, :, 0],
             color=green,
             linewidth=0.5
         )
@@ -107,15 +113,15 @@ for i in range(8):
 
         axs[0][1].plot(
             observed['wav'][indices],
-            observed['profiles'][0, i, j, indices, 3] / observed['profiles'][0, i, j, indices, 0],
+            observed['profiles'][0, i-1, j-250, indices, 3] / observed['profiles'][0, i-1, j-250, indices, 0],
             color=red,
             linewidth=0.5
         )
 
         # plotting the inverted profile
         axs[0][1].plot(
-            profiles[0]['wav'],
-            profiles[0]['profiles'][0, i, j, :, 3] / profiles[0]['profiles'][0, i, j, :, 0],
+            profiles[0]['wav'][()],
+            profiles[0]['profiles'][0, i-1, j-250, :, 3] / profiles[0]['profiles'][0, i-1, j-250, :, 0],
             color=green,
             linewidth=0.5
         )
@@ -138,8 +144,8 @@ for i in range(8):
 
         # plot inverted temperature profile
         axs[1][0].plot(
-            atmos[0]['ltau500'][0][i][j],
-            atmos[0]['temp'][0][i][j],
+            atmos[0]['ltau500'][0][i-1][j-250],
+            atmos[0]['temp'][0][i-1][j-250],
             color=green,
             linewidth=0.5
         )
@@ -151,7 +157,7 @@ for i in range(8):
             linewidth=0.5
         )
 
-        axs[1][0].set_ylim(4000, 11000)
+        axs[1][0].set_ylim(3000, 20000)
 
         # plot FALC Vlos profile
         # axs[1][1].plot(
@@ -163,8 +169,8 @@ for i in range(8):
 
         # plot inverted Vlos profile
         axs[1][1].plot(
-            atmos[0]['ltau500'][0][i][j],
-            atmos[0]['vlos'][0][i][j] / 1e5,
+            atmos[0]['ltau500'][0][i-1][j-250],
+            atmos[0]['vlos'][0][i-1][j-250] / 1e5,
             color=green,
             linewidth=0.5
         )
@@ -176,7 +182,7 @@ for i in range(8):
             linewidth=0.5
         )
 
-        axs[1][1].set_ylim(-25, 25)
+        axs[1][1].set_ylim(-3, 3)
 
         # plot FALC Vturb profile
         # axs[2][0].plot(
@@ -188,8 +194,8 @@ for i in range(8):
 
         # plot inverted Vturb profile
         axs[2][0].plot(
-            atmos[0]['ltau500'][0][i][j],
-            atmos[0]['vturb'][0][i][j] / 1e5,
+            atmos[0]['ltau500'][0][i-1][j-250],
+            atmos[0]['vturb'][0][i-1][j-250] / 1e5,
             color=green,
             linewidth=0.5
         )
@@ -210,8 +216,8 @@ for i in range(8):
 
         # plot inverted Vturb profile
         axs[2][1].plot(
-            atmos[0]['ltau500'][0][i][j],
-            atmos[0]['blong'][0][i][j],
+            atmos[0]['ltau500'][0][i-1][j-250],
+            atmos[0]['blong'][0][i-1][j-250],
             color=green,
             linewidth=0.5
         )
