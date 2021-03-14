@@ -22,9 +22,9 @@ def calculate_b_los(
 
     indices = np.where(
         (
-            np.array(wavelength_arr) > (lambda0 + lambda_range_min)
+            np.array(wavelength_arr) >= (lambda_range_min)
         ) & (
-            np.array(wavelength_arr) < (lambda0 + lambda_range_max)
+            np.array(wavelength_arr) <= (lambda_range_max)
         )
     )[0]
 
@@ -44,6 +44,28 @@ def calculate_b_los(
 
     return -numerator / (constant * denominator)
 
+
+def prepare_calculate_blos(
+    obs,
+    wavelength_arr,
+    lambda0,
+    lambda_range_min,
+    lambda_range_max,
+    g_eff
+):
+    def actual_calculate_blos(i, j):
+
+        stokes_I, stokes_V = obs[i, 0, j], obs[i, 3, j]
+        return calculate_b_los(
+            stokes_I,
+            stokes_V,
+            wavelength_arr,
+            lambda0,
+            lambda_range_min,
+            lambda_range_max,
+            g_eff
+        )
+    return actual_calculate_blos
 
 def calculate_b_transverse_wing(
     stokes_I,

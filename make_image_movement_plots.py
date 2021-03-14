@@ -156,9 +156,9 @@ def make_image_tracking_plots(
         f = open(filename)
         lines = f.readlines()
 
-    ra_lines = [line.split(' ')[3] for line in lines[start_line:end_line] if line.startswith('Mean Voltage RA:')]
+    ra_lines = [line.split(' ')[3] for line in lines if line.startswith('Mean Voltage RA:')][start_line:end_line]
 
-    dec_lines = [line.split(' ')[3] for line in lines[start_line:end_line] if line.startswith('Mean Voltage DEC:')]
+    dec_lines = [line.split(' ')[3] for line in lines if line.startswith('Mean Voltage DEC:')][start_line:end_line]
 
     reference_ra = float([line.split(' ')[2] for line in lines if line.startswith('ReferenceVoltage RA:')][0])
 
@@ -223,6 +223,8 @@ def make_image_tracking_plots(
 
     axs[0].set_ylabel('drift in mm')
 
+    axs[0].set_ylim(-0.7, 0.7)
+
     axs[0].set_title('RA Std Drift: {}'.format(std_ra))
 
     axs[0].legend(loc="upper right")
@@ -238,6 +240,8 @@ def make_image_tracking_plots(
     )
 
     axs[1].set_ylabel('drift in mm')
+
+    axs[1].set_ylim(-0.7, 0.7)
 
     axs[1].set_title('DEC Std Drift: {}'.format(std_dec))
 
