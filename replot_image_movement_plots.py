@@ -56,10 +56,10 @@ def make_plots_deviation(filename, ra_filename, dec_filename, timestring, images
     fig, axs = plt.subplots(1, 2, figsize=(19.2, 10.8), dpi=100)
 
     axs[0].scatter(ra_drift[:, 0], (ra_drift[:, 1] - ra_drift[:, 2]) * imagescale, color='#364f6B', label='Drift Subtracted data')
-    axs[0].plot(ra_drift[:, 0], 0, color='#3fC1C9')
+    axs[0].plot(ra_drift[:, 0], np.zeros_like(ra_drift[:, 0]), color='#3fC1C9')
 
     axs[1].scatter(dec_drift[:, 0], (dec_drift[:, 1] - dec_drift[:, 2]) * imagescale, color='#364f6B', label='Drift Subtracted data')
-    axs[1].plot(dec_drift[:, 0], 0, color='#3fC1C9')
+    axs[1].plot(dec_drift[:, 0], np.zeros_like(dec_drift[:, 0]), color='#3fC1C9')
 
     axs[0].set_xlabel('Time in Minutes')
     axs[1].set_xlabel('Time in Minutes')
