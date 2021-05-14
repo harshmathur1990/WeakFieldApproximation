@@ -142,6 +142,7 @@ def make_image_tracking_plots(
     dec_slope,
     start_line=0,
     end_line=None,
+    image_scale=5.5
 ):
 
     size = plt.rcParams['lines.markersize']
