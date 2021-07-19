@@ -37,7 +37,7 @@ class Line(object):
 def print_level_list(filename, levels_list):
     f = open(filename, 'w')
 
-    fw = '  {}  {}  {}  {}  {}  {}  {}\n'
+    fw = '{} {} {} {} {} {} {} 1.0\n'
 
     for level in levels_list:
         f.write(
@@ -53,7 +53,7 @@ def print_level_list(filename, levels_list):
 def print_line_list(filename, lines_list):
     f = open(filename, 'w')
 
-    fw = '  {}  {}  {}  {}  {}  {}  {}\n'
+    fw = '{} {} {} {} {} {} {} 1.0\n'
 
     for line in lines_list:
         f.write(
@@ -180,8 +180,6 @@ def generate_energy_level_lines_file_for_rh(
 
         for nist_line in nist_lines:
 
-            import ipdb;ipdb.set_trace()
-
             nist_splitlines = nist_line.split('\t')
 
             if len(nist_splitlines) != 9:
@@ -212,13 +210,16 @@ def generate_energy_level_lines_file_for_rh(
 
             up_level_str = nist_splitlines[6][1:-1]
 
-            low_level = level_config_map[low_level_str]
+            low_level = level_config_map.get(low_level_str)
 
-            up_level = level_config_map[up_level_str]
+            up_level = level_config_map.get(up_level_str)
+
+            if not low_level or not up_level:
+                continue
 
             low_j = int(nist_splitlines[5][1:-1][:-2])
 
-            up_j = int(nist_splitlines[8][1:-1][:-2])
+            up_j = int(nist_splitlines[8].strip()[1:-1][:-2])
 
             low_n = int(low_level.config[:-1])
 
