@@ -70,7 +70,12 @@ def get_level_config_map(levels_list):
     result_dict = dict()
 
     for level in levels_list:
-        result_dict[level.config] = level
+        if level.config not in result_dict:
+            result_dict[level.config] = {
+                level.j: level
+            }
+        else:
+            result_dict[level.config][level.j] = level
 
     return result_dict
 
@@ -210,16 +215,26 @@ def generate_energy_level_lines_file_for_rh(
 
             up_level_str = nist_splitlines[6][1:-1]
 
-            low_level = level_config_map.get(low_level_str)
-
-            up_level = level_config_map.get(up_level_str)
-
-            if not low_level or not up_level:
+            if not nist_splitlines[5][1:-1] or not nist_splitlines[8].strip()[1:-1]:
                 continue
 
             low_j = int(nist_splitlines[5][1:-1][:-2])
 
             up_j = int(nist_splitlines[8].strip()[1:-1][:-2])
+
+            low_level_dict = level_config_map.get(low_level_str)
+
+            up_level_dict = level_config_map.get(up_level_str)
+
+            if not low_level_dict or not up_level_dict:
+                continue
+
+            low_level = low_level_dict.get(low_j)
+
+            up_level = up_level_dict.get(up_j)
+
+            if not low_level or not up_level:
+                continue
 
             low_n = int(low_level.config[:-1])
 
