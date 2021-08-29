@@ -50,11 +50,14 @@ def approximate_stray_light_and_sigma(
     continuum=1.0,
     indices=None
 ):
+    if indices == None:
+        indices = np.arange(line_profile.size)
+
     fwhm = np.linspace(2, 30, 50)
 
     sigma = fwhm / 2.355
 
-    k_values = np.linspace(0, 1, 100)
+    k_values = np.arange(0, 1, 0.01)
 
     result = np.zeros(shape=(sigma.size, k_values.size))
 
@@ -84,4 +87,6 @@ def approximate_stray_light_and_sigma(
                 degraded_atlas[indices] / degraded_atlas[indices][0],
                 line_profile / line_profile[0]
             )
-    return result, result_atlas
+
+    
+    return result, result_atlas, fwhm, sigma, k_values

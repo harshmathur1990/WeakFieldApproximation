@@ -12,7 +12,8 @@ def make_calibration_plots(
     ra_filename,
     dec_filename,
     ra_direction=-1,
-    dec_direction=1
+    dec_direction=1,
+    encoding='utf-16-le'
 ):
 
     plt.close('all')
@@ -22,7 +23,7 @@ def make_calibration_plots(
     plt.rc('font', size=24)
 
     try:
-        ra_f = open(ra_filename, encoding='utf-16-le')
+        ra_f = open(ra_filename, encoding=encoding)
     except Exception:
         ra_f = open(ra_filename)
 
