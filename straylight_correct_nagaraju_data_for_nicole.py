@@ -7,6 +7,7 @@ import sunpy.io.fits
 from pathlib import Path
 from prepare_data import *
 from stray_light_approximation import *
+import matplotlib.gridspec as gridspec
 
 
 base_path = Path(
@@ -123,7 +124,7 @@ wave_ca = np.array(
 
 weights_file = '/home/harsh/CourseworkRepo/2008 Sp Data/final_data/weights.txt'
 
-synthesis_file = base_path / 'falc_Ca_0p536.nc'
+synthesis_file = base_path / 'falc_syn_0p536_mode_2.pro.nc'
 
 interesting_fov = '[0:19, :, 230:290]'
 
@@ -144,7 +145,7 @@ def get_raw_data(filename):
     return raw_data[:, :, :, 18:18 + 464][:, :, :, ::-1]
 
 
-def correct_for_straylight(data):
+def correct_for_straylight(data, filename):
 
     crop_indice_x = np.arange(4, 17)
 
@@ -196,7 +197,13 @@ def correct_for_straylight(data):
         indices=None
     )
 
-    f = h5py.File(write_path / 'straylight_ca_using_median_profiles_with_atlas_at_0p536_estimated_profile.h5', 'w')
+    f = h5py.File(
+        write_path / '{}_straylight_ca_using_median_profiles_with_atlas_at_0p536_estimated_profile_using_nicole.h5'.format(
+            filename
+        )
+        ,
+        'w'
+    )
 
     f['wave_ca'] = wave_ca
 
@@ -272,7 +279,7 @@ def generate_stic_input_files(filename):
     stray_corrected_data, stray_corrected_median, stic_cgs_calib_factor = correct_for_straylight(data)
 
     f = h5py.File(
-        write_path / '{}_stray_corrected.h5'.format(
+        write_path / '{}_stray_corrected_nicole.h5'.format(
             filename
         ),
         'w'
@@ -282,7 +289,7 @@ def generate_stic_input_files(filename):
 
     f['stray_corrected_median'] = stray_corrected_median
 
-    f['stic_cgs_calib_factor'] = stic_cgs_calib_factor
+    f['nicole_cgs_calib_factor'] = stic_cgs_calib_factor
 
     f['wave_ca'] = wave_ca
 
@@ -304,7 +311,7 @@ def generate_stic_input_files(filename):
     ca_8.weights[:,:] = np.loadtxt(weights_file)
 
     ca_8.write(
-        '{}_stic_profiles.nc'.format(
+        '{}_nicole_profiles.nc'.format(
             filename
         )
     )
@@ -334,3 +341,220 @@ def generate_input_atmos_file():
     m.vturb[:, :, :] = f['vturb'][0, 0, 0]
 
     m.write('falc_60_19.nc')
+
+
+def generate_input_model_for_nicole(filename):
+    falc = np.loadtxt(open('falc.model').readlines()[2:])
+
+    tau = np.zeros((19, 60, 150))
+
+    tau[:, :] = falc[:, 0]
+
+    temperature = np.zeros((19, 60, 150))
+
+    temperature[:, :] = falc[:, 1]
+
+    electron_pressure = np.zeros((19, 60, 150))
+
+    electron_pressure[:, :] = falc[:, 2]
+
+    velocity_turbulent = np.zeros((19, 60, 150))
+
+    velocity_turbulent[:, :] = falc[:, 3]
+
+    velocity_macroturbulent = np.zeros((19, 60))
+
+    f = h5py.File(
+        write_path / '{}_straylight_ca_using_median_profiles_with_atlas_at_0p536_estimated_profile_using_nicole.h5'.format(
+            filename
+        )
+        ,
+        'r'
+    )
+
+    velocity_macroturbulent[:, :] = f['broadening_in_km_sec'][()]
+
+    f.close()
+
+    f = h5py.File('falc_60_19_for_nicole.nc', 'w')
+
+    f['tau'] = tau
+
+    f['temperature'] = temperature
+
+    f['electron_pressure'] = electron_pressure
+
+    f['velocity_turbulent'] = velocity_turbulent
+
+    f['velocity_macroturbulent'] = velocity_macroturbulent * 1e5
+
+    f.close()
+
+
+def generate_median_file_for_inversion(filename):
+    f = h5py.File(
+        write_path / '{}_stray_corrected_nicole.h5'.format(filename),
+        'r'
+    )
+
+    wc8, ic8 = findgrid(wave_ca, (wave_ca[10] - wave_ca[9])*0.25, extra=8)
+
+    ca_8 = sp.profile(nx=1, ny=1, ns=4, nw=wc8.size)
+
+    ca_8.wav[:] = wc8[:]
+
+    ca_8.dat[0,0,0,ic8,0] = f['stray_corrected_median'][()] / f['nicole_cgs_calib_factor'][()]
+
+    ca_8.weights[:,:] = np.loadtxt(weights_file)
+
+    ca_8.write(
+        '{}_nicole_median_profile.nc'.format(
+            filename
+        )
+    )
+
+    f.close()
+
+
+@np.vectorize
+def get_relative_velocity(wavelength):
+    return wavelength - 8542.09
+
+
+def compare_median_profile(filename, median_prof_name, median_atmos_name):
+
+    size = plt.rcParams['lines.markersize']
+    
+    median_profile_f = h5py.File(
+        write_path / 'maps_1/nicole/inversions/{}'.format(
+            median_prof_name
+        ),
+        'r'
+    )
+
+    median_atmos_name_f = h5py.File(
+        write_path / 'maps_1/nicole/inversions/{}'.format(
+            median_atmos_name
+        ),
+        'r'
+    )
+
+    falc = np.loadtxt(open(write_path / 'falc.model').readlines()[2:])
+
+    median_obseved_f = h5py.File(
+        write_path / 'maps_1/nicole/{}_stray_corrected_nicole.h5'.format(filename),
+        'r'
+    )
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
+
+    fig = plt.figure(figsize=(4, 9))
+
+    gs = gridspec.GridSpec(3, 1)
+
+    # gs.update(left=0, right=1, top=1, bottom=0, wspace=0.0, hspace=0.0)
+
+    axs = fig.add_subplot(gs[0])
+
+    rela_wave_syn = get_relative_velocity(
+        median_profile_f['wav'][()]
+    )
+
+    rela_wave_obs = get_relative_velocity(
+        median_obseved_f['wave_ca'][()]
+    )
+
+    axs.scatter(
+        rela_wave_syn,
+        median_profile_f['profiles'][0, 0, 0, :, 0],
+        color='blue',
+        s=size/12
+    )
+
+    axs.plot(
+        rela_wave_syn,
+        median_profile_f['profiles'][0, 0, 0, :, 0],
+        linestyle='--',
+        linewidth=0.05,
+        color='blue',
+        label='Synthesized'
+    )
+
+    axs.scatter(
+        rela_wave_obs,
+        median_obseved_f['stray_corrected_median'][()] / median_obseved_f['nicole_cgs_calib_factor'][()],
+        color='red',
+        s=size/12
+    )
+
+    axs.plot(
+        rela_wave_obs,
+        median_obseved_f['stray_corrected_median'][()] / median_obseved_f['nicole_cgs_calib_factor'][()],
+        linestyle='--',
+        linewidth=0.05,
+        color='red',
+        label='Observed'
+    )
+
+    axs.set_xlabel(r'$\lambda\;(\AA)$')
+    axs.set_ylabel(r'$I/I_{c 5000 \AA}$')
+
+    handles, labels = axs.get_legend_handles_labels()
+
+    plt.legend(
+        handles,
+        labels,
+        ncol=2,
+        bbox_to_anchor=(0., 1.02, 1., .102),
+        loc='lower left',
+        mode="expand",
+        borderaxespad=0.
+    )
+
+    axs = fig.add_subplot(gs[1])
+
+    axs.plot(
+        median_atmos_name_f['tau'][0, 0],
+        median_atmos_name_f['temperature'][0, 0] / 1e3,
+        color='blue'
+    )
+
+    axs.plot(
+        falc[:, 0],
+        falc[:, 1] / 1e3,
+        color='red'
+    )
+
+    axs.set_ylim(4, 11)
+    axs.set_xlabel(r'$log(\tau_{500})$')
+    axs.set_ylabel(r'$T[kK]$')
+
+    axs = fig.add_subplot(gs[2])
+
+    axs.plot(
+        median_atmos_name_f['tau'][0, 0],
+        median_atmos_name_f['velocity_z'][0, 0] / 1e5,
+        color='blue'
+    )
+
+    # axs.set_ylim(4, 5)
+    axs.set_xlabel(r'$log(\tau_{500})$')
+    axs.set_ylabel(r'$V_{LOS}[kms^{-1}]$')
+
+    fig.tight_layout()
+
+    fig.savefig(
+        'MedianProfileComparison.pdf',
+        format='pdf',
+        dpi=1200
+    )
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
