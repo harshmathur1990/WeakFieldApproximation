@@ -166,3 +166,15 @@ def make_atmosphere(
         ),
         snap=snap
     )
+
+
+if __name__ == '__main__':
+    make_atmosphere(
+        '/data/harsh/en024048_hion/atmos',
+        'en024048_hion',
+        412,
+        250, 251,
+        250, 251,
+        -500 * 1e3,
+        2000 * 1e3
+    )
