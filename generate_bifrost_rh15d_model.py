@@ -35,7 +35,7 @@ def make_atmosphere(
 
     T = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
 
-    T[0] = np.pow(
+    T[0] = np.power(
         np.transpose(
             data[ind, start_x:end_x, start_y:end_y],
             axes=(1, 2, 0)
@@ -73,7 +73,7 @@ def make_atmosphere(
             foldername / nhfile
         )[0]
 
-        nH[0, i-1] = np.pow(
+        nH[0, i-1] = np.power(
             np.transpose(
                 data[ind, start_x:end_x, start_y:end_y],
                 axes=(1, 2, 0)
@@ -91,7 +91,7 @@ def make_atmosphere(
 
     ne = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
 
-    ne[0] = np.pow(
+    ne[0] = np.power(
         np.transpose(
             data[ind, start_x:end_x, start_y:end_y],
             axes=(1, 2, 0)
