@@ -157,7 +157,7 @@ def make_atmosphere(
         simulation_name, start_x, end_x, start_y, end_y, height_min_in_m, height_max_in_m
     )
 
-    make_xarray_atmos(
+    rh15d.make_xarray_atmos(
         outfile, T, vz, z,
         nH=nH, Bz=Bz, By=By,
         Bx=Bx, ne=ne,
