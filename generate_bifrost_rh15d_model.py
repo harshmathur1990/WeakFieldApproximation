@@ -36,11 +36,11 @@ def make_atmosphere(
     T = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
 
     T[0] = np.power(
+        10,
         np.transpose(
             data[ind, start_x:end_x, start_y:end_y],
             axes=(1, 2, 0)
-        ),
-        10
+        )
     )
 
     vz_file = 'BIFROST_{}_uz_{}.fits'.format(
@@ -74,11 +74,11 @@ def make_atmosphere(
         )[0]
 
         nH[0, i-1] = np.power(
+            10,
             np.transpose(
                 data[ind, start_x:end_x, start_y:end_y],
                 axes=(1, 2, 0)
-            ),
-            10
+            )
         )
 
     nefile = 'BIFROST_{}_lgne_{}.fits'.format(
@@ -92,11 +92,11 @@ def make_atmosphere(
     ne = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
 
     ne[0] = np.power(
+        10,
         np.transpose(
             data[ind, start_x:end_x, start_y:end_y],
             axes=(1, 2, 0)
-        ),
-        10
+        )
     )
 
     bxfile = 'BIFROST_{}_bx_{}.fits'.format(
