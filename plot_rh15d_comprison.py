@@ -36,6 +36,7 @@ def make_ray_file():
     )
     f.close()
 
+
 def make_csv_file(filename):
 
     data = {
@@ -181,19 +182,21 @@ def make_plot(name):
 
     plt.cla()
 
-    plt.plot(wave[atlas_indice], norm_line, label='synthesis')
+    plt.plot(wave[atlas_indice] - 6562.79, norm_line, label='synthesis')
 
-    plt.plot(atlas_wave, norm_atlas, label='BASS2000')
+    plt.plot(atlas_wave - 6562.79, norm_atlas, label='BASS2000')
 
-    plt.xlabel('Wavelength (Angstrom)')
+    plt.xlabel(r'$\Delta \lambda\; (\AA)$')
 
-    plt.ylabel('Normalised Intensity')
+    plt.ylabel(r'$I/I_{c}$')
 
     plt.legend()
 
     fig = plt.gcf()
 
-    fig.set_size_inches(19.2, 10.8, forward=True)
+    fig.set_size_inches(6, 4, forward=True)
+
+    fig.tight_layout()
 
     os.chdir("/home/harsh/CourseworkRepo/WFAComparison")
 
@@ -202,3 +205,43 @@ def make_plot(name):
     plt.savefig('{}.png'.format(name), dpi=300, format='png')
 
     plt.show()
+
+
+def make_log_tau_compare_plots(filename_list, case_nos_list):
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
+
+    fig = plt.figure()
+
+    for filename, case_no in zip(filename_list, case_nos_list):
+        data = pd.read_csv(filename)
+
+        height = data['Height (Km)'].values[1:]
+
+        logtau = data['Log Tau at H alpha Core'].values[1:]
+
+        plt.plot(
+            height,
+            logtau,
+            label='Case {}'.format(case_no)
+        )
+
+    plt.xlabel(r'$Height (Km)$')
+
+    plt.ylabel(r'$\log \tau$')
+
+    plt.legend()
+
+    fig.set_size_inches(6, 4,  forward=True)
+
+    fig.savefig('Log Tau Compare.pdf', format='pdf', dpi=300)
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
