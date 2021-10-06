@@ -85,7 +85,7 @@ def do_work(num_clusters):
         fout['inertia_'] = model.inertia_
         fout['n_iter_'] = model.n_iter_
 
-        rps = np.zeros((23, 5), dtype=np.float64)
+        rps = np.zeros((num_clusters, 23, 5), dtype=np.float64)
 
         framerows /= weights
         framerows = (framerows * sd) - mn
