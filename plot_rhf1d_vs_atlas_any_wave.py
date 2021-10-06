@@ -60,7 +60,7 @@ def make_plot(name, cw):
 
     fig = plt.gcf()
 
-    fig.set_size_inches(19.2, 10.8, forward=True)
+    fig.set_size_inches(6, 4, forward=True)
 
     plt.savefig('{}.eps'.format(name), dpi=300, format='eps')
 
