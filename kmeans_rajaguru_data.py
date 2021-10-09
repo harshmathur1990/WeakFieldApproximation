@@ -168,6 +168,8 @@ def plot_inertia():
 
     fig.savefig(base_path / 'KMeansInertia.pdf', format='pdf', dpi=300)
 
+    plt.show()
+
     plt.close('all')
 
     plt.clf()
