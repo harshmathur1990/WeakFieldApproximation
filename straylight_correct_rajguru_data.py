@@ -3,6 +3,9 @@ sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
 sys.path.insert(2, '/home/harsh/CourseworkRepo/WFAComparison')
 import scipy.io
 import h5py
+import sys
+sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
+sys.path.insert(2, '/home/harsh/CourseworkRepo/WFAComparison')
 import numpy as np
 import sunpy.io.fits
 from pathlib import Path
@@ -396,7 +399,7 @@ def correct_for_straylight():
 def correct_for_straylight(data, straylight_factor, multiplicative_factor=None):
     
     #data must be of shape (t, x, y, lambda, stokes) with t, x, y optional
-    # straylight_factor must be between 0-100
+    # straylight_factor must be between 0-1
 
     result = data.copy()
 
