@@ -12,17 +12,6 @@ kmeans_file = Path(
     '/data/harsh1/data_to_harsh/chosen_out_30.h5'
 )
 
-
-rps_plot_write_dir = Path(
-    '/data/harsh1/data_to_harsh/RPsPlots'
-)
-
-rps_input_profs = rps_plot_write_dir / 'rps_stic_profiles.nc'
-
-rps_atmos_result = rps_plot_write_dir / 'rps_stic_profiles_cycle_1_t_4_vl_4_vt_0_blos_4_bhor_4_azi_4_atmos.nc'
-
-rps_profs_result = rps_plot_write_dir / 'rps_stic_profiles_cycle_1_t_4_vl_4_vt_0_blos_4_bhor_4_azi_4_profs.nc'
-
 straylight_factor_6173 = 20
 correction_factor_6173 = np.array(
     [
@@ -67,6 +56,40 @@ falc_file_path = Path(
     '/home/harsh/stic/model_atmos/falc_nicole_for_stic.nc'
 )
 
+ltau = np.array(
+    [
+        -8.       , -7.78133  , -7.77448  , -7.76712  , -7.76004  ,
+        -7.75249  , -7.74429  , -7.7356   , -7.72638  , -7.71591  ,
+        -7.70478  , -7.69357  , -7.68765  , -7.68175  , -7.67589  ,
+        -7.66997  , -7.66374  , -7.65712  , -7.64966  , -7.64093  ,
+        -7.63093  , -7.6192   , -7.6053   , -7.58877  , -7.56925  ,
+        -7.54674  , -7.52177  , -7.49317  , -7.4585   , -7.41659  ,
+        -7.36725  , -7.31089  , -7.24834  , -7.18072  , -7.1113   ,
+        -7.04138  , -6.97007  , -6.89698  , -6.82299  , -6.74881  ,
+        -6.67471  , -6.60046  , -6.52598  , -6.45188  , -6.37933  ,
+        -6.30927  , -6.24281  , -6.17928  , -6.11686  , -6.05597  ,
+        -5.99747  , -5.94147  , -5.88801  , -5.84684  , -5.81285  ,
+        -5.78014  , -5.74854  , -5.71774  , -5.68761  , -5.65825  ,
+        -5.6293   , -5.60066  , -5.57245  , -5.54457  , -5.51687  ,
+        -5.48932  , -5.46182  , -5.43417  , -5.40623  , -5.37801  ,
+        -5.3496   , -5.32111  , -5.29248  , -5.26358  , -5.23413  ,
+        -5.20392  , -5.17283  , -5.14073  , -5.1078   , -5.07426  ,
+        -5.03999  , -5.00492  , -4.96953  , -4.93406  , -4.89821  ,
+        -4.86196  , -4.82534  , -4.78825  , -4.75066  , -4.71243  ,
+        -4.67439  , -4.63696  , -4.59945  , -4.5607   , -4.52212  ,
+        -4.48434  , -4.44653  , -4.40796  , -4.36863  , -4.32842  ,
+        -4.28651  , -4.24205  , -4.19486  , -4.14491  , -4.09187  ,
+        -4.03446  , -3.97196  , -3.90451  , -3.83088  , -3.7496   ,
+        -3.66     , -3.56112  , -3.4519   , -3.33173  , -3.20394  ,
+        -3.07448  , -2.94444  , -2.8139   , -2.68294  , -2.55164  ,
+        -2.42002  , -2.28814  , -2.15605  , -2.02377  , -1.89135  ,
+        -1.7588   , -1.62613  , -1.49337  , -1.36127  , -1.23139  ,
+        -1.10699  , -0.99209  , -0.884893 , -0.782787 , -0.683488 ,
+        -0.584996 , -0.485559 , -0.383085 , -0.273456 , -0.152177 ,
+        -0.0221309,  0.110786 ,  0.244405 ,  0.378378 ,  0.51182  ,
+        0.64474  ,  0.777188 ,  0.909063 ,  1.04044  ,  1.1711
+    ]
+)
 stic_cgs_calib_factor_6173 = 7842.25
 stic_cgs_calib_factor_7090 = 8702.67
 
@@ -478,6 +501,10 @@ def plot_rp_map_fov(time_step):
 
 def make_actual_inversion_files(time_step):
 
+    rps_plot_write_dir = Path(
+        '/data/harsh1/data_to_harsh/RPsPlots/same_weight'
+    )
+
     wfe1, ife1 = findgrid(wave_6173, (wave_6173[10] - wave_6173[9]) * 0.25, extra=8)
 
     wfe2, ife2 = findgrid(wave_7090, (wave_7090[10] - wave_7090[9]) * 0.25, extra=8)
@@ -534,34 +561,98 @@ def make_actual_inversion_files(time_step):
     print("(w0, dw, nw, normalization, degradation_type, instrumental_profile file)")
     print(" ")
     
+    generate_input_atmos_file_for_map(time_step)
+
+
+def prepare_get_parameter(param):
+
+    def get_parameter(rp):
+        return param[rp]
+
+    return get_parameter
+
 
 def generate_input_atmos_file_for_map(time_step):
 
-    f = h5py.File(falc_file_path, 'r')
+    rps_plot_write_dir = Path(
+        '/data/harsh1/data_to_harsh/RPsPlots/same_weight'
+    )
+
+    out_atmos_all = rps_plot_write_dir / 'rps_stic_profiles_cycle_1_t_4_vl_4_vt_0_blos_4_bhor_4_azi_4_atmos.nc'
+
+    out_atmos_16 = rps_plot_write_dir / 'rps_16_stic_profiles_cycle_1_t_4_vl_4_vt_0_blos_4_bhor_4_azi_4_atmos.nc'
+
+    f_all = h5py.File(out_atmos_all, 'r')
+
+    f_16 = h5py.File(out_atmos_16, 'r')
+
+    temp = f_all['temp'][0, 0, :]
+
+    vlos = f_all['vlos'][0, 0, :]
+
+    vturb = f_all['vturb'][0, 0, :]
+
+    blong = f_all['blong'][0, 0, :]
+
+    bhor = f_all['bhor'][0, 0, :]
+
+    azi = f_all['azi'][0, 0, :]
+
+    temp[16] = f_16['temp'][0, 0, 0]
+
+    vlos[16] = f_16['vlos'][0, 0, 0]
+
+    vturb[16] = f_16['vturb'][0, 0, 0]
+
+    blong[16] = f_16['blong'][0, 0, 0]
+
+    bhor[16] = f_16['bhor'][0, 0, 0]
+
+    azi[16] = f_16['azi'][0, 0, 0]
+
+    get_temp = prepare_get_parameter(temp)
+
+    get_vlos = prepare_get_parameter(vlos)
+
+    get_vturb = prepare_get_parameter(vturb)
+
+    get_blong = prepare_get_parameter(blong)
+
+    get_bhor = prepare_get_parameter(bhor)
+
+    get_azi = prepare_get_parameter(azi)
+
+    f_16.close()
+
+    f_all.close()
+
+    f = h5py.File(kmeans_file, 'r')
 
     m = sp.model(nx=200, ny=200, nt=1, ndep=150)
 
-    m.ltau[:, :, :] = f['ltau500'][0, 0, 0]
+    m.ltau[:, :, :] = ltau
 
     m.pgas[:, :, :] = 1
 
-    m.temp[:, :, :] = f['temp'][0, 0, 0]
+    m.temp[0, :, :] = get_temp(f['final_labels'][time_step])
 
-    m.vlos[:, :, :] = f['vlos'][0, 0, 0]
+    m.vlos[0, :, :] = get_vlos(f['final_labels'][time_step])
 
-    m.vturb[:, :, :] = 0
+    m.vturb[0, :, :] = get_vturb(f['final_labels'][time_step])
 
-    m.Bln[:, :, :] = 100
+    m.Bln[0, :, :] = get_blong(f['final_labels'][time_step])
 
-    m.Bho[:, :, :] = 100
+    m.Bho[0, :, :] = get_bhor(f['final_labels'][time_step])
 
-    m.azi[:, :, :] = 100. * 3.14159 / 180.
+    m.azi[0, :, :] = get_azi(f['final_labels'][time_step])
 
     m.write(
-        rps_plot_write_dir / 'falc_{}_1_blong_100_bhor_100_azi_45.nc'.format(
-            num
+        rps_plot_write_dir / 'time_step_{}_initial_atmos.nc'.format(
+            time_step
         )
     )
+
+
 def make_stic_inversion_files():
 
     wfe1, ife1 = findgrid(wave_6173, (wave_6173[10] - wave_6173[9]) * 0.25, extra=8)
@@ -606,10 +697,16 @@ def make_stic_inversion_files():
 
     fe2.weights[ife2, :] = 0.004
 
+    fe1.weights[ife1,1:3] /= 4.5 # Some more weight for Q&U
+    fe1.weights[ife1,3] /= 3.5    # Some more weight for V
+
+    fe2.weights[ife2,1:3] /= 4.5 # Some more weight for Q&U
+    fe2.weights[ife2,3] /= 3.5    # Some more weight for V
+
     fe = fe1 + fe2
 
     fe.write(
-        rps_plot_write_dir / 'rps_stic_profiles.nc'
+        rps_plot_write_dir / 'rps_stic_profiles_more_weights.nc'
     )
 
     lab = "region = {0:10.5f}, {1:8.5f}, {2:3d}, {3:e}, {4}"
@@ -709,11 +806,11 @@ def generate_input_atmos_file(num=30):
 
     m.vturb[:, :, :] = 0
 
-    m.Bln[:, :, :] = 100
+    m.Bln[:, :, :] = 2000
 
-    m.Bho[:, :, :] = 100
+    m.Bho[:, :, :] = 1000
 
-    m.azi[:, :, :] = 100. * 3.14159 / 180.
+    m.azi[:, :, :] = 45. * 3.14159 / 180.
 
     m.write(
         rps_plot_write_dir / 'falc_{}_1_blong_100_bhor_100_azi_45.nc'.format(
@@ -723,6 +820,16 @@ def generate_input_atmos_file(num=30):
 
 
 def make_rps_inversion_result_plots():
+
+    rps_plot_write_dir = Path(
+        '/data/harsh1/data_to_harsh/RPsPlots/more_weight'
+    )
+
+    rps_input_profs = rps_plot_write_dir / 'rps_stic_profiles_more_weights.nc'
+
+    rps_atmos_result = rps_plot_write_dir / 'rps_stic_profiles_more_weights_cycle_1_t_4_vl_4_vt_0_blos_4_bhor_4_azi_4_atmos.nc'
+
+    rps_profs_result = rps_plot_write_dir / 'rps_stic_profiles_more_weights_cycle_1_t_4_vl_4_vt_0_blos_4_bhor_4_azi_4_profs.nc'
     
     finputprofs = h5py.File(rps_input_profs, 'r')
 
