@@ -9,42 +9,32 @@ from prepare_data import *
 
 
 kmeans_output_dir = Path(
-    '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/kmeans_output'
+    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/kmeans_output'
 )
 
 atmos_rp_write_path = Path(
-    '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/'
+    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/'
 )
 
 input_file = Path(
-    '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
 )
 
 
 kmeans_file = Path(
-    '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/chosen_out_30.h5'
+    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/chosen_out_30.h5'
 )
 
 
 rps_plot_write_dir = Path(
-    '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/RPs_plots/'
+    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/RPs_plots/'
 )
 
 falc_file_path = Path(
     '/home/harsh/CourseworkRepo/stic/run/falc_nicole_for_stic.nc'
 )
 
-rps_atmos_result = Path(
-    '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/RPs_plots/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_blong_3_atmos.nc'
-)
 
-rps_profs_result = Path(
-    '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/RPs_plots/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_blong_3_profs.nc'
-)
-
-rps_input_profs = Path(
-    '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/rps_stic_profiles_x_30_y_1.nc'
-)
 
 cw = np.asarray([8542.])
 cont = []
@@ -515,9 +505,11 @@ def plot_rp_map_fov():
 
 def make_stic_inversion_files():
 
-    ind_photosphere = np.array(list(range(113, 128)) + list(range(173, 181)))
+    ind_photosphere = np.array(list(range(108, 140)) + list(range(167, 189)))
 
-    ind_chromosphere = np.array(list(range(280, 323)))
+    outer_core = np.array(list(range(250, 350)))
+
+    inner_core = np.array(list(range(285, 310)))
 
     f = h5py.File(kmeans_file, 'r')
 
@@ -533,13 +525,16 @@ def make_stic_inversion_files():
     )
 
     ca_8.weights[:,:] = 1.e16 # Very high value means weight zero
-    ca_8.weights[ic8,0] = 0.004
-    ca_8.weights[ic8,3] = 0.004
-    ca_8.weights[ic8,3] /= 4.0    # Some more weight for V
-    ca_8.weights[ic8[ind_photosphere],0] /= 2.0
-    ca_8.weights[ic8[ind_chromosphere],0] /= 2.0
-    ca_8.weights[ic8[ind_photosphere],3] /= 2.0
-    ca_8.weights[ic8[ind_chromosphere],3] /= 2.0
+    ca_8.weights[ic8, 0] = 0.004
+    # ca_8.weights[ic8, 3] = 0.004
+    ca_8.weights[ic8[ind_photosphere], 0] /= 2.0
+    # ca_8.weights[ic8[ind_photosphere], 3] /= 2.0
+    ca_8.weights[ic8[outer_core], 0] /= 20.0
+    # ca_8.weights[ic8[outer_core], 3] /= 2.0
+    ca_8.weights[ic8[inner_core], 0] /= 5.0
+    # ca_8.weights[ic8[inner_core], 3] /= 4.0
+    # ca_8.weights[ic8, 3] /= 2.0
+    
 
     ca_8.write(
         atmos_rp_write_path / 'rps_stic_profiles_x_30_y_1.nc'
@@ -577,7 +572,23 @@ def generate_input_atmos_file():
 
 
 def make_rps_inversion_result_plots():
+
+    rps_atmos_result = Path(
+        '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_5_vt_1_blong_0_atmos.nc'
+    )
+
+    rps_profs_result = Path(
+        '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_5_vt_1_blong_0_profs.nc'
+    )
+
+    rps_input_profs = Path(
+        '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/rps_stic_profiles_x_30_y_1.nc'
+    )
     
+    rps_plot_write_dir = Path(
+        '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I'
+    )
+
     finputprofs = h5py.File(rps_input_profs, 'r')
 
     fatmosresult = h5py.File(rps_atmos_result, 'r')
@@ -593,22 +604,24 @@ def make_rps_inversion_result_plots():
 
         plt.cla()
 
-        fig, axs = plt.subplots(3, 2, figsize=(6, 9))
+        fig, axs = plt.subplots(3, 2, figsize=(12, 18))
 
-        axs[0][0].plot(finputprofs['wav'][ind], finputprofs['profiles'][0, 0, i, ind, 0], color='orange')
+        axs[0][0].plot(finputprofs['wav'][ind], finputprofs['profiles'][0, 0, i, ind, 0], color='orange', linewidth=0.5)
 
-        axs[0][0].plot(fprofsresult['wav'][ind], fprofsresult['profiles'][0, 0, i, ind, 0], color='brown')
+        axs[0][0].plot(fprofsresult['wav'][ind], fprofsresult['profiles'][0, 0, i, ind, 0], color='brown', linewidth=0.5)
 
         axs[0][1].plot(
             finputprofs['wav'][ind],
             finputprofs['profiles'][0, 0, i, ind, 3] / finputprofs['profiles'][0, 0, i, ind, 0],
-            color='orange'
+            color='orange',
+            linewidth=0.5
         )
 
         axs[0][1].plot(
             fprofsresult['wav'][ind],
             fprofsresult['profiles'][0, 0, i, ind, 3] / fprofsresult['profiles'][0, 0, i, ind, 0],
-            color='brown'
+            color='brown',
+            linewidth=0.5
         )
 
         axs[1][0].plot(fatmosresult['ltau500'][0, 0, 0], fatmosresult['temp'][0, 0, i] / 1e3, color='brown')
@@ -639,7 +652,7 @@ def make_rps_inversion_result_plots():
 
         fig.tight_layout()
 
-        fig.savefig(rps_plot_write_dir / 'RPs_{}.pdf'.format(i), format='pdf', dpi=300)
+        fig.savefig(rps_plot_write_dir /'RPs_{}.pdf'.format(i), format='pdf', dpi=300)
 
         plt.close('all')
 
@@ -651,3 +664,8 @@ def make_rps_inversion_result_plots():
     fatmosresult.close()
 
     finputprofs.close()
+
+
+if __name__ == '__main__':
+    # make_stic_inversion_files()
+    make_rps_inversion_result_plots()

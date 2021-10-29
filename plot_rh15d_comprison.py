@@ -148,7 +148,7 @@ def make_csv_file(filename):
 def make_plot(name):
     catalog = np.loadtxt('/home/harsh/CourseworkRepo/WFAComparison/catalog_6563.txt')
 
-    os.chdir("/home/harsh/CourseworkRepo/rh/rh/rh15d/run")
+    os.chdir("/home/harsh/CourseworkRepo/rh/rh/rh15d/run_nova")
 
     out = rh15d.Rh15dout(fdir='output')
 
@@ -245,3 +245,87 @@ def make_log_tau_compare_plots(filename_list, case_nos_list):
     plt.clf()
 
     plt.cla()
+
+
+def make_compare_plot(plt_name, name_1, name_2, out_dir_2, out_dir_1='output'):
+    catalog = np.loadtxt('/home/harsh/CourseworkRepo/WFAComparison/catalog_6563.txt')
+
+    os.chdir("/home/harsh/CourseworkRepo/rh/rh/rh15d/run")
+
+    out = rh15d.Rh15dout(fdir=out_dir_1)
+
+    out_2 = rh15d.Rh15dout(fdir=out_dir_2)
+
+    os.chdir("/home/harsh/Spinor_2008/Ca_x_30_y_18_2_20_250_280/Synthesis/")
+
+    wave = np.array(out.ray.wavelength.data)
+
+    wave *= 10
+
+    wave_2 = np.array(out_2.ray.wavelength.data)
+
+    wave_2 *= 10
+
+    intensity = out.ray.intensity.data[0, 0]
+
+    intensity_2 = out_2.ray.intensity.data[0, 0]
+
+    f = h5py.File('falc_ha_Ca_H_15_He_synthesis.nc', 'r')
+
+    get_indice = prepare_get_indice(wave)
+
+    get_indice_2 = prepare_get_indice(wave_2)
+
+    vec_get_indice = np.vectorize(get_indice)
+
+    vec_get_indice_2 = np.vectorize(get_indice_2)
+
+    atlas_indice = vec_get_indice(f['wav'][1860:])
+
+    atlas_indice_2 = vec_get_indice_2(f['wav'][1860:])
+
+    norm_line, norm_atlas, atlas_wave = normalise_profiles(
+        intensity[atlas_indice], wave[atlas_indice],
+        catalog[:, 1], catalog[:, 0],
+        wave[atlas_indice][-1]
+    )
+
+    norm_line_2, norm_atlas_2, atlas_wave_2 = normalise_profiles(
+        intensity_2[atlas_indice_2], wave_2[atlas_indice_2],
+        catalog[:, 1], catalog[:, 0],
+        wave_2[atlas_indice_2][-1]
+    )
+
+    f.close()
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
+
+    plt.plot(wave[atlas_indice] - 6562.79, norm_line, label=name_1)
+
+    plt.plot(wave_2[atlas_indice_2] - 6562.79, norm_line_2, label=name_2)
+
+    plt.plot(atlas_wave - 6562.79, norm_atlas, label='BASS2000')
+
+    plt.xlabel(r'$\Delta \lambda\; (\AA)$')
+
+    plt.ylabel(r'$I/I_{c}$')
+
+    plt.legend()
+
+    fig = plt.gcf()
+
+    fig.set_size_inches(9, 6, forward=True)
+
+    fig.tight_layout()
+
+    os.chdir("/home/harsh/CourseworkRepo/WFAComparison")
+
+    plt.savefig('{}.eps'.format(plt_name), dpi=300, format='eps')
+
+    plt.savefig('{}.png'.format(plt_name), dpi=300, format='png')
+
+    plt.show()

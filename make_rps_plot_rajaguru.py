@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(1, '/home/harsh/stic/example')
+sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
@@ -651,6 +651,123 @@ def generate_input_atmos_file_for_map(time_step):
             time_step
         )
     )
+
+def make_actual_inversion_plots(output_profs, output_atmos, ltau_val=-1):
+
+    foi = h5py.File(output_profs, 'r')
+
+    foa = h5py.File(output_atmos, 'r')
+
+    ind_photosphere = np.array(range(23))
+
+    linpol_p = np.mean(
+        np.sqrt(
+            np.sum(
+                np.square(
+                    foi['profiles'][0, :, :, ind_photosphere, 1:3]
+                ),
+                3
+            )
+        ) / foi['profiles'][0, :, :, ind_photosphere, 0],
+        2
+    )
+
+    circpol_p = np.mean(
+        np.divide(
+            np.abs(foi['profiles'][0, :, :, ind_photosphere, 3]),
+            foi['profiles'][0, :, :, ind_photosphere, 0]
+        ),
+        2
+    )
+
+
+    ltau_index = np.argmin(np.abs(ltau-ltau_val))
+
+    babs = np.sqrt(
+        np.add(
+            np.square(foa['blong'][0, :, :, ltau_index]),
+            np.square(foa['bhor'][0, :, :, ltau_index])
+        )
+    )
+
+    binc = np.rad2deg(
+        np.arctan2(
+            foa['bhor'][0, :, :, ltau_index],
+            foa['blong'][0, :, :, ltau_index]
+        )
+    )
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
+
+    fig = plt.figure(figsize=(9, 9))
+
+    gs = gridspec.GridSpec(3, 3)
+    # gs.update(left=0, right=1, top=1, bottom=0, wspace=0.0, hspace=0.0)
+
+    min_indice = np.unravel_index(np.argmin(foi['profiles'][0, :, :, 0, 0]), (200, 200))
+
+    ltau_indices = np.where((ltau >= -1.5) & (ltau <= 0.5))[0]
+    calib_velocity = np.mean(foa['vlos'][0, min_indice[0], min_indice[1], ltau_indices])
+    print(calib_velocity)  # 95990.96
+
+    axs = list()
+    k = 0
+    for i in range(3):
+        a_axs = list()
+        for j in range(3):
+            a_axs.append(fig.add_subplot(gs[k]))
+            k += 1
+        axs.append(a_axs)
+
+    im00 = axs[0][0].imshow(foi['profiles'][0, :, :, 0, 0], cmap='gray', origin='lower')
+    im01 = axs[0][1].imshow(foi['profiles'][0, :, :, 148, 0], cmap='gray', origin='lower')
+    im02 = axs[0][2].imshow(linpol_p, cmap='gray', origin='lower')
+    im10 = axs[1][0].imshow(circpol_p, cmap='gray', origin='lower')
+    im11 = axs[1][1].imshow(foa['temp'][0, :, :, ltau_index] / 1e3, cmap='hot', origin='lower')
+    im12 = axs[1][2].imshow((foa['vlos'][0, :, :, ltau_index] - calib_velocity) / 1e5, cmap='bwr', origin='lower', vmin=-5, vmax=5)
+    im20 = axs[2][0].imshow(babs, cmap='gray', origin='lower')
+    im21 = axs[2][1].imshow(binc, cmap='gray', origin='lower')
+    im22 = axs[2][2].imshow(foa['azi'][0, :, :, ltau_index], cmap='gray', origin='lower')
+
+    fig.colorbar(im00, ax=axs[0][0])
+    fig.colorbar(im01, ax=axs[0][1])
+    fig.colorbar(im02, ax=axs[0][2])
+    fig.colorbar(im10, ax=axs[1][0])
+    fig.colorbar(im11, ax=axs[1][1])
+    fig.colorbar(im12, ax=axs[1][2])
+    fig.colorbar(im20, ax=axs[2][0])
+    fig.colorbar(im21, ax=axs[2][1])
+    fig.colorbar(im22, ax=axs[2][2])
+
+    axs[0][0].set_title(r'$I_{6173}/I_{c}$')
+    axs[0][1].set_title(r'$I_{7090}/I_{c}$')
+    axs[0][2].set_title(r'$Avg\;LP$')
+
+    axs[1][0].set_title(r'$Avg\;CP$')
+    axs[1][1].set_title(r'$Temp\;[kK]$')
+    axs[1][2].set_title(r'$V_{LOS}\;[kms^{-1}]$')
+
+    axs[2][0].set_title(r'$|B|$')
+    axs[2][1].set_title(r'$B_{INC}\;[degree]$')
+    axs[2][2].set_title(r'$B_{Azi}\;[degree]$')
+
+    fig.tight_layout()
+
+    fig.savefig('InversionResults.pdf', dpi=300, format='pdf')
+
+    foi.close()
+
+    foa.close()
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
 
 
 def make_stic_inversion_files():
