@@ -9,6 +9,7 @@ import h5py
 from stray_light_approximation import *
 from helita.sim import rh15d
 from scipy.integrate import cumtrapz
+from cubic_bezier import prepare_evaluate_bezier
 
 
 def make_ray_file():
@@ -145,10 +146,91 @@ def make_csv_file(filename):
     df.to_csv(filename)
 
 
+def make_plot_bifrost(name):
+    catalog = np.loadtxt('/home/harsh/CourseworkRepo/WFAComparison/catalog_6563.txt')
+
+    os.chdir("/home/harsh/CourseworkRepo/rh/rh/rh15d/run_bifrost")
+
+    f = h5py.File('output/output_ray.hdf5', 'r')
+
+    wave = f['wavelength'][()]
+
+    wave *= 10
+
+    atlas_indice = np.where((wave >= 6558) & (wave <= 6571))[0]
+
+    intensity = f['intensity'][0, 0]
+
+    print (atlas_indice.size)
+
+    print (wave[atlas_indice])
+
+    f.close()
+
+    interp_waves = np.array([6558.85, 6559.53, 6559.54, 6559.56, 6559.59, 6560.40, 6560.45, 6560.61, 6564.01, 6564.03, 6564.07, 6564.14, 6564.19, 6564.25, 6569, 6569.03, 6569.05])
+
+    interp_indice = list()
+
+    for interp_wave in interp_waves:
+        interp_indice.append(np.argmin(np.abs(wave[atlas_indice]-interp_wave)))
+
+    interp_indice = set(interp_indice)
+
+    non_interp_indice = np.array(list(set(range(atlas_indice.size)) - interp_indice))
+
+    interp_indice = np.array(list(interp_indice))
+
+    evaluate_bezier = prepare_evaluate_bezier(non_interp_indice, np.array(list(range(atlas_indice.size))))    
+
+    norm_line, norm_atlas, atlas_wave = normalise_profiles(
+        intensity[atlas_indice], wave[atlas_indice],
+        catalog[:, 1], catalog[:, 0],
+        wave[atlas_indice][-1]
+    )
+
+    norm_atlas_interp = evaluate_bezier(norm_atlas[non_interp_indice])
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
+
+    # plt.plot(wave[atlas_indice] - 6562.79, norm_line, label='synthesis')
+
+    # plt.plot(atlas_wave - 6562.79, norm_atlas_interp, label='BASS2000')
+
+    plt.scatter(wave[atlas_indice], norm_line, label='synthesis')
+
+    plt.scatter(atlas_wave, norm_atlas_interp, label='BASS2000')
+
+    plt.xlabel(r'$\Delta \lambda\; (\AA)$')
+
+    plt.ylabel(r'$I/I_{c}$')
+
+    plt.legend()
+
+    fig = plt.gcf()
+
+    fig.set_size_inches(6, 4, forward=True)
+
+    fig.tight_layout()
+
+    os.chdir("/home/harsh/CourseworkRepo/WFAComparison")
+
+    np.savetxt('Ha_mulfac_{}.txt'.format(name), norm_atlas_interp / norm_line)
+
+    plt.savefig('{}.eps'.format(name), dpi=300, format='eps')
+
+    plt.savefig('{}.png'.format(name), dpi=300, format='png')
+
+    plt.show()
+
+
 def make_plot(name):
     catalog = np.loadtxt('/home/harsh/CourseworkRepo/WFAComparison/catalog_6563.txt')
 
-    os.chdir("/home/harsh/CourseworkRepo/rh/rh/rh15d/run_nova")
+    os.chdir("/home/harsh/CourseworkRepo/rh/rh/rh15d/run")
 
     out = rh15d.Rh15dout(fdir='output')
 
