@@ -9,6 +9,32 @@ import h5py
 from stray_light_approximation import *
 
 
+def make_ray_file():
+    out = rh.readOutFiles()
+
+    wave = np.array(out.spect.lambda0)
+
+    indices = list()
+
+    interesting_waves = [121.5668237310, 121.5673644608, 656.275181, 656.290944, 102.572182505, 102.572296565, 656.272483, 656.277153, 	656.270970, 656.285177, 656.286734]
+
+    for w in interesting_waves:
+        indices.append(
+            np.argmin(np.abs(wave-w))
+        )
+
+    f = open('ray.input', 'w')
+
+    f.write('1.00\n')
+    f.write(
+        '{} {}'.format(
+            len(indices),
+            ' '.join([str(indice) for indice in indices])
+        )
+    )
+    f.close()
+
+
 def make_plot(name):
     catalog = np.loadtxt('/home/harsh/CourseworkRepo/WFAComparison/catalog_6563.txt')
 
