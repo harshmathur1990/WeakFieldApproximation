@@ -9,25 +9,25 @@ from prepare_data import *
 
 
 kmeans_output_dir = Path(
-    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/kmeans_output'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output'
 )
 
 atmos_rp_write_path = Path(
-    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/'
 )
 
 input_file = Path(
-    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
 )
 
 
 kmeans_file = Path(
-    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/chosen_out_30.h5'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/chosen_out_30.h5'
 )
 
 
 rps_plot_write_dir = Path(
-    '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/RPs_plots/'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/'
 )
 
 falc_file_path = Path(
@@ -138,6 +138,24 @@ wave_8542 = np.array(
         8547.47728, 8547.51101, 8547.54474, 8547.57847
     ]
 )
+
+
+def resample_grid(line_center, min_val, max_val, num_points):
+    grid_wave = list()
+
+    # grid_wave.append(line_center)
+
+    separation = (max_val - min_val) / num_points
+
+    for w in np.arange(min_val, max_val, separation):
+        grid_wave.append(w + line_center)
+
+    if line_center not in grid_wave:
+        grid_wave.append(line_center)
+
+    grid_wave.sort()
+
+    return np.array(grid_wave)
 
 
 def make_rps():
@@ -529,9 +547,9 @@ def make_stic_inversion_files():
     # ca_8.weights[ic8, 3] = 0.004
     ca_8.weights[ic8[ind_photosphere], 0] /= 2.0
     # ca_8.weights[ic8[ind_photosphere], 3] /= 2.0
-    ca_8.weights[ic8[outer_core], 0] /= 20.0
+    ca_8.weights[ic8[outer_core], 0] /= 2.0
     # ca_8.weights[ic8[outer_core], 3] /= 2.0
-    ca_8.weights[ic8[inner_core], 0] /= 5.0
+    ca_8.weights[ic8[inner_core], 0] /= 2.0
     # ca_8.weights[ic8[inner_core], 3] /= 4.0
     # ca_8.weights[ic8, 3] /= 2.0
     
@@ -574,19 +592,19 @@ def generate_input_atmos_file():
 def make_rps_inversion_result_plots():
 
     rps_atmos_result = Path(
-        '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_5_vt_1_blong_0_atmos.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_atmos.nc'
     )
 
     rps_profs_result = Path(
-        '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_5_vt_1_blong_0_profs.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_profs.nc'
     )
 
     rps_input_profs = Path(
-        '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/rps_stic_profiles_x_30_y_1.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/rps_stic_profiles_x_30_y_1.nc'
     )
     
     rps_plot_write_dir = Path(
-        '/home/harsh/SpinorInversionsNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I'
     )
 
     finputprofs = h5py.File(rps_input_profs, 'r')

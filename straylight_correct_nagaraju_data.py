@@ -7,10 +7,11 @@ import sunpy.io.fits
 from pathlib import Path
 from prepare_data import *
 from stray_light_approximation import *
+import matplotlib.pyplot as plt
 
 
 base_path = Path(
-    '/home/harsh/Spinor Inversions Nagaraju/'
+    '/home/harsh/SpinorNagaraju/'
 )
 
 write_path = base_path
@@ -123,7 +124,7 @@ wave_ca = np.array(
 
 weights_file = '/home/harsh/CourseworkRepo/2008 Sp Data/final_data/weights.txt'
 
-synthesis_file = base_path / 'falc_Ca_0p536.nc'
+synthesis_file = base_path / 'CaII_RH15D.nc'
 
 interesting_fov = '[0:19, :, 230:290]'
 

@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 
-kmeans_output_dir = '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/kmeans_output/'
-input_file = '/home/harsh/Spinor Inversions Nagaraju/maps_1/stic/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+kmeans_output_dir = '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output/'
+input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
 f = h5py.File(input_file, 'r')
 ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
 framerows = f['profiles'][0, :, :, ind, :]
@@ -157,6 +157,10 @@ def plot_inertia():
     plt.clf()
 
     plt.cla()
+
+
+# if __name__=='__main__':
+#     plot_inertia()
 
 
 if __name__ == '__main__':
