@@ -545,7 +545,7 @@ def make_stic_inversion_files():
     ca_8.weights[:,:] = 1.e16 # Very high value means weight zero
     ca_8.weights[ic8, 0] = 0.004
     # ca_8.weights[ic8, 3] = 0.004
-    ca_8.weights[ic8[ind_photosphere], 0] /= 2.0
+    ca_8.weights[ic8[ind_photosphere], 0] /= 4.0
     # ca_8.weights[ic8[ind_photosphere], 3] /= 2.0
     ca_8.weights[ic8[outer_core], 0] /= 2.0
     # ca_8.weights[ic8[outer_core], 3] /= 2.0
@@ -685,5 +685,8 @@ def make_rps_inversion_result_plots():
 
 
 if __name__ == '__main__':
+    # make_rps()
+    # plot_rp_map_fov()
+    # make_rps_plots()
     # make_stic_inversion_files()
     make_rps_inversion_result_plots()

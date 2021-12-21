@@ -87,6 +87,5 @@ def approximate_stray_light_and_sigma(
                 degraded_atlas[indices] / degraded_atlas[indices][0],
                 line_profile / line_profile[0]
             )
-
     
     return result, result_atlas, fwhm, sigma, k_values

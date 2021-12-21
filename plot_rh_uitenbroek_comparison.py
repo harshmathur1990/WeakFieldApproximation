@@ -1,30 +1,18 @@
 import sys
-sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
-sys.path.insert(2, '/home/harsh/CourseworkRepo/WFAComparison')
-import h5py
+sys.path.insert(1, '/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/python')
 import numpy as np
-import sunpy.io.fits
-from pathlib import Path
-from prepare_data import *
-from stray_light_approximation import *
 import matplotlib.pyplot as plt
+import rhanalyze
+from pathlib import Path
+from stray_light_approximation import normalise_profiles
+
+catalog_base = Path('/home/harsh/CourseworkRepo/WFAComparison')
+catalog = np.loadtxt(catalog_base / 'catalog_8542.txt')
+
+run_path = Path('/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/rhf1d/run')
 
 
-base_path = Path(
-    '/home/harsh/SpinorNagaraju/'
-)
-
-write_path = base_path / 'maps_1/stic'
-
-falc_file_path = Path(
-    '/home/harsh/CourseworkRepo/stic/run/falc_nicole_for_stic.nc'
-)
-
-catalog_file = '/home/harsh/CourseworkRepo/WFAComparison/catalog_8542.txt'
-
-index = '[18:18+464][::-1]'
-
-wave_ca = np.array(
+wave_8542 = np.array(
     [
         8531.96148, 8531.99521, 8532.02894, 8532.06267, 8532.0964 ,
         8532.13013, 8532.16386, 8532.19759, 8532.23132, 8532.26505,
@@ -122,216 +110,37 @@ wave_ca = np.array(
     ]
 )
 
-weights_file = '/home/harsh/CourseworkRepo/2008 Sp Data/final_data/weights.txt'
 
-synthesis_file = base_path / 'CaII_RH15D_mu_0p8.nc'
+def compare_plots():
+    out = rhanalyze.rhout(str(run_path))
 
-interesting_fov = '[0:19, :, 230:290]'
+    ind = list()
 
-cw = np.asarray([8542.])
-cont = []
-for ii in cw:
-    cont.append(getCont(ii))
+    for w in wave_8542:
+        ind.append(np.argmin(np.abs(out.spectrum.waves - (w/10))))
 
-
-def get_raw_data(filename):
-
-    raw_data = np.zeros((20, 4, 512, 512), dtype=np.float64)
-
-    for i in range(20):
-        data, header = sunpy.io.fits.read(base_path / filename)[i + 1]
-        raw_data[i] = data
-
-    return raw_data[:, :, :, 18:18 + 464][:, :, :, ::-1]
-
-
-def correct_for_straylight(data):
-
-    crop_indice_x = np.arange(4, 17)
-
-    crop_indice_y = np.array(
-        list(
-            np.arange(203,250)
-        ) +
-        list(
-            np.arange(280, 370)
-        )
-    )
-
-    median_profile = np.median(
-        data[crop_indice_x, 0, :][:, crop_indice_y], (0, 1)
-    )
-
-    f1 = h5py.File(synthesis_file, 'r')
+    ind = np.array(ind)
 
     norm_line, norm_atlas, atlas_wave = normalise_profiles(
-        median_profile,
-        wave_ca,
-        f1['profiles'][0, 0, 0, :, 0],
-        f1['wav'][()],
-        cont_wave=wave_ca[0]
+        out.rays[0].I[ind],
+        out.spectrum.waves[ind] * 10,
+        catalog[:, 1],
+        catalog[:, 0],
+        out.spectrum.waves[ind][0] * 10
     )
 
-    a, b = np.polyfit([0, norm_atlas.size-1], [norm_atlas[0], norm_atlas[-1]], 1)
+    plt.gcf().set_size_inches(6, 4)
 
-    atlas_slope = a * np.arange(norm_atlas.size) + b
+    plt.plot(out.spectrum.waves[ind] * 10, norm_line, label='Synthesized')
 
-    atlas_slope /= atlas_slope.max()
-
-    a, b = np.polyfit([0, norm_line.size-1], [norm_line[0], norm_line[-1]], 1)
-
-    line_slope = a * np.arange(norm_line.size) + b
-
-    line_slope /= line_slope.max()
-
-    multiplicative_factor = atlas_slope / line_slope
-
-    multiplicative_factor /= multiplicative_factor.max()
-
-    norm_line *= multiplicative_factor
-
-    result, result_atlas, fwhm, sigma, k_values = approximate_stray_light_and_sigma(
-        norm_line,
-        norm_atlas,
-        continuum=1.0,
-        indices=None
-    )
-
-    f = h5py.File(write_path / 'straylight_ca_using_median_profiles_with_atlas_at_0p8_estimated_profile.h5', 'w')
-
-    f['wave_ca'] = wave_ca
-
-    f['correction_factor'] = multiplicative_factor
-
-    f['atlas_at_0p536'] = f1['profiles'][0, 0, 0, :, 0]
-
-    f['norm_atlas'] = norm_atlas
-
-    f['median_indice'] = '[4:17, 0, 203:250, 280:270]'
-
-    f['median_profile'] = median_profile
-
-    f['norm_median'] = norm_line
-
-    f['mean_square_error'] = result
-
-    f['result_atlas'] = result_atlas
-
-    f['fwhm'] = fwhm
-
-    f['sigma'] = sigma
-
-    f['k_values'] = k_values
-
-    f['straylight_value'] = np.unravel_index(np.argmin(result), result.shape)[1]
-
-    f['broadening_in_km_sec'] = fwhm[np.unravel_index(np.argmin(result), result.shape)[0]] * (wave_ca[1] - wave_ca[0]) * 2.99792458e5/ 8542.09
-
-    f.close()
-
-    f1.close()
-
-    stray_corrected_data = data.copy()
-
-    stray_corrected_data[:, 0] = stray_corrected_data[:, 0] * multiplicative_factor
-
-    stray_corrected_data[:, 0] = (stray_corrected_data[:, 0] - ((np.unravel_index(np.argmin(result), result.shape)[1]/100) * stray_corrected_data[:, 0, :, 0][:, :, np.newaxis])) / (1 - (np.unravel_index(np.argmin(result), result.shape)[1]/100))
-
-    stray_corrected_median = np.median(
-        stray_corrected_data[crop_indice_x, 0, :][:, crop_indice_y],
-        (0, 1)
-    )
-
-    f1 = h5py.File(synthesis_file, 'r')
-    norm_median_stray, norm_atlas, atlas_wave = normalise_profiles(
-        stray_corrected_median,
-        wave_ca,
-        f1['profiles'][0, 0, 0, :, 0],
-        f1['wav'][()],
-        cont_wave=wave_ca[0]
-    )
-
-    stic_cgs_calib_factor = stray_corrected_median[0] / f1['profiles'][0, 0, 0, 0, 0]
-
-    plt.plot(wave_ca, norm_median_stray, label='Stray Corrected Median')
-
-    plt.plot(wave_ca, norm_atlas, label='Atlas')
+    plt.plot(atlas_wave, norm_atlas, label='BASS 2000')
 
     plt.legend()
 
+    plt.savefig('SynthesizedVsBASS2000.pdf', format='pdf', dpi=300)
+
     plt.show()
 
-    f1.close()
 
-    return stray_corrected_data, stray_corrected_median, stic_cgs_calib_factor
-
-
-def generate_stic_input_files(filename):
-
-    data = get_raw_data(filename)
-
-    stray_corrected_data, stray_corrected_median, stic_cgs_calib_factor = correct_for_straylight(data)
-
-    f = h5py.File(
-        write_path / '{}_stray_corrected.h5'.format(
-            filename
-        ),
-        'w'
-    )
-
-    f['stray_corrected_data'] = stray_corrected_data
-
-    f['stray_corrected_median'] = stray_corrected_median
-
-    f['stic_cgs_calib_factor'] = stic_cgs_calib_factor
-
-    f['wave_ca'] = wave_ca
-
-    f.close()
-
-    fov_data = stray_corrected_data[0:19, :, 230:290, :]
-
-    wc8, ic8 = findgrid(wave_ca, (wave_ca[10] - wave_ca[9])*0.25, extra=8)
-
-    ca_8 = sp.profile(nx=60, ny=19, ns=4, nw=wc8.size)
-
-    ca_8.wav[:] = wc8[:]
-
-    ca_8.dat[0,:,:,ic8,:] = np.transpose(
-        fov_data,
-        axes=(3, 0, 2, 1)
-    ) / stic_cgs_calib_factor
-
-    ca_8.weights[:,:] = np.loadtxt(weights_file)
-
-    ca_8.write(
-        write_path / '{}_stic_profiles.nc'.format(
-            filename
-        )
-    )
-
-    lab = "region = {0:10.5f}, {1:8.5f}, {2:3d}, {3:e}, {4}"
-    print(" ")
-    print("Regions information for the input file:" )
-    print(lab.format(ca_8.wav[0], ca_8.wav[1]-ca_8.wav[0], ca_8.wav.size, cont[0],  'none, none'))
-    print("(w0, dw, nw, normalization, degradation_type, instrumental_profile file)")
-    print(" ")
-
-
-def generate_input_atmos_file():
-
-    f = h5py.File(falc_file_path, 'r')
-
-    m = sp.model(nx=60, ny=19, nt=1, ndep=150)
-
-    m.ltau[:, :, :] = f['ltau500'][0, 0, 0]
-
-    m.pgas[:, :, :] = 1
-
-    m.temp[:, :, :] = f['temp'][0, 0, 0]
-
-    m.vlos[:, :, :] = f['vlos'][0, 0, 0]
-
-    m.vturb[:, :, :] = f['vturb'][0, 0, 0]
-
-    m.write('falc_60_19.nc')
+if __name__ == '__main__':
+    compare_plots()
