@@ -11,9 +11,11 @@ def calculate_lande_g_eff(g1, g2, j1, j2):
 def calculate_lande_g_factor_for_level(j, l, s):
     return 1 + (
         0.5 * (
-            j * (j + 1) + s * (s + 1) - l * (l + 1)
-        ) / (
-            j * (j + 1)
+            (
+                j * (j + 1) + s * (s + 1) - l * (l + 1)
+            ) / (
+                j * (j + 1)
+            )
         )
     )
 
