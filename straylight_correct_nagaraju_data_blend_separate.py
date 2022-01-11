@@ -176,6 +176,12 @@ def correct_for_straylight(data):
 
     stic_cgs_calib_factor_list = list()
 
+    norm_line_list = list()
+
+    norm_atlas_list = list()
+
+    multiplicative_factor_list = list()
+
     for wavelength, wave_indice, wave_name in zip(wavelengths, wave_indices, wave_names):
         norm_line, norm_atlas, atlas_wave = normalise_profiles(
             median_profile[wave_indice[0]:wave_indice[1]],
@@ -203,81 +209,86 @@ def correct_for_straylight(data):
 
         norm_line *= multiplicative_factor
 
-        result, result_atlas, fwhm, sigma, k_values = approximate_stray_light_and_sigma(
-            norm_line,
-            norm_atlas,
-            continuum=1.0,
-            indices=None
-        )
+        norm_line_list.append(norm_line)
 
-        f = h5py.File(write_path / 'straylight_ca_using_median_profiles_with_atlas_at_0p8_estimated_profile_{}.h5'.format(wave_name), 'w')
+        norm_atlas_list.append(norm_atlas)
 
-        f['wave_ca'] = wave_ca[wave_indice[0]:wave_indice[1]]
+        multiplicative_factor_list.append(multiplicative_factor_list)
 
-        f['correction_factor'] = multiplicative_factor
+    result, result_atlas, fwhm, sigma, k_values = approximate_stray_light_and_sigma_multiple_lines(
+        norm_line_list,
+        norm_atlas_list,
+    )
 
-        f['atlas_at_0p8'] = f1['profiles'][0, 0, 0, wave_indice[0]:wave_indice[1], 0]
+    f = h5py.File(write_path / 'straylight_ca_using_median_profiles_with_atlas_at_0p8_estimated_profile.h5', 'w')
 
-        f['norm_atlas'] = norm_atlas
 
-        f['median_indice'] = '[4:17, 0, 203:250, 280:270]'
+    f['wave_'] =
 
-        f['median_profile'] = median_profile[wave_indice[0]:wave_indice[1]]
+    f['correction_factor'] = multiplicative_factor
 
-        f['norm_median'] = norm_line
+    f['atlas_at_0p8'] = f1['profiles'][0, 0, 0, wave_indice[0]:wave_indice[1], 0]
 
-        f['mean_square_error'] = result
+    f['norm_atlas'] = norm_atlas
 
-        f['result_atlas'] = result_atlas
+    f['median_indice'] = '[4:17, 0, 203:250, 280:270]'
 
-        f['fwhm'] = fwhm
+    f['median_profile'] = median_profile[wave_indice[0]:wave_indice[1]]
 
-        f['sigma'] = sigma
+    f['norm_median'] = norm_line
 
-        f['k_values'] = k_values
+    f['mean_square_error'] = result
 
-        f['straylight_value'] = np.unravel_index(np.argmin(result), result.shape)[1]
+    f['result_atlas'] = result_atlas
 
-        f['broadening_in_km_sec'] = fwhm[np.unravel_index(np.argmin(result), result.shape)[0]] * (wave_ca[1] - wave_ca[0]) * 2.99792458e5/ wavelength
+    f['fwhm'] = fwhm
 
-        f.close()
+    f['sigma'] = sigma
 
-        stray_corrected_data = data.copy()
+    f['k_values'] = k_values
 
-        stray_corrected_data = stray_corrected_data[:, :, :, wave_indice[0]:wave_indice[1]]
+    f['straylight_value'] = np.unravel_index(np.argmin(result), result.shape)[1]
 
-        stray_corrected_data[:, 0, :, ] = stray_corrected_data[:, 0] * multiplicative_factor
+    f['broadening_in_km_sec'] = fwhm[np.unravel_index(np.argmin(result), result.shape)[0]] * (wave_ca[1] - wave_ca[0]) * 2.99792458e5/ wavelength
 
-        stray_corrected_data[:, 0] = (stray_corrected_data[:, 0] - ((np.unravel_index(np.argmin(result), result.shape)[1]/100) * stray_corrected_data[:, 0, :, 0][:, :, np.newaxis])) / (1 - (np.unravel_index(np.argmin(result), result.shape)[1]/100))
+    f.close()
 
-        stray_corrected_median = np.median(
-            stray_corrected_data[crop_indice_x, 0, :][:, crop_indice_y],
-            (0, 1)
-        )
+    stray_corrected_data = data.copy()
 
-        norm_median_stray, norm_atlas, atlas_wave = normalise_profiles(
-            stray_corrected_median,
-            wave_ca[wave_indice[0]:wave_indice[1]],
-            f1['profiles'][0, 0, 0, :, 0],
-            f1['wav'][()],
-            cont_wave=wave_ca[wave_indice[0]]
-        )
+    stray_corrected_data = stray_corrected_data[:, :, :, wave_indice[0]:wave_indice[1]]
 
-        stic_cgs_calib_factor = stray_corrected_median[0] / f1['profiles'][0, 0, 0, wave_indice[0], 0]
+    stray_corrected_data[:, 0, :, ] = stray_corrected_data[:, 0] * multiplicative_factor
 
-        plt.plot(wave_ca[wave_indice[0]:wave_indice[1]], norm_median_stray, label='Stray Corrected Median')
+    stray_corrected_data[:, 0] = (stray_corrected_data[:, 0] - ((np.unravel_index(np.argmin(result), result.shape)[1]/100) * stray_corrected_data[:, 0, :, 0][:, :, np.newaxis])) / (1 - (np.unravel_index(np.argmin(result), result.shape)[1]/100))
 
-        plt.plot(wave_ca[wave_indice[0]:wave_indice[1]], norm_atlas, label='Atlas')
+    stray_corrected_median = np.median(
+        stray_corrected_data[crop_indice_x, 0, :][:, crop_indice_y],
+        (0, 1)
+    )
 
-        plt.legend()
+    norm_median_stray, norm_atlas, atlas_wave = normalise_profiles(
+        stray_corrected_median,
+        wave_ca[wave_indice[0]:wave_indice[1]],
+        f1['profiles'][0, 0, 0, :, 0],
+        f1['wav'][()],
+        cont_wave=wave_ca[wave_indice[0]]
+    )
 
-        plt.show()
+    stic_cgs_calib_factor = stray_corrected_median[0] / f1['profiles'][0, 0, 0, wave_indice[0], 0]
 
-        stray_corrected_data_list.append(stray_corrected_data)
+    plt.plot(wave_ca[wave_indice[0]:wave_indice[1]], norm_median_stray, label='Stray Corrected Median')
 
-        stray_corrected_median_list.append(stray_corrected_median)
+    plt.plot(wave_ca[wave_indice[0]:wave_indice[1]], norm_atlas, label='Atlas')
 
-        stic_cgs_calib_factor_list.append(stic_cgs_calib_factor)
+    plt.legend()
+
+    plt.show()
+
+    stray_corrected_data_list.append(stray_corrected_data)
+
+    stray_corrected_median_list.append(stray_corrected_median)
+
+    stic_cgs_calib_factor_list.append(stic_cgs_calib_factor)
 
     f1.close()
 

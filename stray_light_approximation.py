@@ -89,3 +89,90 @@ def approximate_stray_light_and_sigma(
             )
     
     return result, result_atlas, fwhm, sigma, k_values
+
+
+def prepare_give_output_value(result_list):
+    def give_output_value(*args):
+
+        sigma_index = args[0]
+
+        total_error = 0.0
+
+        for indd, arg in enumerate(args[1:]):
+            sigma_index = int(sigma_index)
+            arg = int(sigma_index)
+            total_error += result_list[indd-1][sigma_index, arg]
+
+        return total_error
+
+    return give_output_value
+
+
+def prepare_give_output_atlas(result_atlas_list):
+    def give_output_atlas(*args):
+
+        sigma_index = args[0]
+
+        atlas = None
+
+        for indd, arg in enumerate(args[1:]):
+            sigma_index = int(sigma_index)
+            arg = int(sigma_index)
+            if atlas is None:
+                atlas = result_atlas_list[indd-1][sigma_index, arg]
+            else:
+                atlas = np.concatenate((atlas, result_atlas_list[indd-1][sigma_index, arg]), 2)
+
+        return atlas
+
+    return give_output_atlas
+
+
+def approximate_stray_light_and_sigma_multiple_lines(
+        line_profile_list,
+        atlas_profile_list,
+):
+    fwhm = np.linspace(2, 30, 50)
+
+    sigma = fwhm / 2.355
+
+    k_values = np.arange(0, 1, 0.01)
+
+    dimensions = list()
+
+    dimensions.append(sigma.size)
+
+    for _ in len(line_profile_list):
+        dimensions.append(k_values.size)
+
+    merged_result = np.zeros(
+        tuple(dimensions),
+        dtype=np.float64
+    )
+
+    result_list = list()
+
+    result_atlas_list = list()
+
+    for index, line_profile, atlas_profile in enumerate(zip(line_profile_list, atlas_profile_list)):
+        result, result_atlas, fwhm, sigma, k_values = approximate_stray_light_and_sigma(line_profile, atlas_profile)
+
+        result /= line_profile.size()
+
+        result_list.append(result)
+
+        result_atlas_list.append(result_atlas)
+
+    give_output_value = prepare_give_output_value(result_list)
+
+    vec_give_output_value = np.vectorize(give_output_value)
+
+    merged_result = np.fromfunction(vec_give_output_value)
+
+    give_output_atlas = prepare_give_output_atlas(result_atlas_list)
+
+    vec_give_output_atlas = np.vectorize(give_output_atlas)
+
+    merged_atlas_profiles = np.fromfunction(vec_give_output_atlas)
+
+    return merged_result, merged_atlas_profiles, fwhm, sigma, k_values
