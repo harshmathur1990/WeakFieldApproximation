@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.ndimage
-
+from tqdm import tqdm
+import numba as nb
 
 def prepare_get_indice(arr):
     def get_indice(wave):
@@ -91,41 +92,51 @@ def approximate_stray_light_and_sigma(
     return result, result_atlas, fwhm, sigma, k_values
 
 
-def prepare_give_output_value(result_list):
-    def give_output_value(*args):
+@nb.jit(nopython=True)
+def speeduploop(fwhm, k_values, result_list, result_atlas_list):
+    min_error = np.Inf
+    r_fwhm = 0.0
+    r_sigma = 0.0
+    r_k1 = 0.0
+    r_k2 = 0.0
+    r_k3 = 0.0
+    r_i0 = 0
+    r_i1 = 0
+    r_i2 = 0
+    r_i3 = 0
 
-        sigma_index = args[0]
+    nt = 0
+    total_loop = 50 * 100 * 100 * 100
+    total_percentage_done = 0
+    print ("Percentage Done: %.1lf", total_percentage_done)
+    for i0, a_fwhm in enumerate(fwhm):
+        for i1, k1 in enumerate(k_values):
+            for i2, k2 in enumerate(k_values):
+                for i3, k3 in enumerate(k_values):
 
-        total_error = 0.0
+                    error = result_list[0][i0, i1] + result_list[1][i0, i2] + result_list[2][i0, i3]
 
-        for indd, arg in enumerate(args[1:]):
-            sigma_index = int(sigma_index)
-            arg = int(sigma_index)
-            total_error += result_list[indd-1][sigma_index, arg]
+                    if error < min_error:
+                        min_error = error
+                        r_fwhm = a_fwhm
+                        r_sigma = r_fwhm / 2.355
+                        r_k1 = k1
+                        r_k2 = k2
+                        r_k3 = k3
+                        r_i0 = i0
+                        r_i1 = i1
+                        r_i2 = i2
+                        r_i3 = i3
 
-        return total_error
+                    nt += 1
 
-    return give_output_value
+                    percentage_done = np.round(nt * 100/total_loop, 1)
 
+                    if percentage_done - total_percentage_done > 0.5:
+                        total_percentage_done = percentage_done
+                        print ("Percentage Done: %.1lf", total_percentage_done)
 
-def prepare_give_output_atlas(result_atlas_list):
-    def give_output_atlas(*args):
-
-        sigma_index = args[0]
-
-        atlas = None
-
-        for indd, arg in enumerate(args[1:]):
-            sigma_index = int(sigma_index)
-            arg = int(sigma_index)
-            if atlas is None:
-                atlas = result_atlas_list[indd-1][sigma_index, arg]
-            else:
-                atlas = np.concatenate((atlas, result_atlas_list[indd-1][sigma_index, arg]), 2)
-
-        return atlas
-
-    return give_output_atlas
+    return r_i0, r_i1, r_i2, r_i3, r_fwhm, r_sigma, r_k1, r_k2, r_k3
 
 
 def approximate_stray_light_and_sigma_multiple_lines(
@@ -142,37 +153,31 @@ def approximate_stray_light_and_sigma_multiple_lines(
 
     dimensions.append(sigma.size)
 
-    for _ in len(line_profile_list):
+    for _ in line_profile_list:
         dimensions.append(k_values.size)
-
-    merged_result = np.zeros(
-        tuple(dimensions),
-        dtype=np.float64
-    )
 
     result_list = list()
 
     result_atlas_list = list()
 
-    for index, line_profile, atlas_profile in enumerate(zip(line_profile_list, atlas_profile_list)):
+    total_profile_size = 0
+
+    for index, (line_profile, atlas_profile) in enumerate(zip(line_profile_list, atlas_profile_list)):
         result, result_atlas, fwhm, sigma, k_values = approximate_stray_light_and_sigma(line_profile, atlas_profile)
 
-        result /= line_profile.size()
+        result /= line_profile.size
 
         result_list.append(result)
 
         result_atlas_list.append(result_atlas)
 
-    give_output_value = prepare_give_output_value(result_list)
+        total_profile_size += line_profile.size
 
-    vec_give_output_value = np.vectorize(give_output_value)
+    r_i0, r_i1, r_i2, r_i3, r_fwhm, r_sigma, r_k1, r_k2, r_k3 = speeduploop(fwhm, k_values, result_list, result_atlas_list)
 
-    merged_result = np.fromfunction(vec_give_output_value)
+    r_atlas = list()
+    r_atlas.append(result_atlas_list[0][r_i0, r_i1])
+    r_atlas.append(result_atlas_list[1][r_i0, r_i2])
+    r_atlas.append(result_atlas_list[2][r_i0, r_i3])
 
-    give_output_atlas = prepare_give_output_atlas(result_atlas_list)
-
-    vec_give_output_atlas = np.vectorize(give_output_atlas)
-
-    merged_atlas_profiles = np.fromfunction(vec_give_output_atlas)
-
-    return merged_result, merged_atlas_profiles, fwhm, sigma, k_values
+    return r_atlas, r_fwhm, r_sigma, r_k1, r_k2, r_k3, result_list, result_atlas_list, fwhm, sigma, k_values

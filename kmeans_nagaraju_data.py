@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 kmeans_output_dir = '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output/'
-input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
 f = h5py.File(input_file, 'r')
 ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
 framerows = f['profiles'][0, :, :, ind, :]
@@ -21,7 +21,7 @@ framerows[:, :, :, 1:4] /= framerows[:, :, :, 0][:, :, :, np.newaxis]
 framerows = framerows.reshape(19, 60, 464*4).reshape(19 * 60, 464 * 4)
 mn = np.mean(framerows, axis=0)
 sd = np.std(framerows, axis=0)
-weights = np.ones(1856)  # * 0.025
+weights = np.ones(236 + 160 + 840)  # * 0.025
 # weights[10:20] = 0.05
 
 

@@ -147,7 +147,7 @@ def get_raw_data(filename):
 
 def correct_for_straylight(data):
 
-    wave_indices = [[108, 140], [167, 189], [200, 400]]
+    wave_indices = [[95, 153], [155, 194], [196, 405]]
 
     wave_names = ['SiI_8536', 'FeI_8538', 'CaII_8542']
 
@@ -213,33 +213,62 @@ def correct_for_straylight(data):
 
         norm_atlas_list.append(norm_atlas)
 
-        multiplicative_factor_list.append(multiplicative_factor_list)
+        multiplicative_factor_list.append(multiplicative_factor)
 
-    result, result_atlas, fwhm, sigma, k_values = approximate_stray_light_and_sigma_multiple_lines(
+    r_atlas, r_fwhm, r_sigma, r_k1, r_k2, r_k3, result_list, result_atlas_list, fwhm, sigma, k_values = approximate_stray_light_and_sigma_multiple_lines(
         norm_line_list,
         norm_atlas_list,
     )
 
     f = h5py.File(write_path / 'straylight_ca_using_median_profiles_with_atlas_at_0p8_estimated_profile.h5', 'w')
 
+    f['wave_SiI_8536'] = wave_ca[wave_indices[0][0]:wave_indices[0][1]]
+    f['wave_FeI_8538'] = wave_ca[wave_indices[1][0]:wave_indices[1][1]]
+    f['wave_CaII_8542'] = wave_ca[wave_indices[2][0]:wave_indices[2][1]]
 
-    f['wave_'] =
+    f['correction_factor_SiI_8536'] = multiplicative_factor_list[0]
+    f['correction_factor_FeI_8538'] = multiplicative_factor_list[1]
+    f['correction_factor_CaII_8542'] = multiplicative_factor_list[2]
 
-    f['correction_factor'] = multiplicative_factor
+    f['atlas_at_0p8_SiI_8536'] = f1['profiles'][0, 0, 0, wave_indices[0][0]:wave_indices[0][1], 0]
+    f['atlas_at_0p8_FeI_8538'] = f1['profiles'][0, 0, 0, wave_indices[1][0]:wave_indices[1][1], 0]
+    f['atlas_at_0p8_CaII_8542'] = f1['profiles'][0, 0, 0, wave_indices[2][0]:wave_indices[2][1], 0]
 
-    f['atlas_at_0p8'] = f1['profiles'][0, 0, 0, wave_indice[0]:wave_indice[1], 0]
-
-    f['norm_atlas'] = norm_atlas
+    f['norm_atlas_SiI_8536'] = norm_atlas_list[0]
+    f['norm_atlas_FeI_8538'] = norm_atlas_list[1]
+    f['norm_atlas_CaII_8542'] = norm_atlas_list[2]
 
     f['median_indice'] = '[4:17, 0, 203:250, 280:270]'
 
-    f['median_profile'] = median_profile[wave_indice[0]:wave_indice[1]]
+    f['median_profile_SiI_8536'] = median_profile[wave_indices[0][0]:wave_indices[0][1]]
+    f['median_profile_FeI_8538'] = median_profile[wave_indices[1][0]:wave_indices[1][1]]
+    f['median_profile_CaII_8542'] = median_profile[wave_indices[2][0]:wave_indices[2][1]]
 
-    f['norm_median'] = norm_line
+    f['norm_median_SiI_8536'] = norm_line_list[wave_indices[0][0]:wave_indices[0][1]]
+    f['norm_median_FeI_8538'] = norm_line_list[wave_indices[1][0]:wave_indices[1][1]]
+    f['norm_median_CaII_8542'] = norm_line_list[wave_indices[2][0]:wave_indices[2][1]]
 
-    f['mean_square_error'] = result
+    f['mean_square_error_SiI_8536'] = result_list[0]
+    f['mean_square_error_FeI_8538'] = result_list[1]
+    f['mean_square_error_CaII_8542'] = result_list[2]
 
-    f['result_atlas'] = result_atlas
+    f['result_atlas_SiI_8536'] = result_atlas_list[0]
+    f['result_atlas_FeI_8538'] = result_atlas_list[1]
+    f['result_atlas_CaII_8542'] = result_atlas_list[2]
+
+    f['r_atlas_SiI_8536'] = r_atlas[0]
+    f['r_atlas_FeI_8538'] = r_atlas[1]
+    f['r_atlas_CaII_8542'] = r_atlas[2]
+
+    f['r_fwhm_in_pixels'] = r_fwhm
+
+    f['r_sigma_in_pixels'] = r_sigma
+
+    f['straylight_value_SiI_8536'] = r_k1
+
+    f['straylight_value_FeI_8538'] = r_k2
+
+    f['straylight_value_CaII_8542'] = r_k3
 
     f['fwhm'] = fwhm
 
@@ -247,60 +276,61 @@ def correct_for_straylight(data):
 
     f['k_values'] = k_values
 
-    f['straylight_value'] = np.unravel_index(np.argmin(result), result.shape)[1]
-
-    f['broadening_in_km_sec'] = fwhm[np.unravel_index(np.argmin(result), result.shape)[0]] * (wave_ca[1] - wave_ca[0]) * 2.99792458e5/ wavelength
+    f['broadening_in_km_sec_SiI_8536'] = r_fwhm * (wave_ca[1] - wave_ca[0]) * 2.99792458e5 / wavelengths[0]
+    f['broadening_in_km_sec_FeI_8538'] = r_fwhm * (wave_ca[1] - wave_ca[0]) * 2.99792458e5 / wavelengths[1]
+    f['broadening_in_km_sec_CaII_8542'] = r_fwhm * (wave_ca[1] - wave_ca[0]) * 2.99792458e5 / wavelengths[2]
 
     f.close()
 
-    stray_corrected_data = data.copy()
+    for wavelength, wave_indice, wave_name, straylight, multiplicative_factor in zip(wavelengths, wave_indices, wave_names, [r_k1, r_k2, r_k3], multiplicative_factor_list):
+        stray_corrected_data = data.copy()
 
-    stray_corrected_data = stray_corrected_data[:, :, :, wave_indice[0]:wave_indice[1]]
+        stray_corrected_data = stray_corrected_data[:, :, :, wave_indice[0]:wave_indice[1]]
 
-    stray_corrected_data[:, 0, :, ] = stray_corrected_data[:, 0] * multiplicative_factor
+        stray_corrected_data[:, 0, :, ] = stray_corrected_data[:, 0] * multiplicative_factor
 
-    stray_corrected_data[:, 0] = (stray_corrected_data[:, 0] - ((np.unravel_index(np.argmin(result), result.shape)[1]/100) * stray_corrected_data[:, 0, :, 0][:, :, np.newaxis])) / (1 - (np.unravel_index(np.argmin(result), result.shape)[1]/100))
+        stray_corrected_data[:, 0] = (stray_corrected_data[:, 0] - ((straylight) * stray_corrected_data[:, 0, :, 0][:, :, np.newaxis])) / (1 - (straylight))
 
-    stray_corrected_median = np.median(
-        stray_corrected_data[crop_indice_x, 0, :][:, crop_indice_y],
-        (0, 1)
-    )
+        stray_corrected_median = np.median(
+            stray_corrected_data[crop_indice_x, 0, :][:, crop_indice_y],
+            (0, 1)
+        )
 
-    norm_median_stray, norm_atlas, atlas_wave = normalise_profiles(
-        stray_corrected_median,
-        wave_ca[wave_indice[0]:wave_indice[1]],
-        f1['profiles'][0, 0, 0, :, 0],
-        f1['wav'][()],
-        cont_wave=wave_ca[wave_indice[0]]
-    )
+        norm_median_stray, norm_atlas, atlas_wave = normalise_profiles(
+            stray_corrected_median,
+            wave_ca[wave_indice[0]:wave_indice[1]],
+            f1['profiles'][0, 0, 0, :, 0],
+            f1['wav'][()],
+            cont_wave=wave_ca[wave_indice[0]]
+        )
 
-    stic_cgs_calib_factor = stray_corrected_median[0] / f1['profiles'][0, 0, 0, wave_indice[0], 0]
+        stic_cgs_calib_factor = stray_corrected_median[0] / f1['profiles'][0, 0, 0, wave_indice[0], 0]
 
-    plt.plot(wave_ca[wave_indice[0]:wave_indice[1]], norm_median_stray, label='Stray Corrected Median')
+        plt.plot(wave_ca[wave_indice[0]:wave_indice[1]], norm_median_stray, label='Stray Corrected Median')
 
-    plt.plot(wave_ca[wave_indice[0]:wave_indice[1]], norm_atlas, label='Atlas')
+        plt.plot(wave_ca[wave_indice[0]:wave_indice[1]], scipy.ndimage.gaussian_filter1d(norm_atlas, sigma=r_sigma), label='Atlas')
 
-    plt.legend()
+        plt.legend()
 
-    plt.show()
+        plt.show()
 
-    stray_corrected_data_list.append(stray_corrected_data)
+        stray_corrected_data_list.append(stray_corrected_data)
 
-    stray_corrected_median_list.append(stray_corrected_median)
+        stray_corrected_median_list.append(stray_corrected_median)
 
-    stic_cgs_calib_factor_list.append(stic_cgs_calib_factor)
+        stic_cgs_calib_factor_list.append(stic_cgs_calib_factor)
 
     f1.close()
 
     return stray_corrected_data_list, stray_corrected_median_list,\
-           stic_cgs_calib_factor_list, wave_names, wave_indices, wavelengths
+           stic_cgs_calib_factor_list, wave_names, wave_indices, wavelengths, r_fwhm, r_sigma
 
 
 def generate_stic_input_files(filename):
 
     data = get_raw_data(filename)
 
-    stray_corrected_data_list, stray_corrected_median_list, stic_cgs_calib_factor_list, wave_names, wave_indices, wavelengths = correct_for_straylight(data)
+    stray_corrected_data_list, stray_corrected_median_list, stic_cgs_calib_factor_list, wave_names, wave_indices, wavelengths, r_fwhm, r_sigma = correct_for_straylight(data)
 
     ca = None
 
@@ -341,10 +371,23 @@ def generate_stic_input_files(filename):
         else:
             ca += ca_8
 
+        if wc8.size%2 == 0:
+            kernel_size = wc8.size - 1
+        else:
+            kernel_size = wc8.size - 2
+        rev_kernel = np.zeros(kernel_size)
+        rev_kernel[kernel_size//2] = 1
+        kernel = scipy.ndimage.gaussian_filter1d(rev_kernel, sigma=r_sigma)
+
+        broadening_filename = 'gaussian_broadening_{}_pixel_{}.h5'.format(np.round(r_fwhm*4, 1), wave_name)
+        f = h5py.File(write_path / broadening_filename, 'w')
+        f['iprof'] = kernel
+        f['wav'] = np.zeros_like(kernel)
+        f.close()
         lab = "region = {0:10.5f}, {1:8.5f}, {2:3d}, {3:e}, {4}"
         print(" ")
         print("Regions information for the input file:")
-        print(lab.format(ca_8.wav[0], ca_8.wav[1] - ca_8.wav[0], ca_8.wav.size, cont[0], 'none, none'))
+        print(lab.format(ca_8.wav[0], ca_8.wav[1] - ca_8.wav[0], ca_8.wav.size, cont[0], 'spectral, {}'.format(broadening_filename)))
         print("(w0, dw, nw, normalization, degradation_type, instrumental_profile file)")
         print(" ")
 
