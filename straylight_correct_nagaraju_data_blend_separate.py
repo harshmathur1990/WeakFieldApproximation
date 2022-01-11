@@ -377,7 +377,7 @@ def generate_stic_input_files(filename):
             kernel_size = wc8.size - 2
         rev_kernel = np.zeros(kernel_size)
         rev_kernel[kernel_size//2] = 1
-        kernel = scipy.ndimage.gaussian_filter1d(rev_kernel, sigma=r_sigma)
+        kernel = scipy.ndimage.gaussian_filter1d(rev_kernel, sigma=r_sigma * 4)
 
         broadening_filename = 'gaussian_broadening_{}_pixel_{}.h5'.format(np.round(r_fwhm*4, 1), wave_name)
         f = h5py.File(write_path / broadening_filename, 'w')
