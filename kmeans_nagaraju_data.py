@@ -18,10 +18,10 @@ f = h5py.File(input_file, 'r')
 ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
 framerows = f['profiles'][0, :, :, ind, :]
 framerows[:, :, :, 1:4] /= framerows[:, :, :, 0][:, :, :, np.newaxis]
-framerows = framerows.reshape(19, 60, 464*4).reshape(19 * 60, 464 * 4)
+framerows = framerows.reshape(19, 60, ind.size * 4).reshape(19 * 60, ind.size * 4)
 mn = np.mean(framerows, axis=0)
 sd = np.std(framerows, axis=0)
-weights = np.ones(236 + 160 + 840)  # * 0.025
+weights = np.ones(ind.size * 4)  # * 0.025
 # weights[10:20] = 0.05
 
 

@@ -17,7 +17,7 @@ atmos_rp_write_path = Path(
 )
 
 input_file = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
 )
 
 
@@ -41,7 +41,7 @@ cont = []
 for ii in cw:
     cont.append(getCont(ii))
 
-wave_8542 = np.array(
+wave_8542_orig = np.array(
     [
         8531.96148, 8531.99521, 8532.02894, 8532.06267, 8532.0964 ,
         8532.13013, 8532.16386, 8532.19759, 8532.23132, 8532.26505,
@@ -139,6 +139,9 @@ wave_8542 = np.array(
     ]
 )
 
+wave_8542 = np.array(
+    list(wave_8542_orig[95:153]) + list(wave_8542_orig[155:194]) + list(wave_8542_orig[196:405])
+)
 
 def resample_grid(line_center, min_val, max_val, num_points):
     grid_wave = list()
@@ -181,7 +184,7 @@ def make_rps():
     total_labels = labels.max() + 1
 
     rps = np.zeros(
-        (total_labels, 464, 4),
+        (total_labels, ind.size, 4),
         dtype=np.float64
     )
 
@@ -231,7 +234,7 @@ def get_data(get_data=True, get_labels=True, get_rps=True):
 
         whole_data[:, :, :, 1:4] /= whole_data[:, :, :, 0][:, :, :, np.newaxis]
 
-        whole_data = whole_data.reshape(19 * 60, 464, 4)
+        whole_data = whole_data.reshape(19 * 60, ind.size, 4)
 
         f.close()
 
@@ -408,9 +411,9 @@ def make_rps_plots(name='RPs'):
 
 def get_data_for_label_polarisation_map():
 
-    ind_photosphere = np.array(list(range(113, 128)) + list(range(173, 181)))
+    ind_photosphere = np.array(list(range(0, 58)) + list(range(58, 97)))
 
-    ind_chromosphere = np.array(list(range(290, 313)))
+    ind_chromosphere = np.array(list(range(97, 306)))
 
     f = h5py.File(input_file, 'r')
 
@@ -470,6 +473,7 @@ def get_data_for_label_polarisation_map():
 
     return intensity, linpol_p, linpol_c, circpol_p, circpol_c, labels
 
+
 def plot_rp_map_fov():
 
     intensity, linpol_p, linpol_c, circpol_p, circpol_c, labels = get_data_for_label_polarisation_map()
@@ -523,11 +527,11 @@ def plot_rp_map_fov():
 
 def make_stic_inversion_files():
 
-    ind_photosphere = np.array(list(range(108, 140)) + list(range(167, 189)))
+    # ind_photosphere = np.array(list(range(0, 58)) + list(range(58, 97)))
 
-    outer_core = np.array(list(range(250, 350)))
+    # outer_core = np.array(list(range(97, 306)))
 
-    inner_core = np.array(list(range(285, 310)))
+    # inner_core = np.array(list(range(285, 310)))
 
     f = h5py.File(kmeans_file, 'r')
 
@@ -685,8 +689,8 @@ def make_rps_inversion_result_plots():
 
 
 if __name__ == '__main__':
-    # make_rps()
-    # plot_rp_map_fov()
-    # make_rps_plots()
-    # make_stic_inversion_files()
-    make_rps_inversion_result_plots()
+    make_rps()
+    plot_rp_map_fov()
+    make_rps_plots()
+    make_stic_inversion_files()
+    # make_rps_inversion_result_plots()
