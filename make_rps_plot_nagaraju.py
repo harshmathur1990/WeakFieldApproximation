@@ -527,47 +527,51 @@ def plot_rp_map_fov():
 
 def make_stic_inversion_files():
 
-    # ind_photosphere = np.array(list(range(0, 58)) + list(range(58, 97)))
+    wave_indices = [[95, 153], [155, 194], [196, 405]]
 
-    # outer_core = np.array(list(range(97, 306)))
+    line_indices = [[0, 58], [58, 97], [97, 306]]
 
-    # inner_core = np.array(list(range(285, 310)))
+    core_indices = [[19, 36], [18, 27], [91, 114]]
+
+    wave_names = ['SiI_8536', 'FeI_8538', 'CaII_8542']
 
     f = h5py.File(kmeans_file, 'r')
 
-    wc8, ic8 = findgrid(wave_8542, (wave_8542[10] - wave_8542[9])*0.25, extra=8)
+    ca = None
 
-    ca_8 = sp.profile(nx=30, ny=1, ns=4, nw=wc8.size)
+    for wave_indice, line_indice, core_indice, wave_name in zip(wave_indices, line_indices, core_indices, wave_names):
+        wc8, ic8 = findgrid(wave_8542_orig[wave_indice[0]:wave_indice[1]], (wave_8542_orig[wave_indice[0]:wave_indice[1]][10] - wave_8542_orig[wave_indice[0]:wave_indice[1]][9])*0.25, extra=8)
 
-    ca_8.wav[:] = wc8[:]
+        ca_8 = sp.profile(nx=30, ny=1, ns=4, nw=wc8.size)
 
-    ca_8.dat[0, 0, :, ic8, :] = np.transpose(
-        f['rps'][()],
-        axes=(1, 0, 2)
-    )
+        ca_8.wav[:] = wc8[:]
 
-    ca_8.weights[:,:] = 1.e16 # Very high value means weight zero
-    ca_8.weights[ic8, 0] = 0.004
-    # ca_8.weights[ic8, 3] = 0.004
-    ca_8.weights[ic8[ind_photosphere], 0] /= 4.0
-    # ca_8.weights[ic8[ind_photosphere], 3] /= 2.0
-    ca_8.weights[ic8[outer_core], 0] /= 2.0
-    # ca_8.weights[ic8[outer_core], 3] /= 2.0
-    ca_8.weights[ic8[inner_core], 0] /= 2.0
-    # ca_8.weights[ic8[inner_core], 3] /= 4.0
-    # ca_8.weights[ic8, 3] /= 2.0
-    
+        ca_8.dat[0, 0, :, ic8, :] = np.transpose(
+            f['rps'][:, line_indice[0]:line_indice[1]],
+            axes=(1, 0, 2)
+        )
 
-    ca_8.write(
+        ca_8.weights[:,:] = 1.e16 # Very high value means weight zero
+        ca_8.weights[ic8, 0] = 0.004
+        ca_8.weights[ic8[core_indice[0]:core_indice[1]], 0] = 0.002
+
+        if ca is None:
+            ca = ca_8
+        else:
+            ca += ca_8
+
+        broadening_filename = 'gaussian_broadening_{}_pixel_{}.h5'.format(21.7, wave_name)
+
+        lab = "region = {0:10.5f}, {1:8.5f}, {2:3d}, {3:e}, {4}"
+        print(" ")
+        print("Regions information for the input file:" )
+        print(lab.format(ca_8.wav[0], ca_8.wav[1]-ca_8.wav[0], ca_8.wav.size, cont[0],  'spectral, {}'.format(broadening_filename)))
+        print("(w0, dw, nw, normalization, degradation_type, instrumental_profile file)")
+        print(" ")
+
+    ca.write(
         atmos_rp_write_path / 'rps_stic_profiles_x_30_y_1.nc'
     )
-
-    lab = "region = {0:10.5f}, {1:8.5f}, {2:3d}, {3:e}, {4}"
-    print(" ")
-    print("Regions information for the input file:" )
-    print(lab.format(ca_8.wav[0], ca_8.wav[1]-ca_8.wav[0], ca_8.wav.size, cont[0],  'none, none'))
-    print("(w0, dw, nw, normalization, degradation_type, instrumental_profile file)")
-    print(" ")
 
 
 def generate_input_atmos_file():
@@ -689,8 +693,9 @@ def make_rps_inversion_result_plots():
 
 
 if __name__ == '__main__':
-    make_rps()
-    plot_rp_map_fov()
-    make_rps_plots()
-    make_stic_inversion_files()
-    # make_rps_inversion_result_plots()
+    # make_rps()
+    # plot_rp_map_fov()
+    # make_rps_plots()
+    # make_stic_inversion_files()
+    # generate_input_atmos_file()
+    make_rps_inversion_result_plots()
