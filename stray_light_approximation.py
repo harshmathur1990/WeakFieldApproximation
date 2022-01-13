@@ -42,7 +42,7 @@ def mean_squarred_error(line_profile, atlas_profile):
                 2
             )
         )
-    )
+    ) / line_profile.size
 
 
 def approximate_stray_light_and_sigma(
@@ -93,7 +93,7 @@ def approximate_stray_light_and_sigma(
 
 
 @nb.jit(nopython=True)
-def speeduploop(fwhm, k_values, result_list, result_atlas_list):
+def speeduploop(fwhm, k_values, result_list):
     min_error = np.Inf
     r_fwhm = 0.0
     r_sigma = 0.0
@@ -114,7 +114,11 @@ def speeduploop(fwhm, k_values, result_list, result_atlas_list):
             for i2, k2 in enumerate(k_values):
                 for i3, k3 in enumerate(k_values):
 
-                    error = result_list[0][i0, i1] + result_list[1][i0, i2] + result_list[2][i0, i3]
+                    error1 = result_list[0][i0, i1]
+                    error2 = result_list[1][i0, i2]
+                    error3 = result_list[2][i0, i3]
+
+                    error = error1 + error2 + error3
 
                     if error < min_error:
                         min_error = error
@@ -165,7 +169,7 @@ def approximate_stray_light_and_sigma_multiple_lines(
     for index, (line_profile, atlas_profile) in enumerate(zip(line_profile_list, atlas_profile_list)):
         result, result_atlas, fwhm, sigma, k_values = approximate_stray_light_and_sigma(line_profile, atlas_profile)
 
-        result /= line_profile.size
+        result /= result.max()
 
         result_list.append(result)
 
@@ -173,7 +177,14 @@ def approximate_stray_light_and_sigma_multiple_lines(
 
         total_profile_size += line_profile.size
 
-    r_i0, r_i1, r_i2, r_i3, r_fwhm, r_sigma, r_k1, r_k2, r_k3 = speeduploop(fwhm, k_values, result_list, result_atlas_list)
+        print (result.max(), result.min())
+    r_i0, r_i1, r_i2, r_i3, r_fwhm, r_sigma, r_k1, r_k2, r_k3 = speeduploop(fwhm, k_values, result_list)
+
+    print_str = ''
+    for varname, var in zip(['r_i0', 'r_i1', 'r_i2', 'r_i3', 'r_fwhm', 'r_sigma', 'r_k1', 'r_k2', 'r_k3'], [r_i0, r_i1, r_i2, r_i3, r_fwhm, r_sigma, r_k1, r_k2, r_k3]):
+        print_str += '{} - {}  '.format(varname, var)
+
+    print (print_str)
 
     r_atlas = list()
     r_atlas.append(result_atlas_list[0][r_i0, r_i1])

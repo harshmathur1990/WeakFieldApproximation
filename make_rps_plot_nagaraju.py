@@ -525,7 +525,7 @@ def plot_rp_map_fov():
     plt.cla()
 
 
-def make_stic_inversion_files():
+def make_stic_inversion_files(rps=None):
 
     wave_indices = [[95, 153], [155, 194], [196, 405]]
 
@@ -539,15 +539,20 @@ def make_stic_inversion_files():
 
     ca = None
 
+    if rps is None:
+        rps = range(f['rps'].shape[0])
+
+    rps = np.array(rps)
+
     for wave_indice, line_indice, core_indice, wave_name in zip(wave_indices, line_indices, core_indices, wave_names):
         wc8, ic8 = findgrid(wave_8542_orig[wave_indice[0]:wave_indice[1]], (wave_8542_orig[wave_indice[0]:wave_indice[1]][10] - wave_8542_orig[wave_indice[0]:wave_indice[1]][9])*0.25, extra=8)
 
-        ca_8 = sp.profile(nx=30, ny=1, ns=4, nw=wc8.size)
+        ca_8 = sp.profile(nx=rps.size, ny=1, ns=4, nw=wc8.size)
 
         ca_8.wav[:] = wc8[:]
 
         ca_8.dat[0, 0, :, ic8, :] = np.transpose(
-            f['rps'][:, line_indice[0]:line_indice[1]],
+            f['rps'][rps][:, line_indice[0]:line_indice[1]],
             axes=(1, 0, 2)
         )
 
@@ -569,16 +574,20 @@ def make_stic_inversion_files():
         print("(w0, dw, nw, normalization, degradation_type, instrumental_profile file)")
         print(" ")
 
+    if rps.size != f['rps'].shape[0]:
+        writefilename = 'rps_stic_profiles_x_{}_y_1.nc'.format('_'.join([str(_rp) for _rp in rps]))
+    else:
+        writefilename = 'rps_stic_profiles_x_{}_y_1.nc'.format(rps.size)
     ca.write(
-        atmos_rp_write_path / 'rps_stic_profiles_x_30_y_1.nc'
+        atmos_rp_write_path / writefilename
     )
 
 
-def generate_input_atmos_file():
+def generate_input_atmos_file(length=30):
 
     f = h5py.File(falc_file_path, 'r')
 
-    m = sp.model(nx=30, ny=1, nt=1, ndep=150)
+    m = sp.model(nx=length, ny=1, nt=1, ndep=150)
 
     m.ltau[:, :, :] = f['ltau500'][0, 0, 0]
 
@@ -593,18 +602,59 @@ def generate_input_atmos_file():
     m.Bln[:, :, :] = 100
 
     m.write(
-        atmos_rp_write_path / 'falc_30_1_blong_100.nc'
+        atmos_rp_write_path / 'falc_{}_1_blong_100.nc'.format(length)
+    )
+
+
+def generate_input_atmos_file_from_previous_result(result_filename=None, rps=None):
+    if result_filename is None:
+        print ('Give input atmos file')
+        sys.exit(1)
+
+    result_filename = Path(result_filename)
+
+    f = h5py.File(result_filename, 'r')
+
+    if not rps:
+        rps = range(f['ltau500'].shape[2])
+
+    rps = np.array(rps)
+
+    m = sp.model(nx=rps.size, ny=1, nt=1, ndep=150)
+
+    m.ltau[:, :, :] = f['ltau500'][0, 0, rps]
+
+    m.pgas[:, :, :] = 1
+
+    m.temp[:, :, :] = f['temp'][0, 0, rps]
+
+    m.vlos[:, :, :] = f['vlos'][0, 0, rps]
+
+    m.vturb[:, :, :] = 0
+
+    m.Bln[:, :, :] = 100
+
+    m.write(
+        atmos_rp_write_path / '{}_{}_blong_100.nc'.format(result_filename.name, '_'.join([str(_rp) for _rp in rps]))
     )
 
 
 def make_rps_inversion_result_plots():
 
+    # rps_atmos_result = Path(
+    #     '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_atmos.nc'
+    # )
+    #
+    # rps_profs_result = Path(
+    #     '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_profs.nc'
+    # )
+
     rps_atmos_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_atmos.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes/rps_stic_profiles_x_3_12_25_y_1_cycle_1_t_6_vl_3_vt_4_blos_3_atmos.nc'
     )
 
     rps_profs_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_profs.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes/rps_stic_profiles_x_3_12_25_y_1_cycle_1_t_6_vl_3_vt_4_blos_3_profs.nc'
     )
 
     rps_input_profs = Path(
@@ -612,7 +662,7 @@ def make_rps_inversion_result_plots():
     )
     
     rps_plot_write_dir = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/only_Stokes_I'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes'
     )
 
     finputprofs = h5py.File(rps_input_profs, 'r')
@@ -623,7 +673,8 @@ def make_rps_inversion_result_plots():
 
     ind = np.where(finputprofs['profiles'][0, 0, 0, :, 0] != 0)[0]
 
-    for i in range(30):
+    for i, k in enumerate([3, 12, 25]):
+        print(i)
         plt.close('all')
 
         plt.clf()
@@ -678,7 +729,7 @@ def make_rps_inversion_result_plots():
 
         fig.tight_layout()
 
-        fig.savefig(rps_plot_write_dir /'RPs_{}.pdf'.format(i), format='pdf', dpi=300)
+        fig.savefig(rps_plot_write_dir /'RPs_{}.pdf'.format(k), format='pdf', dpi=300)
 
         plt.close('all')
 
@@ -696,6 +747,7 @@ if __name__ == '__main__':
     # make_rps()
     # plot_rp_map_fov()
     # make_rps_plots()
-    # make_stic_inversion_files()
-    # generate_input_atmos_file()
+    make_stic_inversion_files(rps = [3, 12, 25])
+    # generate_input_atmos_file(length=3)
+    # generate_input_atmos_file_from_previous_result(result_filename='/home/harsh/SpinorNagaraju/maps_1/stic/run_nagaraju/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_atmos.nc', rps=[3, 12, 25])
     make_rps_inversion_result_plots()

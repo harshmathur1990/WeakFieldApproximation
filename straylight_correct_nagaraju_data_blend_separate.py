@@ -157,7 +157,7 @@ def correct_for_straylight(data):
 
     crop_indice_y = np.array(
         list(
-            np.arange(203,250)
+            np.arange(203, 250)
         ) +
         list(
             np.arange(280, 370)
@@ -311,6 +311,8 @@ def correct_for_straylight(data):
         plt.plot(wave_ca[wave_indice[0]:wave_indice[1]], scipy.ndimage.gaussian_filter1d(norm_atlas, sigma=r_sigma), label='Atlas')
 
         plt.legend()
+
+        plt.savefig(write_path / '{}_median_comparison.pdf'.format(wave_name), format='pdf', dpi=300)
 
         plt.show()
 
