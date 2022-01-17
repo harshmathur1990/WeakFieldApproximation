@@ -630,7 +630,7 @@ def generate_input_atmos_file_from_previous_result(result_filename=None, rps=Non
 
     m.vlos[:, :, :] = f['vlos'][0, 0, rps]
 
-    m.vturb[:, :, :] = 0
+    m.vturb[:, :, :] = f['vturb'][0, 0, rps]
 
     m.Bln[:, :, :] = 100
 
@@ -658,7 +658,7 @@ def make_rps_inversion_result_plots():
     )
 
     rps_input_profs = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/rps_stic_profiles_x_30_y_1.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/rps_stic_profiles_x_3_12_25_y_1.nc'
     )
     
     rps_plot_write_dir = Path(
@@ -747,7 +747,7 @@ if __name__ == '__main__':
     # make_rps()
     # plot_rp_map_fov()
     # make_rps_plots()
-    make_stic_inversion_files(rps = [3, 12, 25])
+    # make_stic_inversion_files(rps = [3, 12, 25])
     # generate_input_atmos_file(length=3)
     # generate_input_atmos_file_from_previous_result(result_filename='/home/harsh/SpinorNagaraju/maps_1/stic/run_nagaraju/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_atmos.nc', rps=[3, 12, 25])
     make_rps_inversion_result_plots()
