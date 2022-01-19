@@ -631,7 +631,7 @@ def generate_input_atmos_file_from_previous_result(result_filename=None, rps=Non
 
     m.vlos[:, :, :] = f['vlos'][0, 0, rps]
 
-    m.vturb[:, :, :] = 0
+    m.vturb[:, :, :] = f['vturb'][0, 0, rps]
 
     m.Bln[:, :, :] = 100
 
