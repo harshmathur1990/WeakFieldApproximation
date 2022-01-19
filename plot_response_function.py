@@ -1,5 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import h5py
+import matplotlib.gridspec as gridspec
+from pathlib import Path
+
 
 ltau = np.array(
     [
@@ -37,15 +41,17 @@ ltau = np.array(
 )
 
 
-def make_plot(f, x, y, z):
+def make_response_functions():
 
-    wave_indices = [(1860, 3664)]
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_blos_2/')
 
-    names = ['Ha']
+    filename = 'combined_rps_stic_profiles_x_30_y_1_cycle_1_t_0_vl_0_vt_0_blos_2_atmos_response.nc'
 
-    for wave_indice, name in zip(wave_indices, names):
+    f = h5py.File(base_path / filename)
 
-        X, Y = np.meshgrid(f['wav'][wave_indice[0]:wave_indice[1]], ltau)
+    X, Y = np.meshgrid(f['wav'][()], ltau)
+
+    for i in range(30):
 
         plt.close('all')
 
@@ -53,31 +59,76 @@ def make_plot(f, x, y, z):
 
         plt.cla()
 
-        fig, axs = plt.subplots(3, 1, figsize=(8.27, 11.69))
+        fig = plt.figure(figsize=(7, 7))
 
-        # im = [[], [], [], [], [], []]
+        gs = gridspec.GridSpec(2, 2)
 
-        for i in range(3):
-            # for j in range(4):
-            # im[i].append(
-            axs[i].pcolormesh(
+        for j in range(4):
+
+            axs = fig.add_subplot(gs[j])
+
+            if j == 3:
+                k = 3
+            else:
+                k = 0
+
+            im = axs.pcolormesh(
                 X, Y,
-                f['derivatives'][x, y, z, i, :, wave_indice[0]:wave_indice[1], 0],
-                shading='nearest',
+                f['derivatives'][0, 0, i, j, :, :, k],
+                shading='gouraud',
                 cmap='gray'
             )
-            # )
 
-        # for i in range(6):
-        #     for j in range(4):
-        #         fig.colorbar(im[i][j], ax=axs[i][j])
+            fig.colorbar(im, ax=axs)
 
         fig.tight_layout()
 
         fig.savefig(
-            '{}_{}_{}_{}_response.png'.format(
-                x, y, z, name
+            base_path / 'RPs_{}_response.pdf'.format(
+                i
             ),
-            format='png',
+            format='pdf',
             dpi=300
         )
+
+        plt.close('all')
+
+        plt.clf()
+
+        plt.cla()
+
+        fig = plt.figure(figsize=(7, 7))
+
+        gs = gridspec.GridSpec(2, 2)
+
+        for j in range(4):
+
+            axs = fig.add_subplot(gs[j])
+
+            if j == 3:
+                k = 3
+            else:
+                k = 0
+
+            axs.plot(
+                ltau,
+                np.abs(np.sum(f['derivatives'][0, 0, i, j, :, :, k], 1))
+            )
+
+        fig.tight_layout()
+
+        fig.savefig(
+            base_path / 'RPs_{}_wave_integrated_response.pdf'.format(
+                i
+            ),
+            format='pdf',
+            dpi=300
+        )
+
+        print(i)
+
+    f.close()
+
+
+if __name__ == '__main__':
+    make_response_functions()

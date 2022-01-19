@@ -1,7 +1,10 @@
+import sys
+sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
 import numpy as np
 import sunpy.io.fits
 from helita.sim import rh15d
 from pathlib import Path
+from witt import witt
 
 
 def make_atmosphere(
@@ -11,12 +14,15 @@ def make_atmosphere(
     start_x, end_x,
     start_y, end_y,
     height_min_in_m,
-    height_max_in_m
+    height_max_in_m,
+    simulation_code_name='BIFROST',
+    lte=False
 ):
     if isinstance(foldername, str):
         foldername = Path(foldername)
 
-    temp_file = 'BIFROST_{}_lgtg_{}.fits'.format(
+    temp_file = '{}_{}_lgtg_{}.fits'.format(
+        simulation_code_name,
         simulation_name,
         snap
     )
@@ -43,7 +49,8 @@ def make_atmosphere(
         )
     )
 
-    vz_file = 'BIFROST_{}_uz_{}.fits'.format(
+    vz_file = '{}_{}_uz_{}.fits'.format(
+        simulation_code_name,
         simulation_name, snap
     )
 
@@ -64,16 +71,37 @@ def make_atmosphere(
 
     nH = np.zeros((1, 6, end_x - start_x, end_y - start_y, ind.size))
 
-    for i in range(1, 7):
-        nhfile = 'BIFROST_{}_lgn{}_{}.fits'.format(
-            simulation_name, i, snap
+    ne = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
+
+    if lte is False:
+        for i in range(1, 7):
+            nhfile = '{}_{}_lgn{}_{}.fits'.format(
+                simulation_code_name,
+                simulation_name, i, snap
+            )
+
+            data, header = sunpy.io.fits.read(
+                foldername / nhfile
+            )[0]
+
+            nH[0, i-1] = np.power(
+                10,
+                np.transpose(
+                    data[ind, start_x:end_x, start_y:end_y],
+                    axes=(1, 2, 0)
+                )
+            )
+
+        nefile = '{}_{}_lgne_{}.fits'.format(
+            simulation_code_name,
+            simulation_name, snap
         )
 
         data, header = sunpy.io.fits.read(
-            foldername / nhfile
-        )[0]
+                foldername / nefile
+            )[0]
 
-        nH[0, i-1] = np.power(
+        ne[0] = np.power(
             10,
             np.transpose(
                 data[ind, start_x:end_x, start_y:end_y],
@@ -81,25 +109,55 @@ def make_atmosphere(
             )
         )
 
-    nefile = 'BIFROST_{}_lgne_{}.fits'.format(
-        simulation_name, snap
-    )
+    else:
+        w = witt()
 
-    data, header = sunpy.io.fits.read(
-            foldername / nefile
+        pe_frpm_pg = np.vectorize(
+            w.get_pe_from_pg,
+            signature='(z,x,y),(z,x,y)->(z,x,y)'
+        )
+
+        pg_file = '{}_{}_lgp_{}.fits'.format(
+            simulation_code_name,
+            simulation_name, snap
+        )
+
+        data, header = sunpy.io.fits.read(
+            foldername / pg_file
         )[0]
 
-    ne = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
-
-    ne[0] = np.power(
-        10,
-        np.transpose(
-            data[ind, start_x:end_x, start_y:end_y],
-            axes=(1, 2, 0)
+        pe = pe_frpm_pg(
+            np.transpose(
+                T[0],
+                axes=(2, 1, 0)
+            ),
+            np.power(
+                10,
+                data[ind, start_x:end_x, start_y:end_y],
+            ) * 10
         )
-    )
 
-    bxfile = 'BIFROST_{}_bx_{}.fits'.format(
+        h6tpgpe = np.vectorize(
+            w.getH6pop,
+            signature='(z,x,y),(z,x,y),(z,x,y)->(z,x,y,6)'
+        )
+
+        h6pop = h6tpgpe(
+            np.transpose(
+                T[0],
+                axes=(2, 1, 0)
+            ),
+            data * 10,
+            pe
+        )
+
+        nH[0] = np.transpose(
+            h6pop,
+            axes=(1, 2, 0)
+        ) / 1e6
+
+    bxfile = '{}_{}_bx_{}.fits'.format(
+        simulation_code_name,
         simulation_name, snap
     )
 
@@ -114,7 +172,8 @@ def make_atmosphere(
         axes=(1, 2, 0)
     )
 
-    byfile = 'BIFROST_{}_by_{}.fits'.format(
+    byfile = '{}_{}_by_{}.fits'.format(
+        simulation_code_name,
         simulation_name, snap
     )
 
@@ -129,7 +188,8 @@ def make_atmosphere(
         axes=(1, 2, 0)
     )
 
-    bzfile = 'BIFROST_{}_bz_{}.fits'.format(
+    bzfile = '{}_{}_bz_{}.fits'.format(
+        simulation_code_name,
         simulation_name, snap
     )
 
@@ -153,7 +213,8 @@ def make_atmosphere(
     By = By[:, :, :, ::-1]
     Bz = Bz[:, :, :, ::-1]
 
-    outfile = 'bifrost_{}_{}_{}_{}_{}_{}_{}.nc'.format(
+    outfile = '{}_{}_{}_{}_{}_{}_{}_{}.nc'.format(
+        simulation_code_name,
         simulation_name, start_x, end_x, start_y, end_y, height_min_in_m, height_max_in_m
     )
 
@@ -161,7 +222,8 @@ def make_atmosphere(
         outfile, T, vz, z,
         nH=nH, Bz=Bz, By=By,
         Bx=Bx, ne=ne,
-        desc='Bifrost Simulation (simulation_name, start_x, end_x, start_y, end_y, height_min_in_m, height_max_in_m) - {} - {} - {} - {} - {} - {} - {}'.format(
+        desc='{} Simulation (simulation_name, start_x, end_x, start_y, end_y, height_min_in_m, height_max_in_m) - {} - {} - {} - {} - {} - {} - {}'.format(
+            simulation_code_name,
             simulation_name, start_x, end_x, start_y, end_y, height_min_in_m, height_max_in_m
         ),
         snap=snap
