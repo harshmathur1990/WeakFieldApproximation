@@ -651,19 +651,19 @@ def make_rps_inversion_result_plots():
     # )
 
     rps_atmos_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_blos_2/rps_stic_profiles_x_3_12_25_y_1_cycle_1_t_0_vl_0_vt_0_blos_2_atmos.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_4343/rps_stic_profiles_x_30_y_1_cycle_1_t_4_vl_3_vt_4_blos_3_atmos.nc'
     )
 
     rps_profs_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_blos_2/rps_stic_profiles_x_3_12_25_y_1_cycle_1_t_0_vl_0_vt_0_blos_2_profs.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_4343/rps_stic_profiles_x_30_y_1_cycle_1_t_4_vl_3_vt_4_blos_3_profs.nc'
     )
 
     rps_input_profs = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/rps_stic_profiles_x_3_12_25_y_1.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/rps_stic_profiles_x_30_y_1.nc'
     )
     
     rps_plot_write_dir = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_blos_2'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_4343'
     )
 
     finputprofs = h5py.File(rps_input_profs, 'r')
@@ -674,7 +674,7 @@ def make_rps_inversion_result_plots():
 
     ind = np.where(finputprofs['profiles'][0, 0, 0, :, 0] != 0)[0]
 
-    for i, k in enumerate([3, 12, 25]):
+    for i, k in enumerate(range(30)):
         print(i)
         plt.close('all')
 
@@ -804,5 +804,5 @@ if __name__ == '__main__':
     # make_stic_inversion_files(rps = [3, 12, 25])
     # generate_input_atmos_file(length=3)
     # generate_input_atmos_file_from_previous_result(result_filename='/home/harsh/SpinorNagaraju/maps_1/stic/run_nagaraju/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_atmos.nc', rps=[3, 12, 25])
-    # make_rps_inversion_result_plots()
-    combine_rps_atmos()
+    make_rps_inversion_result_plots()
+    # combine_rps_atmos()
