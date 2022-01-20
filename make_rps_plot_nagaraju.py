@@ -651,11 +651,11 @@ def make_rps_inversion_result_plots():
     # )
 
     rps_atmos_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_4343/rps_stic_profiles_x_30_y_1_cycle_1_t_4_vl_3_vt_4_blos_3_atmos.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_blos_2/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_blos_2_atmos.nc'
     )
 
     rps_profs_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_4343/rps_stic_profiles_x_30_y_1_cycle_1_t_4_vl_3_vt_4_blos_3_profs.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_blos_2/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_blos_2_profs.nc'
     )
 
     rps_input_profs = Path(
@@ -663,7 +663,7 @@ def make_rps_inversion_result_plots():
     )
     
     rps_plot_write_dir = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_4343'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_blos_2'
     )
 
     finputprofs = h5py.File(rps_input_profs, 'r')
