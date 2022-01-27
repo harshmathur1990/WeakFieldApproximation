@@ -811,7 +811,7 @@ def full_map_generate_input_atmos_file_from_previous_result():
 
     base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic')
 
-    fc = h5py.File(base_path / 'chosen_out_30.h5')
+    fc = h5py.File(base_path / 'chosen_out_30.h5', 'r')
 
     get_temp = prepare_get_params(f['temp'][0, 0])
 
@@ -821,15 +821,15 @@ def full_map_generate_input_atmos_file_from_previous_result():
 
     get_blos = prepare_get_params(f['blong'][0, 0])
 
-    vec_get_temp = np.vectorize(get_temp)
+    vec_get_temp = np.vectorize(get_temp, signature='(x,y)->(x,y,z)')
 
-    vec_get_vlos = np.vectorize(get_vlos)
+    vec_get_vlos = np.vectorize(get_vlos, signature='(x,y)->(x,y,z)')
 
-    vec_get_vturb = np.vectorize(get_vturb)
+    vec_get_vturb = np.vectorize(get_vturb, signature='(x,y)->(x,y,z)')
 
-    vec_get_blos = np.vectorize(get_blos)
+    vec_get_blos = np.vectorize(get_blos, signature='(x,y)->(x,y,z)')
 
-    labels = fc['final_labels']
+    labels = fc['final_labels'][()]
 
     m = sp.model(nx=60, ny=19, nt=1, ndep=150)
 
