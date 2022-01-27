@@ -51,11 +51,14 @@ def prepare_calculate_blos(
     lambda0,
     lambda_range_min,
     lambda_range_max,
-    g_eff
+    g_eff,
+    ind
 ):
     def actual_calculate_blos(i, j):
 
-        stokes_I, stokes_V = obs[i, 0, j], obs[i, 3, j]
+        i = int(i)
+        j = int(j)
+        stokes_I, stokes_V = obs[0, i, j, ind, 0], obs[0, i, j, ind, 3]
         return calculate_b_los(
             stokes_I,
             stokes_V,
@@ -66,6 +69,9 @@ def prepare_calculate_blos(
             g_eff
         )
     return actual_calculate_blos
+
+lambda_range = [6560, 6562]
+lambda_range = [6562, 6562.8]
 
 def calculate_b_transverse_wing(
     stokes_I,
