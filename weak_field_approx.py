@@ -70,8 +70,6 @@ def prepare_calculate_blos(
         )
     return actual_calculate_blos
 
-lambda_range = [6560, 6562]
-lambda_range = [6562, 6562.8]
 
 def calculate_b_transverse_wing(
     stokes_I,
@@ -132,3 +130,15 @@ def calculate_b_transverse_wing(
     denominator = np.sum(np.square(diff_lambda) * np.square(derivative))
 
     return np.sqrt(numerator / denominator)
+
+
+def prepare_compare_mag_field(magc, magc_ca, ltau, ind):
+    def compare_mag_field(i, j):
+        i = int(i)
+        j = int(j)
+        mag_field_halpha = magc[i, j]
+        ca_mag_field = magc_ca[i, j]
+
+        return ltau[ind][np.argmin(np.abs(ca_mag_field[ind] - mag_field_halpha))]
+
+    return compare_mag_field

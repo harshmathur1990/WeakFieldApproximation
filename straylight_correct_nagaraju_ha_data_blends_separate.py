@@ -331,11 +331,11 @@ def generate_stic_input_files(filename):
 
     f.close()
 
-    fov_data = stray_corrected_data[2:, :, 228:288, :]
+    fov_data = stray_corrected_data[0:19, :, 230:290, :]
 
     wc8, ic8 = findgrid(wave_ha, (wave_ha[10] - wave_ha[9])*0.25, extra=8)
 
-    ha = sp.profile(nx=60, ny=18, ns=4, nw=wc8.size)
+    ha = sp.profile(nx=60, ny=19, ns=4, nw=wc8.size)
 
     ha.wav[:] = wc8[:]
 

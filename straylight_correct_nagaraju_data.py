@@ -151,7 +151,7 @@ def correct_for_straylight(data):
 
     crop_indice_y = np.array(
         list(
-            np.arange(203,250)
+            np.arange(203, 250)
         ) +
         list(
             np.arange(280, 370)
