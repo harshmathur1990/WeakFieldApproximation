@@ -1,5 +1,6 @@
 import sys
-sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
+# sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
+sys.path.insert(1, '/home/harsh/stic/example')
 import numpy as np
 import sunpy.io.fits
 from helita.sim import rh15d
