@@ -213,9 +213,11 @@ def make_atmosphere(
     By = By[:, :, :, ::-1]
     Bz = Bz[:, :, :, ::-1]
 
-    outfile = '{}_{}_{}_{}_{}_{}_{}_{}.nc'.format(
-        simulation_code_name,
-        simulation_name, start_x, end_x, start_y, end_y, height_min_in_m, height_max_in_m
+    outfile = str(
+        foldername / '{}_{}_{}_{}_{}_{}_{}_{}.nc'.format(
+            simulation_code_name,
+            simulation_name, start_x, end_x, start_y, end_y, height_min_in_m, height_max_in_m
+        )
     )
 
     rh15d.make_xarray_atmos(
@@ -231,12 +233,24 @@ def make_atmosphere(
 
 
 if __name__ == '__main__':
+    # make_atmosphere(
+    #     '/data/harsh/en024048_hion/atmos',
+    #     'en024048_hion',
+    #     412,
+    #     250, 251,
+    #     250, 251,
+    #     -500 * 1e3,
+    #     2000 * 1e3
+    # )
+
     make_atmosphere(
-        '/data/harsh/en024048_hion/atmos',
-        'en024048_hion',
-        412,
-        250, 251,
-        250, 251,
+        '/data/harsh/ar098192/atmos',
+        'ar098192',
+        294000,
+        0, 256,
+        0, 512,
         -500 * 1e3,
-        2000 * 1e3
+        3000 * 1e3,
+        simulation_code_name='MURaM',
+        lte=True
     )
