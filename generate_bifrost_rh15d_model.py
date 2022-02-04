@@ -114,7 +114,7 @@ def make_atmosphere(
         w = witt()
 
         pe_frpm_pg = np.vectorize(
-            w.get_pe_from_pg,
+            w.pe_from_pg,
             signature='(z,x,y),(z,x,y)->(z,x,y)'
         )
 
