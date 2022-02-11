@@ -113,9 +113,8 @@ def make_atmosphere(
     else:
         w = witt()
 
-        pe_frpm_pg = np.vectorize(
-            w.pe_from_pg,
-            signature='(z,x,y),(z,x,y)->(z,x,y)'
+        pe_from_pg = np.vectorize(
+            w.pe_from_pg
         )
 
         pg_file = '{}_{}_lgp_{}.fits'.format(
@@ -127,35 +126,31 @@ def make_atmosphere(
             foldername / pg_file
         )[0]
 
-        pe = pe_frpm_pg(
-            np.transpose(
+        pe = pe_from_pg(
                 T[0],
-                axes=(2, 1, 0)
-            ),
-            np.power(
-                10,
-                data[ind, start_x:end_x, start_y:end_y],
-            ) * 10
+            np.transpose(
+                np.power(
+                    10,
+                    data[ind, start_x:end_x, start_y:end_y],
+                ) * 10,
+                axes=(1, 2, 0)
+            )
         )
 
         h6tpgpe = np.vectorize(
-            w.getH6pop,
-            signature='(z,x,y),(z,x,y),(z,x,y)->(z,x,y,6)'
+            w.getH6pop
         )
 
         h6pop = h6tpgpe(
+            T[0],
             np.transpose(
-                T[0],
-                axes=(2, 1, 0)
+                data * 10,
+                axes=(1, 2, 0)
             ),
-            data * 10,
             pe
         )
 
-        nH[0] = np.transpose(
-            h6pop,
-            axes=(1, 2, 0)
-        ) / 1e6
+        nH[0] = h6pop / 1e6
 
     bxfile = '{}_{}_bx_{}.fits'.format(
         simulation_code_name,
@@ -245,13 +240,13 @@ if __name__ == '__main__':
     # )
 
     make_atmosphere(
-        '/data/harsh/ar098192/atmos',
-        'ar098192',
-        294000,
-        0, 256,
-        0, 512,
-        -500 * 1e3,
-        3000 * 1e3,
+        foldername='/data/harsh/ar098192/atmos',
+        simulation_name='ar098192',
+        snap=294000,
+        start_x=0, end_x=256,
+        start_y=0, end_y=512,
+        height_min_in_m=-500 * 1e-3,
+        height_max_in_m=3000 * 1e3,
         simulation_code_name='MURaM',
         lte=True
     )

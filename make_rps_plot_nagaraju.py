@@ -408,7 +408,6 @@ def make_rps_plots(name='RPs'):
         plt.cla()
 
 
-
 def get_data_for_label_polarisation_map():
 
     ind_photosphere = np.array(list(range(0, 58)) + list(range(58, 97)))
