@@ -522,7 +522,17 @@ def combine_ha_ca_data():
 
     ha.dat[0, :, :, :, :] = fha['profiles'][0]
 
-    ha.weights[:, :] = fha['weights'][()]
+    ind = np.where(ha.dat[0, 0, 0, :, 0] != 0)[0]
+
+    ha.weights[:, :] = 1e16
+
+    ha.weights[ind, 0] = 0.004
+
+    ha.weights[ind[18:46], 0] = 0.002
+
+    ha.weights[ind[69:186], 0] = 0.002
+
+    ha.weights[ind[405:432], 0] = 0.002
 
     ca = sp.profile(nx=60, ny=17, ns=4, nw=fca['wav'][()].size)
 
@@ -530,9 +540,17 @@ def combine_ha_ca_data():
 
     ca.dat[0, :, :, :, :] = fca['profiles'][0, 0:17]
 
-    ca.weights[:, :] = fca['weights'][()]
+    ind = np.where(ca.dat[0, 0, 0, :, 0] != 0)[0]
 
-    ca.weights[:, 3] = 1e16
+    ca.weights[:, :] = 1e16
+
+    ca.weights[ind, 0] = 0.004
+
+    ca.weights[ind[19:36], 0] = 0.002
+
+    ca.weights[ind[76:85], 0] = 0.002
+
+    ca.weights[ind[188:211], 0] = 0.002
 
     all_profiles = ca + ha
 
