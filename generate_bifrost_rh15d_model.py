@@ -6,18 +6,17 @@ import sunpy.io.fits
 from helita.sim import rh15d
 from pathlib import Path
 from numba import vectorize, guvectorize, float64
+from lightweaver.witt import witt
 
 
 @vectorize([float64(float64, float64)])
 def pe_from_pg(t, pg):
-    from lightweaver.witt import witt
     w = witt()
     return w.pe_from_pg(t, pg)
 
 
 @guvectorize([(float64[:,:,:], float64[:,:,:], float64[:,:,:], float64[:,:,:,:])], '(x,y,z),(x,y,z),(x,y,z)->(x,y,z,n)')
 def h6tpgpe(t, pgas, pe, h6pop):
-    from lightweaver.witt import witt
     w = witt()
     for i in range(t.shape[0]):
         for j in range(t.shape[1]):
