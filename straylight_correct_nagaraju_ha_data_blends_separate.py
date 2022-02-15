@@ -446,6 +446,16 @@ def generate_stic_input_files(filename):
         axes=(3, 0, 2, 1)
     ) / stic_cgs_calib_factor
 
+    ha.weights[:, :] = 1e16
+
+    ha.weights[ic8, 0] = 0.004
+
+    ha.weights[ic8[18:46], 0] = 0.002
+
+    ha.weights[ic8[69:186], 0] = 0.002
+
+    ha.weights[ic8[405:432], 0] = 0.002
+
     ha.write(
         write_path / '{}_stic_profiles.nc'.format(
             filename.name
@@ -519,6 +529,8 @@ def combine_ha_ca_data():
     ca.dat[0, :, :, :, :] = fca['profiles'][0, 0:17]
 
     ca.weights[:, :] = fca['weights'][()]
+
+    ca.weights[:, 3] = 1e16
 
     all_profiles = ca + ha
 
