@@ -6,6 +6,23 @@ import sunpy.io.fits
 from helita.sim import rh15d
 from pathlib import Path
 from witt import witt
+from numba import vectorize, guvectorize, float64
+
+
+w = witt()
+
+
+@vectorize([float64(float64, float64)])
+def pe_from_pg(t, pg):
+    return w.pe_from_pg(t, pg)
+
+
+@guvectorize([(float64[:,:,:], float64[:,:,:], float64[:,:,:], float64[:,:,:,:])], '(x,y,z),(x,y,z),(x,y,z)->(x,y,z,n)')
+def h6tpgpe(t, pgas, pe, h6pop):
+    for i in range(t.shape[0]):
+        for j in range(t.shape[1]):
+            for k in range(t.shape[2]):
+                h6pop[i, j, k] = w.getH6pop(t[i, j, k], pgas[i, j, k], pe[i, j, k])
 
 
 def make_atmosphere(
@@ -111,11 +128,6 @@ def make_atmosphere(
         )
 
     else:
-        w = witt()
-
-        pe_from_pg = np.vectorize(
-            w.pe_from_pg
-        )
 
         pg_file = '{}_{}_lgp_{}.fits'.format(
             simulation_code_name,
@@ -137,20 +149,19 @@ def make_atmosphere(
             )
         )
 
-        h6tpgpe = np.vectorize(
-            w.getH6pop
-        )
-
         h6pop = h6tpgpe(
             T[0],
             np.transpose(
-                data * 10,
+                np.power(
+                    10,
+                    data[ind, start_x:end_x, start_y:end_y],
+                ) * 10,
                 axes=(1, 2, 0)
             ),
             pe
         )
 
-        nH[0] = h6pop / 1e6
+        nH[0] = np.transpose(h6pop, axes=(3, 0, 1, 2)) / 1e6
 
     bxfile = '{}_{}_bx_{}.fits'.format(
         simulation_code_name,
