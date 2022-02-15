@@ -526,6 +526,8 @@ def combine_ha_ca_data():
 
     ca = sp.profile(nx=60, ny=17, ns=4, nw=fca['wav'][()].size)
 
+    ca.wav[:] = fca['wav'][()]
+
     ca.dat[0, :, :, :, :] = fca['profiles'][0, 0:17]
 
     ca.weights[:, :] = fca['weights'][()]
