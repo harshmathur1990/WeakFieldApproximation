@@ -47,10 +47,10 @@ def make_compare_plots():
     im02 = axs[0][2].imshow(fca['blong'][0, 2:, :, 50].T, cmap='gray', origin='lower')
     im03 = axs[0][3].imshow(magha.T, cmap='gray', origin='lower')
 
-    im10 = axs[1][0].imshow(fca['blong'][0, 2:, :, 123].T - fca['blong'][0, 2:, :, 131].T, cmap='bwr', origin='lower', vmin=-200, vmax=200)
-    im11 = axs[1][1].imshow(fca['blong'][0, 2:, :, 102].T - fca['blong'][0, 2:, :, 123].T, cmap='bwr', origin='lower', vmin=-200, vmax=200)
-    im12 = axs[1][2].imshow(fca['blong'][0, 2:, :, 50].T - fca['blong'][0, 2:, :, 102].T, cmap='bwr', origin='lower', vmin=-200, vmax=200)
-    im13 = axs[1][3].imshow(magha.T - fca['blong'][0, 2:, :, 50].T, cmap='bwr', origin='lower', vmin=-200, vmax=200)
+    im10 = axs[1][0].imshow(np.abs(fca['blong'][0, 2:, :, 123].T) - np.abs(fca['blong'][0, 2:, :, 131].T), cmap='bwr', origin='lower', vmin=-200, vmax=200)
+    im11 = axs[1][1].imshow(np.abs(fca['blong'][0, 2:, :, 102].T) - np.abs(fca['blong'][0, 2:, :, 123].T), cmap='bwr', origin='lower', vmin=-200, vmax=200)
+    im12 = axs[1][2].imshow(np.abs(fca['blong'][0, 2:, :, 50].T) - np.abs(fca['blong'][0, 2:, :, 102].T), cmap='bwr', origin='lower', vmin=-200, vmax=200)
+    im13 = axs[1][3].imshow(np.abs(magha.T) - np.abs(fca['blong'][0, 2:, :, 50].T), cmap='bwr', origin='lower', vmin=-200, vmax=200)
 
     fig.colorbar(im00, ax=axs[0][0])
     fig.colorbar(im01, ax=axs[0][1])

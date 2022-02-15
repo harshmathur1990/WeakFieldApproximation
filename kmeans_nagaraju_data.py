@@ -12,13 +12,14 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 
-kmeans_output_dir = '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output/'
-input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+kmeans_output_dir = '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output_ha_ca/'
+# input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/aligned_Ca_Ha_stic_profiles.nc'
 f = h5py.File(input_file, 'r')
 ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
 framerows = f['profiles'][0, :, :, ind, :]
 framerows[:, :, :, 1:4] /= framerows[:, :, :, 0][:, :, :, np.newaxis]
-framerows = framerows.reshape(19, 60, ind.size * 4).reshape(19 * 60, ind.size * 4)
+framerows = framerows.reshape(17, 60, ind.size * 4).reshape(17 * 60, ind.size * 4)
 mn = np.mean(framerows, axis=0)
 sd = np.std(framerows, axis=0)
 weights = np.ones(ind.size * 4)  # * 0.025
@@ -128,7 +129,7 @@ def plot_inertia():
 
     axs.grid()
 
-    axs.axvline(x=30, linestyle='--')
+    axs.axvline(x=40, linestyle='--')
 
     axs.set_xticks([0, 20, 30, 40, 60, 80, 100])
 
@@ -159,10 +160,10 @@ def plot_inertia():
     plt.cla()
 
 
-# if __name__=='__main__':
-#     plot_inertia()
+if __name__=='__main__':
+    plot_inertia()
 
-
+'''
 if __name__ == '__main__':
 
     comm = MPI.COMM_WORLD
@@ -266,3 +267,4 @@ if __name__ == '__main__':
             status = do_work(item)
 
             comm.send({'status': status, 'item': item}, dest=0, tag=2)
+'''

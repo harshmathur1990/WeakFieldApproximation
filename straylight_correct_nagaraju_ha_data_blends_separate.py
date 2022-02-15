@@ -391,11 +391,15 @@ def correct_for_straylight(data):
 
     stic_cgs_calib_factor = stray_corrected_median[-1] / f1['profiles'][0, 0, 0, -1, 0]
 
-    plt.plot(wave_ha, norm_median_stray, label='Stray Corrected Median')
+    plt.plot(wave_ha, norm_median_stray, label='Stray Corrected Median', linewidth=0.5)
 
-    plt.plot(wave_ha, scipy.ndimage.gaussian_filter1d(norm_atlas, sigma=fwhm[np.unravel_index(np.argmin(result), result.shape)[0]]/2.355), label='Atlas')
+    plt.plot(wave_ha, scipy.ndimage.gaussian_filter1d(norm_atlas, sigma=fwhm[np.unravel_index(np.argmin(result), result.shape)[0]]/2.355), label='Atlas', linewidth=0.5)
+
+    plt.gcf().set_size_inches(19.2, 10.8, forward=True)
 
     plt.legend()
+
+    plt.savefig(write_path / 'Ha_median_comparison.pdf', format='pdf', dpi=300)
 
     plt.show()
 
@@ -550,3 +554,5 @@ def combine_ha_ca_data():
 if __name__ == '__main__':
     # get_catalog_0p8()
     generate_stic_input_files('/home/harsh/SpinorNagaraju//alignedspectra_scan1_map01_Ha.fits')
+
+    # combine_ha_ca_data()
