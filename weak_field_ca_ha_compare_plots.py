@@ -18,7 +18,7 @@ def make_compare_plots():
     ha_ind = np.where(fha['profiles'][0, 0, 0, :, 0] != 0)[0]
 
     ha_center_wave = 6562.8 / 10
-    wave_range = 1.8 / 10
+    wave_range = 0.9 / 10
 
     actual_calculate_blos = prepare_calculate_blos(
         fha['profiles'][()],
