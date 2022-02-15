@@ -293,11 +293,15 @@ def correct_for_straylight(data):
 
     stic_cgs_calib_factor = stray_corrected_median[-1] / f1['profiles'][0, 0, 0, -1, 0]
 
-    plt.plot(wave_ha, norm_median_stray, label='Stray Corrected Median')
+    plt.plot(wave_ha, norm_median_stray, label='Stray Corrected Median', linewidth=0.5)
 
-    plt.plot(wave_ha, scipy.ndimage.gaussian_filter1d(norm_atlas, sigma=fwhm[np.unravel_index(np.argmin(result), result.shape)[0]]/2.355), label='Atlas')
+    plt.plot(wave_ha, scipy.ndimage.gaussian_filter1d(norm_atlas, sigma=fwhm[np.unravel_index(np.argmin(result), result.shape)[0]]/2.355), label='Atlas', linewidth=0.5)
+
+    plt.gcf().set_size_inches(19.2, 10.8, forward=True)
 
     plt.legend()
+
+    plt.savefig(write_path / 'Ha_median_comparison.pdf', format='pdf', dpi=300)
 
     plt.show()
 
@@ -391,6 +395,66 @@ def generate_input_atmos_file():
     m.write('falc_60_19.nc')
 
 
+def combine_ha_ca_data():
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
+
+    ca_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+
+    ha_file = base_path / 'alignedspectra_scan1_map01_Ha.fits_stic_profiles.nc'
+
+    ca_output_file_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/fulldata_inversions/alignedspectra_scan1_map01_Ca.fits_stic_profiles_cycle_1_t_6_vl_3_vt_4_blos_3_atmos.nc')
+
+    fha = h5py.File(ha_file, 'r')
+
+    fca = h5py.File(ca_file, 'r')
+
+    ha = sp.profile(nx=60, ny=17, ns=4, nw=fha['wav'][()].size)
+
+    ha.wav[:] = fha['wav'][()]
+
+    ha.dat[0, :, :, :, :] = fha['profiles'][0]
+
+    ha.weights[:, :] = fha['weights'][()]
+
+    ca = sp.profile(nx=60, ny=17, ns=4, nw=fca['wav'][()].size)
+
+    ca.dat[0, :, :, :, :] = fca['profiles'][0, 0:17]
+
+    ca.weights[:, :] = fca['weights'][()]
+
+    all_profiles = ca + ha
+
+    all_profiles.write(
+        write_path / 'aligned_Ca_Ha_stic_profiles.nc'
+    )
+
+    fca.close()
+
+    fha.close()
+
+    f = h5py.File(ca_output_file_path, 'r')
+
+    m = sp.model(nx=60, ny=17, nt=1, ndep=150)
+
+    m.ltau[:, :, :] = f['ltau500'][0, 0, 0]
+
+    m.pgas[:, :, :] = 1
+
+    m.temp[:, :, :] = f['temp'][0, 0:17]
+
+    m.vlos[:, :, :] = f['vlos'][0, 0:17]
+
+    m.vturb[:, :, :] = f['vturb'][0, 0:17]
+
+    m.Bln[:, :, :] = f['blong'][0, 0:17]
+
+    m.write(write_path / 'ha_ca_input_atmos_60_17.nc')
+
+    f.close()
+
+
 if __name__ == '__main__':
     # get_catalog_0p8()
     generate_stic_input_files('/home/harsh/SpinorNagaraju//alignedspectra_scan1_map01_Ha.fits')
+
+    # combine_ha_ca_data()
