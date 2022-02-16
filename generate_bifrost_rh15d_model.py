@@ -5,7 +5,8 @@ import numpy as np
 import sunpy.io.fits
 from helita.sim import rh15d
 from pathlib import Path
-from lightweaver.witt import witt
+# from lightweaver.witt import witt
+from witt import witt
 from tqdm import tqdm
 
 
