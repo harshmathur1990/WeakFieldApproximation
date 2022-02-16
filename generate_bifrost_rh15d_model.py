@@ -13,24 +13,25 @@ from tqdm import tqdm
 w = witt()
 
 
-def pe_from_pg(t, pgas):
-    pe = np.zeros_like(t)
-    progress = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
-    for i in range(t.shape[0]):
-        for j in range(t.shape[1]):
-            for k in range(t.shape[2]):
-                pe[i, j, k] = w.pe_from_pg(t[i, j, k], pgas[i, j, k])
-                progress.update(1)
-    return pe
+# def pe_from_pg(t, pgas):
+#     pe = np.zeros_like(t)
+#     progress = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
+#     for i in range(t.shape[0]):
+#         for j in range(t.shape[1]):
+#             for k in range(t.shape[2]):
+#                 pe[i, j, k] = w.pe_from_pg(t[i, j, k], pgas[i, j, k])
+#                 progress.update(1)
+#     return pe
 
 
-def h6tpgpe(t, pgas, pe):
+def h6tpgpe(t, pgas):
     h6pop = np.zeros((t.shape[0], t.shape[1], t.shape[2], 6), dtype=np.float64)
     progress = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
     for i in range(t.shape[0]):
         for j in range(t.shape[1]):
             for k in range(t.shape[2]):
-                h6pop[i, j, k] = w.getH6pop(t[i, j, k], pgas[i, j, k], pe[i, j, k])
+                pe = w.pe_from_pg(t[i, j, k], pgas[i, j, k])
+                h6pop[i, j, k] = w.getH6pop(t[i, j, k], pgas[i, j, k], pe)
                 progress.update(1)
 
     return h6pop
@@ -149,17 +150,6 @@ def make_atmosphere(
             foldername / pg_file
         )[0]
 
-        pe = pe_from_pg(
-                T[0],
-            np.transpose(
-                np.power(
-                    10,
-                    data[ind, start_x:end_x, start_y:end_y],
-                ) * 10,
-                axes=(1, 2, 0)
-            )
-        )
-
         h6pop = h6tpgpe(
             T[0],
             np.transpose(
@@ -168,8 +158,7 @@ def make_atmosphere(
                     data[ind, start_x:end_x, start_y:end_y],
                 ) * 10,
                 axes=(1, 2, 0)
-            ),
-            pe
+            )
         )
 
         nH[0] = np.transpose(h6pop, axes=(3, 0, 1, 2)) * 1e6
