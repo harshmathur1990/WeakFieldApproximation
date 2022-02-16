@@ -5,23 +5,34 @@ import numpy as np
 import sunpy.io.fits
 from helita.sim import rh15d
 from pathlib import Path
-from numba import vectorize, guvectorize, float64
 from lightweaver.witt import witt
+from tqdm import tqdm
 
 
-@vectorize([float64(float64, float64)])
-def pe_from_pg(t, pg):
-    w = witt()
-    return w.pe_from_pg(t, pg)
+w = witt()
 
 
-@guvectorize([(float64[:,:,:], float64[:,:,:], float64[:,:,:], float64[:,:,:,:])], '(x,y,z),(x,y,z),(x,y,z)->(x,y,z,n)')
-def h6tpgpe(t, pgas, pe, h6pop):
-    w = witt()
+def pe_from_pg(t, pgas):
+    pe = np.zeros_like(t)
+    t = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
+    for i in range(t.shape[0]):
+        for j in range(t.shape[1]):
+            for k in range(t.shape[2]):
+                pe[i, j, k] = w.pe_from_pg(t[i, j, k], pgas[i, j, k])
+                t.update(1)
+    return pe
+
+
+def h6tpgpe(t, pgas, pe):
+    h6pop = np.zeros((t.shape[0], t.shape[1], t.shape[2], 6), dtype=np.float64)
+    t = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
     for i in range(t.shape[0]):
         for j in range(t.shape[1]):
             for k in range(t.shape[2]):
                 h6pop[i, j, k] = w.getH6pop(t[i, j, k], pgas[i, j, k], pe[i, j, k])
+                t.update(1)
+
+    return h6pop
 
 
 def make_atmosphere(
@@ -160,7 +171,7 @@ def make_atmosphere(
             pe
         )
 
-        nH[0] = np.transpose(h6pop, axes=(3, 0, 1, 2)) / 1e6
+        nH[0] = np.transpose(h6pop, axes=(3, 0, 1, 2)) * 1e6
 
     bxfile = '{}_{}_bx_{}.fits'.format(
         simulation_code_name,
