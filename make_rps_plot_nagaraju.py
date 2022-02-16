@@ -663,7 +663,7 @@ def make_stic_inversion_files(rps=None):
         ca_8.weights[:, :] = 1.e16 # Very high value means weight zero
         ca_8.weights[ic8, 0] = 0.004
         ca_8.weights[ic8[core_indice[0]:core_indice[1]], 0] = 0.002
-        ca_8.weights[ic8, 3] = ca_8.weights[ic8, 0] / 2
+        # ca_8.weights[ic8, 3] = ca_8.weights[ic8, 0] / 2
 
         if ca is None:
             ca = ca_8
@@ -695,7 +695,7 @@ def make_stic_inversion_files(rps=None):
     ha.weights[iha[18:46], 0] = 0.002
     ha.weights[iha[69:186], 0] = 0.002
     ha.weights[iha[405:432], 0] = 0.002
-    # ha.weights[ic8, 3] = ca_8.weights[ic8, 0] / 2
+    # ha.weights[iha, 3] = ca_8.weights[iha, 0] / 2
 
     all_profiles = ca + ha
     if rps.size != f['rps'].shape[0]:
