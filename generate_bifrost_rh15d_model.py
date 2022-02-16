@@ -15,23 +15,23 @@ w = witt()
 
 def pe_from_pg(t, pgas):
     pe = np.zeros_like(t)
-    t = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
+    progress = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
     for i in range(t.shape[0]):
         for j in range(t.shape[1]):
             for k in range(t.shape[2]):
                 pe[i, j, k] = w.pe_from_pg(t[i, j, k], pgas[i, j, k])
-                t.update(1)
+                progress.update(1)
     return pe
 
 
 def h6tpgpe(t, pgas, pe):
     h6pop = np.zeros((t.shape[0], t.shape[1], t.shape[2], 6), dtype=np.float64)
-    t = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
+    progress = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
     for i in range(t.shape[0]):
         for j in range(t.shape[1]):
             for k in range(t.shape[2]):
                 h6pop[i, j, k] = w.getH6pop(t[i, j, k], pgas[i, j, k], pe[i, j, k])
-                t.update(1)
+                progress.update(1)
 
     return h6pop
 
