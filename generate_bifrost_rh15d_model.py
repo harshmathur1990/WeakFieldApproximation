@@ -54,6 +54,8 @@ def make_atmosphere(
         foldername / temp_file
     )[1]
 
+    print (height.size)
+
     height = height * 1e6
 
     ind = np.where((height >= height_min_in_m) & (height <= height_max_in_m))[0]
