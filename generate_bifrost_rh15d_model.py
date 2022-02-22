@@ -13,17 +13,6 @@ from tqdm import tqdm
 w = witt()
 
 
-# def pe_from_pg(t, pgas):
-#     pe = np.zeros_like(t)
-#     progress = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
-#     for i in range(t.shape[0]):
-#         for j in range(t.shape[1]):
-#             for k in range(t.shape[2]):
-#                 pe[i, j, k] = w.pe_from_pg(t[i, j, k], pgas[i, j, k])
-#                 progress.update(1)
-#     return pe
-
-
 def h6tpgpe(t, pgas):
     h6pop = np.zeros((t.shape[0], t.shape[1], t.shape[2], 6), dtype=np.float64)
     progress = tqdm(total=t.shape[0] * t.shape[1] * t.shape[2])
@@ -256,7 +245,7 @@ if __name__ == '__main__':
         snap=294000,
         start_x=0, end_x=256,
         start_y=0, end_y=512,
-        height_min_in_m=-500 * 1e-3,
+        height_min_in_m=-500 * 1e3,
         height_max_in_m=3000 * 1e3,
         simulation_code_name='MURaM',
         lte=True
