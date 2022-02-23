@@ -153,12 +153,7 @@ if __name__ == '__main__':
         finished_queue = set()
         failure_queue = set()
 
-        shutil.copy(
-            atmos_file,
-            ltau_out_file
-        )
-
-        fo = h5py.File(ltau_out_file, 'r+')
+        fo = h5py.File(ltau_out_file, 'w')
         if 'ltau500' in list(fo.keys()):
             del fo['ltau500']
         if 'electron_density' in list(fo.keys()):
