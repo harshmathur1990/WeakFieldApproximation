@@ -153,17 +153,21 @@ if __name__ == '__main__':
         finished_queue = set()
         failure_queue = set()
 
-        fo = h5py.File(ltau_out_file, 'w')
-        if 'ltau500' in list(fo.keys()):
-            del fo['ltau500']
-        if 'electron_density' in list(fo.keys()):
-            del fo['electron_density']
-        if 'hydrogen_populations' in list(fo.keys()):
-            del fo['hydrogen_populations']
-        fo['ltau500'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
-        fo['electron_density'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
-        fo['hydrogen_populations'] = np.zeros((1, 6, 256, 512, 55), dtype=np.float64)
-        fo.close()
+        # sys.stdout.write('Making Output File.\n')
+        #
+        # fo = h5py.File(ltau_out_file, 'w')
+        # if 'ltau500' in list(fo.keys()):
+        #     del fo['ltau500']
+        # if 'electron_density' in list(fo.keys()):
+        #     del fo['electron_density']
+        # if 'hydrogen_populations' in list(fo.keys()):
+        #     del fo['hydrogen_populations']
+        # fo['ltau500'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
+        # fo['electron_density'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
+        # fo['hydrogen_populations'] = np.zeros((1, 6, 256, 512, 55), dtype=np.float64)
+        # fo.close()
+        #
+        # sys.stdout.write('Made Output File.\n')
 
         job_matrix = np.zeros((256, 512), dtype=np.int64)
 
