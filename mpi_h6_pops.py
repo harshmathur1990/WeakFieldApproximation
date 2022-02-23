@@ -1,6 +1,6 @@
 import sys
 # sys.path.insert(1, '/home/harsh/CourseworkRepo/rh/rhv2src/python/')
-sys.path.insert(1, '/home/harsh/rh/python/')
+sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
 import enum
 import os
 import numpy as np
@@ -12,25 +12,19 @@ import tables as tb
 import shutil
 from helita.sim import multi
 import subprocess
-import rh
+import rhanalyze
 import time
 
 
 atmos_file = Path(
-    '/data/harsh/run_bifrost/Atmos/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0.nc'
+    '/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-500000.0_3000000.0.nc'
 )
 
 ltau_out_file = Path(
-    '/data/harsh/run_bifrost/Atmos/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0_copy.nc'
+    '/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-500000.0_3000000.0_ltau_h6pops_n_elec.nc'
 )
 
-# atmos_file = Path(
-#     '/home/harsh/BifrostRun/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0.nc'
-# )
-
-rh_run_base_dirs = Path('/data/harsh/run_bifrost_dirs')
-
-# rh_run_base_dirs = Path('/home/harsh/BifrostRun/run_bifrost_dirs')
+rh_run_base_dirs = Path('/data/harsh/run_muram_dirs')
 
 stop_file = rh_run_base_dirs / 'stop'
 
@@ -99,7 +93,7 @@ def write_atmos_files(write_path, x, y):
         vz=f['velocity_z'][0, x, y] / 1e3,
         # vturb=f['velocity_turbulent'][0, x, y] / 1e3,
         nh=f['hydrogen_populations'][0, :, x, y] / 1e6,
-        id='Bifrost {} {}'.format(x, y),
+        id='MURAM {} {}'.format(x, y),
         scale='height'
     )
     create_mag_file(
@@ -118,90 +112,30 @@ class Status(enum.Enum):
     Work_failure = 3
 
 
-def reverse_transitions(transitions):
-
-    rev = transitions.copy()
-    i = 0
-    while i < len(rev):
-        rev[i] = transitions[i+1]
-        rev[i+1] = transitions[i]
-        i += 2
-
-    return rev
-
-
-def generate_radiative_transitions():
-    transitions = [3, 0, 1, 0, 5, 1, 5, 3, 7, 0, 4, 0, 7, 2, 4, 2, 6, 1, 8, 3, 6, 3]
-
-    return transitions
-
-
-def collisional_transitions():
-    collisional_transitions = list()
-
-    radiative_transitions = generate_radiative_transitions()
-    for i in range(9):
-        for j in range(9):
-            if i <= j:
-                continue
-
-            rad_p = False
-
-            k = 0
-            while k < len(radiative_transitions):
-                if radiative_transitions[k] == i and radiative_transitions[k + 1] == j:
-                    rad_p = True
-                    break
-                k += 2
-
-            if rad_p is False:
-                collisional_transitions.append(i)
-                collisional_transitions.append(j)
-
-    return collisional_transitions
-
-
 def do_work(read_path):
     cwd = os.getcwd()
 
     os.chdir(read_path)
 
-    out = rh.readOutFiles()
+    out = rhanalyze.rhout()
 
-    ltau500 = np.array(out.geometry.tau_ref)
+    ltau500 = np.log(np.array(out.geometry.tau500))
+
+    ne = out.atmos.n_elec
+
+    h6pops = None
+
+    for ind, atom in out.atoms.items():
+        if atom.atomID == 'H':
+            h6pops = atom.n
 
     os.chdir(cwd)
 
-    return ltau500, Status.Work_done
+    if h6pops is None:
+        sys.stdout.write('H6Pops is Empty.\n')
 
-
-def make_ray_file():
-
-    os.chdir('/home/harsh/CourseworkRepo/rh/rhv2src/rhf1d/run_3')
-
-    out = rh.readOutFiles()
-
-    wave = np.array(out.spect.lambda0)
-
-    indices = list()
-
-    interesting_waves = [121.5668237310, 121.5673644608, 656.275181, 656.290944, 102.572182505, 102.572296565, 656.272483, 656.277153, 	656.270970, 656.285177, 656.286734]
-
-    for w in interesting_waves:
-        indices.append(
-            np.argmin(np.abs(wave-w))
-        )
-
-    f = open('ray.input', 'w')
-
-    f.write('1.00\n')
-    f.write(
-        '{} {}'.format(
-            len(indices),
-            ' '.join([str(indice) for indice in indices])
-        )
-    )
-    f.close()
+        comm.Abort(-1)
+    return ltau500, ne, h6pops, Status.Work_done
 
 
 if __name__ == '__main__':
@@ -219,7 +153,19 @@ if __name__ == '__main__':
         finished_queue = set()
         failure_queue = set()
 
-        job_matrix = np.zeros((504, 504), dtype=np.int64)
+        fo = h5py.File(ltau_out_file, 'r+')
+        if 'ltau500' not in list(fo.keys()):
+            fo['ltau500'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
+        if 'electron_density' not in list(fo.keys()):
+            fo['electron_density'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
+        if 'hydrogen_populations' not in list(fo.keys()):
+            fo['hydrogen_populations'] = np.zeros((1, 6, 256, 512, 55), dtype=np.float64)
+        fo['ltau500'][...] = 0
+        fo['electron_density'][...] = 0
+        fo['hydrogen_populations'][...] = 0
+        fo.close()
+
+        job_matrix = np.zeros((256, 512), dtype=np.int64)
 
         x, y = np.where(job_matrix == 0)
 
@@ -253,9 +199,11 @@ if __name__ == '__main__':
             )
             sender = status.Get_source()
             jobstatus = status_dict['status']
-            item, xx, yy, ltau500 = status_dict['item']
+            item, xx, yy, ltau500, ne, h6pops = status_dict['item']
             fo = h5py.File(ltau_out_file, 'r+')
             fo['ltau500'][0, xx, yy] = ltau500
+            fo['electron_density'][0, xx, yy] = ne
+            fo['hydrogen_populations'][0, :, xx, yy] = h6pops.T
             fo.close()
             sys.stdout.write(
                 'Sender: {} x: {} y: {} Status: {}\n'.format(
@@ -315,7 +263,6 @@ if __name__ == '__main__':
                 'rm -rf MAG_FIELD.B'
             ]
 
-            # start_time = time.time()
             for cmd in commands:
                 process = subprocess.Popen(
                     cmd,
@@ -326,29 +273,14 @@ if __name__ == '__main__':
                 )
                 process.communicate()
 
-            # sys.stdout.write(
-            #     'Rank: {} RH Remove Files Time: {}\n'.format(
-            #         rank, time.time() - start_time
-            #     )
-            # )
-
-            # start_time = time.time()
             write_atmos_files(sub_dir_path, x, y)
-            # sys.stdout.write(
-            #     'Rank: {} RH Make Atmosphere Files Time: {}\n'.format(
-            #         rank, time.time() - start_time
-            #     )
-            # )
 
-            cmdstr = '/home/harsh/RH-Old/rhf1d/rhf1d'
-
-            # cmdstr = '/home/harsh/CourseworkRepo/rh/rhv2src/rhf1d/rhf1d'
+            cmdstr = '/home/harsh/rh-uitenbroek/rhf1d/rhf1d'
 
             command = '{} 2>&1 | tee output.txt'.format(
                 cmdstr
             )
 
-            # start_time = time.time()
             process = subprocess.Popen(
                 command,
                 cwd=str(sub_dir_path),
@@ -359,17 +291,6 @@ if __name__ == '__main__':
 
             process.communicate()
 
-            # sys.stdout.write(
-            #     'Rank: {} RH Run Time: {}\n'.format(
-            #         rank, time.time() - start_time
-            #     )
-            # )
+            ltau500, ne, h6pops, Status.Work_done = do_work(sub_dir_path)
 
-            # start_time = time.time()
-            ltau500, status = do_work(sub_dir_path)
-            # sys.stdout.write(
-            #     'Rank: {} RH Save Time: {}\n'.format(
-            #         rank, time.time() - start_time
-            #     )
-            # )
-            comm.send({'status': Status.Work_done, 'item': (item, x, y, ltau500)}, dest=0, tag=2)
+            comm.send({'status': Status.Work_done, 'item': (item, x, y, ltau500, ne, h6pops)}, dest=0, tag=2)
