@@ -295,6 +295,6 @@ if __name__ == '__main__':
 
             process.communicate()
 
-            ltau500, ne, h6pops, Status.Work_done = do_work(sub_dir_path)
+            ltau500, ne, h6pops, status_work = do_work(sub_dir_path)
 
-            comm.send({'status': Status.Work_done, 'item': (item, x, y, ltau500, ne, h6pops)}, dest=0, tag=2)
+            comm.send({'status': status_work, 'item': (item, x, y, ltau500, ne, h6pops)}, dest=0, tag=2)
