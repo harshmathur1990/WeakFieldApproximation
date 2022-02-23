@@ -153,16 +153,21 @@ if __name__ == '__main__':
         finished_queue = set()
         failure_queue = set()
 
+        shutil.copy(
+            atmos_file,
+            ltau_out_file
+        )
+
         fo = h5py.File(ltau_out_file, 'r+')
-        if 'ltau500' not in list(fo.keys()):
-            fo['ltau500'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
-        if 'electron_density' not in list(fo.keys()):
-            fo['electron_density'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
-        if 'hydrogen_populations' not in list(fo.keys()):
-            fo['hydrogen_populations'] = np.zeros((1, 6, 256, 512, 55), dtype=np.float64)
-        fo['ltau500'][...] = 0
-        fo['electron_density'][...] = 0
-        fo['hydrogen_populations'][...] = 0
+        if 'ltau500' in list(fo.keys()):
+            del fo['ltau500']
+        if 'electron_density' in list(fo.keys()):
+            del fo['electron_density']
+        if 'hydrogen_populations' in list(fo.keys()):
+            del fo['hydrogen_populations']
+        fo['ltau500'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
+        fo['electron_density'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
+        fo['hydrogen_populations'] = np.zeros((1, 6, 256, 512, 55), dtype=np.float64)
         fo.close()
 
         job_matrix = np.zeros((256, 512), dtype=np.int64)
