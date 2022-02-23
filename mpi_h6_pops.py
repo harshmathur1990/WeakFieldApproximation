@@ -43,7 +43,7 @@ input_filelist = [
 def create_mag_file(
     Bx, By, Bz,
     write_path,
-    shape=(177, )
+    shape=(55, )
 ):
     b_filename = 'MAG_FIELD.B'
     xdr = xdrlib.Packer()
