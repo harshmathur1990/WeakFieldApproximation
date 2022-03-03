@@ -125,3 +125,7 @@ def make_atmos():
     )
 
     falc.close()
+
+
+if __name__ == '__main__':
+    make_atmos()
