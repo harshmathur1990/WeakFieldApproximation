@@ -17,11 +17,11 @@ import time
 
 
 atmos_file = Path(
-    '/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-500000.0_3000000.0.nc'
+    '/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-3000000.0_3000000.0.nc'
 )
 
 ltau_out_file = Path(
-    '/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-500000.0_3000000.0_ltau_h6pops_n_elec.nc'
+    '/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-3000000.0_3000000.0_ltau_h6pops_n_elec.nc'
 )
 
 rh_run_base_dirs = Path('/data/harsh/run_muram_dirs')
@@ -155,18 +155,19 @@ if __name__ == '__main__':
 
         sys.stdout.write('Making Output File.\n')
 
-        os.remove(ltau_out_file)
+        f = h5py.File(atmos_file, 'r')
+        height_len = f['temperature'].shape[3]
+        f.close()
+
+        try:
+            os.remove(ltau_out_file)
+        except:
+            pass
 
         fo = h5py.File(ltau_out_file, 'w')
-        if 'ltau500' in list(fo.keys()):
-            del fo['ltau500']
-        if 'electron_density' in list(fo.keys()):
-            del fo['electron_density']
-        if 'hydrogen_populations' in list(fo.keys()):
-            del fo['hydrogen_populations']
-        fo['ltau500'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
-        fo['electron_density'] = np.zeros((1, 256, 512, 55), dtype=np.float64)
-        fo['hydrogen_populations'] = np.zeros((1, 6, 256, 512, 55), dtype=np.float64)
+        fo['ltau500'] = np.zeros((1, 256, 512, height_len), dtype=np.float64)
+        fo['electron_density'] = np.zeros((1, 256, 512, height_len), dtype=np.float64)
+        fo['hydrogen_populations'] = np.zeros((1, 6, 256, 512, height_len), dtype=np.float64)
         fo.close()
 
         sys.stdout.write('Made Output File.\n')
