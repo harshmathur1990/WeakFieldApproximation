@@ -43,7 +43,7 @@ input_filelist = [
 def create_mag_file(
     Bx, By, Bz,
     write_path,
-    shape=(55, )
+    height_len
 ):
     b_filename = 'MAG_FIELD.B'
     xdr = xdrlib.Packer()
@@ -61,6 +61,8 @@ def create_mag_file(
     Binc = np.arccos(np.divide(Bz, Babs))
 
     Bazi = np.arctan2(By, Bx)
+
+    shape = (height_len,)
 
     xdr.pack_farray(
         np.prod(shape),
@@ -82,7 +84,7 @@ def create_mag_file(
         f.write(xdr.get_buffer())
 
 
-def write_atmos_files(write_path, x, y):
+def write_atmos_files(write_path, x, y, height_len):
     atmos_filename = 'Atmos1D.atmos'
     f = h5py.File(atmos_file, 'r')
     multi.watmos_multi(
@@ -100,7 +102,8 @@ def write_atmos_files(write_path, x, y):
         Bx=f['B_x'][0, x, y],
         By=f['B_y'][0, x, y],
         Bz=f['B_z'][0, x, y],
-        write_path=write_path
+        write_path=write_path,
+        height_len=height_len
     )
     f.close()
 
@@ -185,7 +188,7 @@ if __name__ == '__main__':
             item = waiting_queue.pop()
             work_type = {
                 'job': 'work',
-                'item': (item, x[item], y[item])
+                'item': (item, x[item], y[item], height_len)
             }
             comm.send(work_type, dest=worker, tag=1)
             running_queue.add(item)
@@ -227,7 +230,7 @@ if __name__ == '__main__':
                 new_item = waiting_queue.pop()
                 work_type = {
                     'job': 'work',
-                    'item': (new_item, x[new_item], y[new_item])
+                    'item': (new_item, x[new_item], y[new_item], height_len)
                 }
                 comm.send(work_type, dest=sender, tag=1)
                 running_queue.add(new_item)
@@ -253,7 +256,7 @@ if __name__ == '__main__':
             if work_type['job'] != 'work':
                 break
 
-            item, x, y = work_type['item']
+            item, x, y, height_len = work_type['item']
 
             sys.stdout.write(
                 'Rank: {} x: {} y: {} start\n'.format(
@@ -280,7 +283,7 @@ if __name__ == '__main__':
                 )
                 process.communicate()
 
-            write_atmos_files(sub_dir_path, x, y)
+            write_atmos_files(sub_dir_path, x, y, height_len)
 
             cmdstr = '/home/harsh/rh-uitenbroek/rhf1d/rhf1d'
 
