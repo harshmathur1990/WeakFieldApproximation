@@ -8,7 +8,7 @@ from prepare_data import *
 
 falc_file = Path('/home/harsh/stic/model_atmos/falc_nicole_for_stic.nc')
 
-rh15d_atmos_path = Path('/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-500000.0_3000000.0.nc')
+rh15d_atmos_path = Path('/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-3000000.0_3000000.0.nc')
 
 point_list = [
     (130, 384),
