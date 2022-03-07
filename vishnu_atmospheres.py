@@ -131,7 +131,7 @@ def make_atmos():
 
 def generate_broadening_files():
     write_path = Path('/data/harsh/stic_vishnu/models')
-    kernel_size = 1499
+    kernel_size = 1403
     rev_kernel = np.zeros(kernel_size)
     rev_kernel[kernel_size // 2] = 1
     kernel = scipy.ndimage.gaussian_filter1d(rev_kernel, sigma=4 / 2.355)
