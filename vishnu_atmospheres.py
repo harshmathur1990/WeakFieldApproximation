@@ -1,5 +1,6 @@
 import sys
-sys.path.insert(1, '/home/harsh/stic/example')
+# sys.path.insert(1, '/home/harsh/stic/example')
+sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
 import h5py
 import numpy as np
 from pathlib import Path
@@ -136,24 +137,30 @@ def generate_broadening_files():
     kernel = scipy.ndimage.gaussian_filter1d(rev_kernel, sigma=4 / 2.355)
 
     broadening_filename = 'gaussian_broadening_{}_pixel.h5'.format(4)
-    f = h5py.File(write_path / broadening_filename, 'w')
-    f['iprof'] = kernel
-    f['wav'] = np.zeros_like(kernel)
-    f.close()
+    # f = h5py.File(write_path / broadening_filename, 'w')
+    # f['iprof'] = kernel
+    # f['wav'] = np.zeros_like(kernel)
+    # f.close()
 
     dellambda = 15
 
     spectralresolution = 200000
 
-    center_wavelength_list = [8542.09, 6301.5, 6302.5]
+    center_wavelength_list = [8542.09, 6302]
 
     lab = "region = {0:10.5f}, {1:8.5f}, {2:3d}, {3:e}, {4}"
     print(" ")
     print("Regions information for the input file:")
     for center_wavelength in center_wavelength_list:
-        print(lab.format(center_wavelength - (dellambda / 2), center_wavelength / (4 * spectralresolution),
-                         dellambda / (center_wavelength / (4 * spectralresolution)), getCont(center_wavelength),
-                         'spectral, {}'.format(broadening_filename)))
+        print(
+            lab.format(
+                center_wavelength - (dellambda / 2),
+                center_wavelength / (4 * spectralresolution),
+                int(dellambda / (center_wavelength / (4 * spectralresolution))),
+                getCont(center_wavelength),
+                'spectral, {}'.format(broadening_filename)
+            )
+        )
 
 
 if __name__ == '__main__':
