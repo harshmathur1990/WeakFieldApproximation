@@ -1,6 +1,6 @@
 import sys
-# sys.path.insert(1, '/home/harsh/stic/example')
-sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
+sys.path.insert(1, '/home/harsh/stic/example')
+# sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
 import h5py
 import numpy as np
 from pathlib import Path
