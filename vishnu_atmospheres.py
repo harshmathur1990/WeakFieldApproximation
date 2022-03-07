@@ -137,10 +137,10 @@ def generate_broadening_files():
     kernel = scipy.ndimage.gaussian_filter1d(rev_kernel, sigma=4 / 2.355)
 
     broadening_filename = 'gaussian_broadening_{}_pixel.h5'.format(4)
-    # f = h5py.File(write_path / broadening_filename, 'w')
-    # f['iprof'] = kernel
-    # f['wav'] = np.zeros_like(kernel)
-    # f.close()
+    f = h5py.File(write_path / broadening_filename, 'w')
+    f['iprof'] = kernel
+    f['wav'] = np.zeros_like(kernel)
+    f.close()
 
     dellambda = 15
 
