@@ -164,5 +164,5 @@ def generate_broadening_files():
 
 
 if __name__ == '__main__':
-    # make_atmos()
-    generate_broadening_files()
+    make_atmos()
+    # generate_broadening_files()
