@@ -105,23 +105,26 @@ def make_atmos():
 
         m.azi[0, 0, index] = np.arctan2(csB_y(ltau), csB_x(ltau))
 
+        print(index)
+
     rh_atmos.close()
 
     falc = h5py.File(falc_file, 'r')
 
     for index2, Bval in enumerate(b_list):
-        m.pgas[0, 0, index2 + index] = 0.3
+        m.pgas[0, 0, index2 + len(point_list)] = 0.3
 
-        m.temp[0, 0, index2 + index] = falc['temp'][0, 0, 0]
+        m.temp[0, 0, index2 + len(point_list)] = falc['temp'][0, 0, 0]
 
-        m.vlos[0, 0, index2 + index] = 0
+        m.vlos[0, 0, index2 + len(point_list)] = 0
 
-        m.Bln[0, 0, index2 + index] = Bval
+        m.Bln[0, 0, index2 + len(point_list)] = Bval
 
-        m.Bho[0, 0, index2 + index] = Bval
+        m.Bho[0, 0, index2 + len(point_list)] = Bval
 
-        m.azi[0, 0, index2 + index] = np.deg2rad(45)
+        m.azi[0, 0, index2 + len(point_list)] = np.deg2rad(45)
 
+        print(index2 + len(point_list))
     m.write(
         write_path / 'response_function_model_atmospheres.nc'
     )
