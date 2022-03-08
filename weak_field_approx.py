@@ -52,13 +52,12 @@ def prepare_calculate_blos(
     lambda_range_min,
     lambda_range_max,
     g_eff,
-    ind
 ):
     def actual_calculate_blos(i, j):
 
         i = int(i)
         j = int(j)
-        stokes_I, stokes_V = obs[0, i, j, ind, 0], obs[0, i, j, ind, 3]
+        stokes_I, stokes_V = obs[0, i, j, :, 0], obs[0, i, j, :, 3]
         return calculate_b_los(
             stokes_I,
             stokes_V,
