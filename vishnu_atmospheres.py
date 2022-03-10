@@ -71,15 +71,13 @@ def make_atmos():
 
     write_path = Path('/data/harsh/stic_vishnu/models')
 
-    total_atmos = len(b_list) + len(point_list)
-
-    m = sp.model(nx=total_atmos, ny=1, nt=1, ndep=150)
-
-    m.ltau[:, :, :] = ltau
-
     rh_atmos = h5py.File(rh15d_atmos_path, 'r')
 
     for index, (y, x) in enumerate(point_list):
+
+        m = sp.model(nx=1, ny=1, nt=1, ndep=150)
+
+        m.ltau[:, :, :] = ltau
 
         csgas = CubicSpline(rh_atmos['ltau500'][0, y, x], rh_atmos['gas_pressure'][0, y, x] * 10)
 
@@ -93,17 +91,21 @@ def make_atmos():
 
         csB_y = CubicSpline(rh_atmos['ltau500'][0, y, x], rh_atmos['B_y'][0, y, x] * 1e4)
 
-        m.pgas[0, 0, index] = csgas(ltau)
+        m.pgas[0, 0, 0] = csgas(ltau)
 
-        m.temp[0, 0, index] = cstemp(ltau)
+        m.temp[0, 0, 0] = cstemp(ltau)
 
-        m.vlos[0, 0, index] = csvlos(ltau)
+        m.vlos[0, 0, 0] = csvlos(ltau)
 
-        m.Bln[0, 0, index] = csB_z(ltau)
+        m.Bln[0, 0, 0] = csB_z(ltau)
 
-        m.Bho[0, 0, index] = np.sqrt(csB_x(ltau)**2 + csB_y(ltau)**2)
+        m.Bho[0, 0, 0] = np.sqrt(csB_x(ltau)**2 + csB_y(ltau)**2)
 
-        m.azi[0, 0, index] = np.arctan2(csB_y(ltau), csB_x(ltau))
+        m.azi[0, 0, 0] = np.arctan2(csB_y(ltau), csB_x(ltau))
+
+        m.write(
+            write_path / 'response_function_model_atmospheres_{}.nc'.format(index)
+        )
 
         print(index)
 
@@ -112,22 +114,28 @@ def make_atmos():
     falc = h5py.File(falc_file, 'r')
 
     for index2, Bval in enumerate(b_list):
-        m.pgas[0, 0, index2 + len(point_list)] = 0.3
 
-        m.temp[0, 0, index2 + len(point_list)] = falc['temp'][0, 0, 0]
+        m = sp.model(nx=1, ny=1, nt=1, ndep=150)
 
-        m.vlos[0, 0, index2 + len(point_list)] = 0
+        m.ltau[:, :, :] = ltau
 
-        m.Bln[0, 0, index2 + len(point_list)] = Bval
+        m.pgas[0, 0, 0] = 0.3
 
-        m.Bho[0, 0, index2 + len(point_list)] = Bval
+        m.temp[0, 0, 0] = falc['temp'][0, 0, 0]
 
-        m.azi[0, 0, index2 + len(point_list)] = np.deg2rad(45)
+        m.vlos[0, 0, 0] = 0
+
+        m.Bln[0, 0, 0] = Bval
+
+        m.Bho[0, 0, 0] = Bval
+
+        m.azi[0, 0, 0] = np.deg2rad(45)
+
+        m.write(
+            write_path / 'response_function_model_atmospheres_{}.nc'.format(index2 + len(point_list))
+        )
 
         print(index2 + len(point_list))
-    m.write(
-        write_path / 'response_function_model_atmospheres.nc'
-    )
 
     falc.close()
 
