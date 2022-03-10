@@ -1,7 +1,9 @@
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from pathlib import Path
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
 
@@ -52,16 +54,101 @@ def get_fov_data():
 def make_fov_plots():
     data, wing_ca, core_ca, wing_ha, core_ha = get_fov_data()
 
-    fig, axs = plt.subplots(3, 2, figsize=(7, 7*51/120))
+    fig, axs = plt.subplots(3, 2, figsize=(7, 3.3))
 
     extent = [0, 22.8, 0, 6.46]
 
     for i in range(3):
         for j in range(2):
-            axs[i][j].imshow(data[i][j], cmap='gray', origin='lower', extent=extent)
-            # axs[i][j].text(
-            #
-            # )
+            if i == 2:
+                if j == 0:
+                    vmin = -600
+                    vmax = 600
+                else:
+                    vmin=
+                axs[i][j].imshow(data[i][j], cmap='RdGy', origin='lower', extent=extent)
+            else:
+                axs[i][j].imshow(data[i][j], cmap='RdGy', origin='lower', extent=extent)
+
+    axs[0][0].text(
+        0.01, 0.8,
+        r'(a) Ca II 8542 $\mathrm{{\AA}}$ {} $\mathrm{{\AA}}$'.format(
+            np.round(wing_ca - 8542.09), 2
+        ),
+        transform=axs[0][0].transAxes,
+        color='black'
+    )
+    axs[0][1].text(
+        0.01, 0.8,
+        r'(b) Ca II 8542 $\mathrm{{\AA}}$ core',
+        transform=axs[0][1].transAxes,
+        color='white'
+    )
+    axs[1][0].text(
+        0.01, 0.8,
+        r'(c) H$\alpha$ +{} $\mathrm{{\AA}}$'.format(
+            np.round(wing_ha - 6562.8), 2
+        ),
+        transform=axs[1][0].transAxes,
+        color='black'
+    )
+    axs[1][1].text(
+        0.01, 0.8,
+        r'(d) H$\alpha$ core',
+        transform=axs[1][1].transAxes,
+        color='white'
+    )
+    im20 = axs[2][0].text(
+        0.01, 0.8,
+        r'(e) $B_{{\mathrm{LOS}}}$ (Fe I 6569 $\AA$) [G]',
+        transform=axs[2][0].transAxes,
+        color='black'
+    )
+
+    im21 = axs[2][1].text(
+        0.01, 0.8,
+        r'(e) $B_{{\mathrm{LOS}}}$ (Ca II 8542 $\AA$) [G]',
+        transform=axs[2][1].transAxes,
+        color='black'
+    )
+
+    cbaxes = inset_axes(
+        axs[2][0],
+        width="50%",
+        height="8%",
+        loc=1,
+        borderpad=1
+    )
+    cbar = fig.colorbar(
+        im,
+        cax=cbaxes,
+        ticks=[-300, 0, 300],
+        orientation='horizontal'
+    )
+
+    # cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=8, colors='white')
+
+    axs[0][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][1].yaxis.set_minor_locator(MultipleLocator(1))
+    #
+    axs[0][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][1].xaxis.set_minor_locator(MultipleLocator(1))
+
+    axs[0][0].tick_params(direction='in', which='both', color='white')
+    axs[0][1].tick_params(direction='in', which='both', color='white')
+    axs[1][0].tick_params(direction='in', which='both', color='white')
+    axs[1][1].tick_params(direction='in', which='both', color='white')
+    axs[2][0].tick_params(direction='in', which='both', color='white')
+    axs[2][1].tick_params(direction='in', which='both', color='white')
 
     axs[0][0].set_xticklabels([])
     axs[0][1].set_xticklabels([])
@@ -88,7 +175,7 @@ def make_fov_plots():
     axs[2][0].set_xlabel('x [arcsec]')
     axs[2][1].set_xlabel('x [arcsec]')
 
-    plt.subplots_adjust(left=0.15, bottom=0.15, right=1, top=1, hspace=0.0, wspace=0.0)
+    plt.subplots_adjust(left=0.05, bottom=0.13, right=1, top=1, hspace=0.0, wspace=0.0)
     plt.show()
 
 
