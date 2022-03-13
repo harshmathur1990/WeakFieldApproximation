@@ -1,6 +1,6 @@
 import sys
-sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
-# sys.path.insert(1, '/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/python')
+# sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
+sys.path.insert(1, '/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/python')
 import enum
 import os
 import numpy as np
@@ -10,7 +10,7 @@ from mpi4py import MPI
 from pathlib import Path
 import tables as tb
 import shutil
-from helita.sim import multi
+from helita.sim import multi, rh15d
 import subprocess
 import rhanalyze
 import time
@@ -18,33 +18,29 @@ from specutils.utils.wcs_utils import air_to_vac
 from astropy import units as u
 
 
-rh_base_dir = Path('/home/harsh/rh-uitenbroek/')
+# rh_base_dir = Path('/home/harsh/rh-uitenbroek/')
 
-# rh_base_dir = Path('/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/')
-
-falc_path = Path('/home/harsh/rh/Atmos/FALC_82_5x5.hdf5')
-
-# falc_path = Path('/home/harsh/Documents/CourseworkRepo/rh/rh/Atmos/FALC_82_5x5.hdf5')
-
-atmos_file = Path(
-    '/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-3000000.0_3000000.0.nc'
-)
+rh_base_dir = Path('/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/')
 
 # atmos_file = Path(
-#     '/home/harsh/MURaM/MURaM_ar098192_0_256_0_512_-3000000.0_3000000.0.nc'
+#     '/data/harsh/ar098192/atmos/MURaM_ar098192_0_256_0_512_-3000000.0_3000000.0.nc'
 # )
 
-response_function_out_file = Path(
-    '/data/harsh/run_vishnu/response.nc'
+atmos_file = Path(
+    '/home/harsh/MURaM/MURaM_ar098192_0_256_0_512_-3000000.0_3000000.0.nc'
 )
 
 # response_function_out_file = Path(
-#     '/home/harsh/run_vishnu/response.nc'
+#     '/data/harsh/run_vishnu/MURaM_response.nc'
 # )
 
-# rh_run_base_dirs = Path('/home/harsh/run_vishnu/')
+response_function_out_file = Path(
+    '/home/harsh/run_vishnu/MURaM_response.nc'
+)
 
-rh_run_base_dirs = Path('/data/harsh/run_vishnu/')
+rh_run_base_dirs = Path('/home/harsh/run_vishnu/')
+
+# rh_run_base_dirs = Path('/data/harsh/run_vishnu/')
 
 stop_file = rh_run_base_dirs / 'stop'
 
@@ -78,16 +74,14 @@ point_list = [
     (244, 326)
 ]
 
-b_list = [50, -50, 200, -200, 500, -500, 1000, -1000, 2000, -2000, 3000, -3000]
-
 regions = [
     [8534.5900, 0.01068, 1404, 4.227743e-08, 4],
     [6294.5000, 0.00788, 1904, 4.054384e-08, 4],
     [5242.7086, 0.00656, 2286, 3.548769e-08, 4]
 ]
 
-
 total_wave = regions[0][2] + regions[1][2] + regions[2][2]
+
 
 def create_mag_file(
     Bx, By, Bz,
@@ -242,10 +236,93 @@ def create_wave_file_for_regions():
     create_wave_file(wave, str(rh_run_base_dirs / 'VishnuWave.wave'))
 
 
-# if __name__ == '__main__':
-#     create_wave_file_for_regions()
+def create_atmosphere_file():
+    f = h5py.File(atmos_file, 'r')
+    outfile = str(rh_run_base_dirs / 'MURaM_Atmosphere_response.nc')
+    T = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+    vz = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+    z = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+    nH = np.zeros((1, f['hydrogen_populations'].shape[1], 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+    ne = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+    # vturb = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+    Bz = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+    Bx = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+    By = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+    desc = 'MURaM'
+    for index, (x, y) in enumerate(point_list):
+        T[0, 0, index] = f['temperature'][0, x, y]
+        vz[0, 0, index] = f['velocity_z'][0, x, y]
+        z[0, 0, index] = f['z'][0, x, y]
+        nH[0, :, 0, index] = f['hydrogen_populations'][0, :, x, y]
+        ne[0, 0, index] = f['electron_density'][0, x, y]
+        # vturb[0, 0, index] = f['velocity_turbulent'][0, x, y]
+        Bz[0, 0, index] = f['B_z'][0, x, y]
+        Bx[0, 0, index] = f['B_x'][0, x, y]
+        By[0, 0, index] = f['B_y'][0, x, y]
+
+    rh15d.make_xarray_atmos(
+        outfile=outfile,
+        T=T,
+        vz=vz,
+        z=z,
+        nH=nH,
+        ne=ne,
+        # vturb=vturb,
+        Bz=Bz,
+        Bx=Bx,
+        By=By,
+        desc=desc
+    )
+
+    f.close()
+
+    fo = h5py.File(response_function_out_file, 'r')
+
+    f = h5py.File(outfile, 'r+')
+
+    f2 = h5py.File(atmos_file, 'r')
+
+    for key in list(fo.keys()):
+        f[key] = fo[key][()]
+
+    wave_list = list()
+
+    for region in regions:
+        wave_list += list(np.linspace(region[0], region[0] + (region[1] * region[2]), region[2]))
+
+    wave = np.array(wave_list)
+
+    wave /= 10
+
+    f['wav'] = wave
+
+    gas_pressure = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+
+    ltau500 = np.zeros((1, 1, len(point_list), f['z'][0, 0, 0].size), np.float64)
+
+    for index, (x, y) in enumerate(point_list):
+
+        gas_pressure[0, 0, index] = f2['gas_pressure'][0, x, y]
+
+        ltau500[0, 0, index] = f2['ltau500'][0, x, y]
+
+    f['gas_pressure'] = gas_pressure
+
+    f['ltau500'] = ltau500
+
+    f.close()
+
+    fo.close()
+
+    f2.close()
 
 
+if __name__ == '__main__':
+    # create_wave_file_for_regions()
+    create_atmosphere_file()
+
+
+'''
 if __name__ == '__main__':
 
     comm = MPI.COMM_WORLD
@@ -523,3 +600,5 @@ if __name__ == '__main__':
             response = (plus_profiles - negative_profiles) / (plus_perturbation - negative_perturbation)
 
             comm.send({'status': status_work, 'item': (item, x, y, height_index, height_len, profiles, response)}, dest=0, tag=2)
+
+'''

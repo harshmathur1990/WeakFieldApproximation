@@ -1,6 +1,6 @@
 import sys
-sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
-# sys.path.insert(1, '/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/python')
+# sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
+sys.path.insert(1, '/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/python')
 import enum
 import os
 import numpy as np
@@ -10,7 +10,7 @@ from mpi4py import MPI
 from pathlib import Path
 import tables as tb
 import shutil
-from helita.sim import multi
+from helita.sim import multi, rh15d
 import subprocess
 import rhanalyze
 import time
@@ -18,25 +18,25 @@ from specutils.utils.wcs_utils import air_to_vac
 from astropy import units as u
 
 
-rh_base_dir = Path('/home/harsh/rh-uitenbroek/')
+# rh_base_dir = Path('/home/harsh/rh-uitenbroek/')
 
-# rh_base_dir = Path('/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/')
+rh_base_dir = Path('/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/')
 
-falc_path = Path('/home/harsh/rh/Atmos/FALC_82_5x5.hdf5')
+# falc_path = Path('/home/harsh/rh/Atmos/FALC_82_5x5.hdf5')
 
-# falc_path = Path('/home/harsh/Documents/CourseworkRepo/rh/rh/Atmos/FALC_82_5x5.hdf5')
-
-response_function_out_file = Path(
-    '/data/harsh/run_vishnu/FALC_response.nc'
-)
+falc_path = Path('/home/harsh/Documents/CourseworkRepo/rh/rh/Atmos/FALC_82_5x5.hdf5')
 
 # response_function_out_file = Path(
-#     '/home/harsh/run_vishnu/FALC_response.nc'
+#     '/data/harsh/run_vishnu/FALC_response.nc'
 # )
 
-# rh_run_base_dirs = Path('/home/harsh/run_vishnu/')
+response_function_out_file = Path(
+    '/home/harsh/run_vishnu/FALC_response.nc'
+)
 
-rh_run_base_dirs = Path('/data/harsh/run_vishnu/')
+rh_run_base_dirs = Path('/home/harsh/run_vishnu/')
+
+# rh_run_base_dirs = Path('/data/harsh/run_vishnu/')
 
 stop_file = rh_run_base_dirs / 'stop'
 
@@ -219,8 +219,64 @@ def create_wave_file_for_regions():
     create_wave_file(wave, str(rh_run_base_dirs / 'VishnuWave.wave'))
 
 
+def create_atmosphere_file():
+    falc = h5py.File(falc_path, 'r')
+    outfile = str(rh_run_base_dirs / 'FALC_Atmosphere_response.nc')
+    T = np.zeros((1, 1, len(b_list), falc['z'][0].size), np.float64)
+    vz = np.zeros((1, 1, len(b_list), falc['z'][0].size), np.float64)
+    z = np.zeros((1, 1, len(b_list), falc['z'][0].size), np.float64)
+    nH = np.zeros((1, falc['hydrogen_populations'].shape[1], 1, len(b_list), falc['z'][0].size), np.float64)
+    ne = np.zeros((1, 1, len(b_list), falc['z'][0].size), np.float64)
+    vturb = np.zeros((1, 1, len(b_list), falc['z'][0].size), np.float64)
+    Bz = np.zeros((1, 1, len(b_list), falc['z'][0].size), np.float64)
+    desc = 'FALC'
+    T[0, 0, :] = falc['temperature'][0, 0, 0]
+    vz[0, 0, :] = falc['velocity_z'][0, 0, 0]
+    z[0, 0, :] = falc['z'][0]
+    nH[0, :, 0] = falc['hydrogen_populations'][0, :, 0, 0][:, np.newaxis, :]
+    ne[0, 0, :] = falc['electron_density'][0, 0, 0]
+    vturb[0, 0, :] = falc['velocity_turbulent'][0, 0, 0]
+    for index, b_val in enumerate(b_list):
+        Bz[0, 0, index] = np.ones(falc['z'][0].size) * b_val
+
+    rh15d.make_xarray_atmos(
+        outfile=outfile,
+        T=T,
+        vz=vz,
+        z=z,
+        nH=nH,
+        ne=ne,
+        vturb=vturb,
+        Bz=Bz,
+        desc=desc
+    )
+
+    falc.close()
+
+    fo = h5py.File(response_function_out_file, 'r')
+
+    f = h5py.File(outfile, 'r+')
+
+    for key in list(fo.keys()):
+        f[key] = fo[key][()]
+
+    wave_list = list()
+
+    for region in regions:
+        wave_list += list(np.linspace(region[0], region[0] + (region[1] * region[2]), region[2]))
+
+    wave = np.array(wave_list)
+
+    wave /= 10
+
+    f['wav'] = wave
+
+    f.close()
+
+
 # if __name__ == '__main__':
-#     create_wave_file_for_regions()
+    # create_wave_file_for_regions()
+    # create_atmosphere_file()
 
 
 if __name__ == '__main__':
