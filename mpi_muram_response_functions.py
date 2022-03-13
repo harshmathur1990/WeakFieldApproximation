@@ -197,12 +197,6 @@ def get_original_profile(read_path):
 
         ind = np.array(ind_list)
 
-        # print(ind.size)
-
-        # if ind.size == 0:
-        #     sys.stdout.write('No indixes for region: {}.\n'.format(index))
-        #     comm.Abort(-1)
-
         for idx, ray in out.rays.items():
             if ray.muz == 1:
                 I += list(ray.I[ind] / region[-2])
