@@ -117,7 +117,7 @@ def write_atmos_files(write_path, b_val, height_len, height_index=-1, multiplica
         f['electron_density'][0, 0, 0] / 1e6,
         z=f['z'][0] / 1e3,
         vz=f['velocity_z'][0, 0, 0] / 1e3,
-        # vturb=f['velocity_turbulent'][0, x, y] / 1e3,
+        vturb=f['velocity_turbulent'][0, 0, 0] / 1e3,
         nh=f['hydrogen_populations'][0, :, 0, 0] / 1e6,
         id='FALC',
         scale='height'
