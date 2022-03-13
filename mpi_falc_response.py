@@ -1,6 +1,6 @@
 import sys
-# sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
-sys.path.insert(1, '/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/python')
+sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
+# sys.path.insert(1, '/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/python')
 import enum
 import os
 import numpy as np
@@ -18,25 +18,25 @@ from specutils.utils.wcs_utils import air_to_vac
 from astropy import units as u
 
 
-# rh_base_dir = Path('/home/harsh/rh-uitenbroek/')
-#
-rh_base_dir = Path('/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/')
+rh_base_dir = Path('/home/harsh/rh-uitenbroek/')
 
-# falc_path = Path('/home/harsh/rh/Atmos/FALC_82_5x5.hdf5')
+# rh_base_dir = Path('/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/')
 
-falc_path = Path('/home/harsh/Documents/CourseworkRepo/rh/rh/Atmos/FALC_82_5x5.hdf5')
+falc_path = Path('/home/harsh/rh/Atmos/FALC_82_5x5.hdf5')
 
-# response_function_out_file = Path(
-#     '/data/harsh/run_vishnu/response.nc'
-# )
+# falc_path = Path('/home/harsh/Documents/CourseworkRepo/rh/rh/Atmos/FALC_82_5x5.hdf5')
 
 response_function_out_file = Path(
-    '/home/harsh/run_vishnu/FALC_response.nc'
+    '/data/harsh/run_vishnu/FALC_response.nc'
 )
 
-rh_run_base_dirs = Path('/home/harsh/run_vishnu/')
+# response_function_out_file = Path(
+#     '/home/harsh/run_vishnu/FALC_response.nc'
+# )
 
-# rh_run_base_dirs = Path('/data/harsh/run_vishnu/')
+# rh_run_base_dirs = Path('/home/harsh/run_vishnu/')
+
+rh_run_base_dirs = Path('/data/harsh/run_vishnu/')
 
 stop_file = rh_run_base_dirs / 'stop'
 
@@ -51,23 +51,6 @@ input_filelist = [
     'contribute.input',
     'kurucz_6301_6302.input',
     'VishnuWave.wave'
-]
-
-point_list = [
-    (125, 411),
-    (130, 384),
-    (129, 400),
-    (125, 407),
-    (124, 416),
-    (125, 422),
-    (125, 432),
-    (127, 441),
-    (167, 359),
-    (181, 361),
-    (187, 358),
-    (196, 357),
-    (200, 351),
-    (244, 326)
 ]
 
 b_list = list(np.array([50, -50, 200, -200, 500, -500, 1000, -1000, 2000, -2000, 3000, -3000]) * 1e-4)
