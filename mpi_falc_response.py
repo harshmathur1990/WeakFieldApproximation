@@ -186,9 +186,11 @@ def get_original_profile(read_path):
     profiles[:, 2] = U
     profiles[:, 3] = V
 
+    ltau500 = np.log(np.array(out.geometry.tau500))
+
     os.chdir(cwd)
 
-    return profiles, Status.Work_done
+    return ltau500, profiles, Status.Work_done
 
 
 def create_wave_file(wave_array_in_nm, outfile):
@@ -247,6 +249,7 @@ if __name__ == '__main__':
         fo = h5py.File(response_function_out_file, 'w')
         fo['profiles'] = np.zeros((1, 1, len(b_list), total_wave, 4), dtype=np.float64)
         fo['derivatives'] = np.zeros((1, 1, len(b_list), height_len, total_wave, 4), dtype=np.float64)
+        fo['ltau500'] = np.zeros((1, 1, len(b_list), height_len), dtype=np.float64)
         fo.close()
 
         sys.stdout.write('Made Output File.\n')
@@ -290,10 +293,11 @@ if __name__ == '__main__':
                 )
                 sender = status.Get_source()
                 jobstatus = status_dict['status']
-                item, b_val, heights[item], height_len, stokes_profiles, response = status_dict['item']
+                item, b_val, heights[item], height_len, stokes_profiles, response, ltau500 = status_dict['item']
                 fo = h5py.File(response_function_out_file, 'r+')
                 fo['profiles'][0, 0, index] = stokes_profiles
                 fo['derivatives'][0, 0, index, heights[item]] = response
+                fo['ltau500'][0, 0, index] = ltau500
                 fo.close()
                 sys.stdout.write(
                     'Sender: {} b_val: {} heights[item]: {} Status: {}\n'.format(
@@ -387,7 +391,7 @@ if __name__ == '__main__':
 
             process.wait()
 
-            profiles, status_work = get_original_profile(sub_dir_path)
+            ltau500, profiles, status_work = get_original_profile(sub_dir_path)
 
             sys.stdout.write(
                 'Rank: {} bval: {} height_index: {} Generating Plus Profiles\n'.format(
@@ -438,7 +442,7 @@ if __name__ == '__main__':
 
             process.wait()
 
-            plus_profiles, status_work = get_original_profile(sub_dir_path)
+            _, plus_profiles, status_work = get_original_profile(sub_dir_path)
 
             sys.stdout.write(
                 'Rank: {} b_val: {} height_index: {} Generating Negative Profiles\n'.format(
@@ -493,8 +497,8 @@ if __name__ == '__main__':
 
             process.wait()
 
-            negative_profiles, status_work = get_original_profile(sub_dir_path)
+            _, negative_profiles, status_work = get_original_profile(sub_dir_path)
 
             response = (plus_profiles - negative_profiles) / (plus_perturbation - negative_perturbation)
 
-            comm.send({'status': status_work, 'item': (item, b_val, height_index, height_len, profiles, response)}, dest=0, tag=2)
+            comm.send({'status': status_work, 'item': (item, b_val, height_index, height_len, profiles, response, ltau500)}, dest=0, tag=2)
