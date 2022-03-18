@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import matplotlib.gridspec as gridspec
 from prepare_data import *
+from scipy.interpolate import CubicSpline
 
 
 kmeans_output_dir = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output_ha_ca'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output'
 )
 
 atmos_rp_write_path = Path(
@@ -17,17 +18,17 @@ atmos_rp_write_path = Path(
 )
 
 input_file = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/aligned_Ca_Ha_stic_profiles.nc'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
 )
 
 
 kmeans_file = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/chosen_ha_ca_out_40.h5'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/chosen_out_30.h5'
 )
 
 
 rps_plot_write_dir = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/Ca_Ha_RPs_Plots/'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/'
 )
 
 falc_file_path = Path(
@@ -272,7 +273,7 @@ def make_rps():
         if key in list(f.keys()):
             del f[key]
 
-    labels = f['labels_'][()].reshape(17, 60).astype(np.int64)
+    labels = f['labels_'][()].reshape(19, 60).astype(np.int64)
 
     f['final_labels'] = labels
 
@@ -329,7 +330,7 @@ def get_data(get_data=True, get_labels=True, get_rps=True):
 
         whole_data[:, :, :, 1:4] /= whole_data[:, :, :, 0][:, :, :, np.newaxis]
 
-        whole_data = whole_data.reshape(17 * 60, ind.size, 4)
+        whole_data = whole_data.reshape(19 * 60, ind.size, 4)
 
         f.close()
 
@@ -356,7 +357,7 @@ def make_rps_plots(name='RPs'):
 
     cm = 'Greys'
 
-    wave = np.array(list(wave_ha) + list(wave_8542))
+    wave = np.array(list(wave_8542))
 
     wave_x = np.arange(wave.size)
 
@@ -376,11 +377,11 @@ def make_rps_plots(name='RPs'):
 
         fig = plt.figure(figsize=(8.27, 11.69))
 
-        subfigs = fig.subfigures(5, 4)
+        subfigs = fig.subfigures(5, 3)
 
         for i in range(5):
 
-            for j in range(4):
+            for j in range(3):
 
                 gs = gridspec.GridSpec(2, 2)
 
@@ -635,7 +636,7 @@ def make_stic_inversion_files(rps=None):
 
     line_indices = [[0, 58], [58, 97], [97, 306]]
 
-    core_indices = [[19, 36], [18, 27], [91, 114]]
+    core_indices = [[19, 36], [18, 27], [85, 120]]
 
     wave_names = ['SiI_8536', 'FeI_8538', 'CaII_8542']
 
@@ -679,25 +680,25 @@ def make_stic_inversion_files(rps=None):
         print("(w0, dw, nw, normalization, degradation_type, instrumental_profile file)")
         print(" ")
 
-    wha, iha = findgrid(wave_ha, (wave_ha[1] - wave_ha[0]) * 0.25, extra=8)
+    # wha, iha = findgrid(wave_ha, (wave_ha[1] - wave_ha[0]) * 0.25, extra=8)
+    #
+    # ha = sp.profile(nx=rps.size, ny=1, ns=4, nw=wha.size)
+    #
+    # ha.wav[:] = wha[:]
+    #
+    # ha.dat[0, 0, :, iha, :] = np.transpose(
+    #     f['rps'][rps][:, 306:],
+    #     axes=(1, 0, 2)
+    # )
+    #
+    # ha.weights[:, :] = 1.e16  # Very high value means weight zero
+    # ha.weights[iha, 0] = 0.004
+    # ha.weights[iha[18:46], 0] = 0.002
+    # ha.weights[iha[69:186], 0] = 0.002
+    # ha.weights[iha[405:432], 0] = 0.002
+    # # ha.weights[iha, 3] = ca_8.weights[iha, 0] / 2
 
-    ha = sp.profile(nx=rps.size, ny=1, ns=4, nw=wha.size)
-
-    ha.wav[:] = wha[:]
-
-    ha.dat[0, 0, :, iha, :] = np.transpose(
-        f['rps'][rps][:, 306:],
-        axes=(1, 0, 2)
-    )
-
-    ha.weights[:, :] = 1.e16  # Very high value means weight zero
-    ha.weights[iha, 0] = 0.004
-    ha.weights[iha[18:46], 0] = 0.002
-    ha.weights[iha[69:186], 0] = 0.002
-    ha.weights[iha[405:432], 0] = 0.002
-    # ha.weights[iha, 3] = ca_8.weights[iha, 0] / 2
-
-    all_profiles = ca + ha
+    all_profiles = ca# + ha
     if rps.size != f['rps'].shape[0]:
         writefilename = 'rps_stic_profiles_x_{}_y_1.nc'.format('_'.join([str(_rp) for _rp in rps]))
     else:
@@ -707,7 +708,7 @@ def make_stic_inversion_files(rps=None):
     )
 
 
-def generate_input_atmos_file(length=30):
+def generate_input_atmos_file(length=30, temp=None, vlos=None, blong=0, name=''):
 
     f = h5py.File(falc_file_path, 'r')
 
@@ -717,16 +718,27 @@ def generate_input_atmos_file(length=30):
 
     m.pgas[:, :, :] = 1
 
-    m.temp[:, :, :] = f['temp'][0, 0, 0]
+    if temp is not None:
+        cs = CubicSpline(temp[0], temp[1])
+        tp = cs(f['ltau500'][0, 0, 0])
+    else:
+        tp = f['temp'][0, 0, 0]
+    if vlos is not None:
+        cs = CubicSpline(vlos[0], vlos[1])
+        vl = cs(f['ltau500'][0, 0, 0])
+    else:
+        vl = f['vlos'][0, 0, 0]
 
-    m.vlos[:, :, :] = f['vlos'][0, 0, 0]
+    m.temp[:, :, :] = tp
+
+    m.vlos[:, :, :] = vl
 
     m.vturb[:, :, :] = 0
 
-    m.Bln[:, :, :] = 100
+    m.Bln[:, :, :] = blong
 
     m.write(
-        atmos_rp_write_path / 'falc_{}_1_blong_100.nc'.format(length)
+        atmos_rp_write_path / 'atmos_{}_{}.nc'.format(length, name)
     )
 
 
@@ -774,19 +786,19 @@ def make_rps_inversion_result_plots():
     # )
 
     rps_atmos_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_6343/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_blos_3_atmos.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/rps_stic_profiles_x_3_6_8_12_15_16_19_20_22_23_25_y_1_cycle_1_t_0_vl_0_vt_0_blong_5_atmos.nc'
     )
 
     rps_profs_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_6343/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_blos_3_profs.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/rps_stic_profiles_x_3_6_8_12_15_16_19_20_22_23_25_y_1_cycle_1_0_vl_0_vt_0_blong_5_profs.nc'
     )
 
     rps_input_profs = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/rps_stic_profiles_x_30_y_1.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/rps_stic_profiles_x_3_6_8_12_15_16_19_20_22_23_25_y_1.nc'
     )
     
     rps_plot_write_dir = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/full_stokes_6343'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions/'
     )
 
     finputprofs = h5py.File(rps_input_profs, 'r')
@@ -797,7 +809,7 @@ def make_rps_inversion_result_plots():
 
     ind = np.where(finputprofs['profiles'][0, 0, 0, :, 0] != 0)[0]
 
-    for i, k in enumerate(range(30)):
+    for i, k in enumerate([3, 6, 8, 12, 15, 16, 19, 20, 22, 23, 25]):
         print(i)
         plt.close('all')
 
@@ -977,13 +989,26 @@ def full_map_generate_input_atmos_file_from_previous_result():
     f.close()
 
 
+'''
+Quiet Profiles: 0, 1, 2, 4, 5, 7, 9, 10, 11, 13, 14, 17, 18, 28, 29
+Interesting Profiles No Vlos: 3, 6, 8, 12, 15, 16, 19, 20, 22, 23, 25
+Emission Red RP: 21, 24
+Emission Blue RP: 26, 27
+'''
+
 if __name__ == '__main__':
     # make_rps()
     # plot_rp_map_fov()
     # make_rps_plots()
-    # make_stic_inversion_files()
-    generate_input_atmos_file(length=40)
+    # make_stic_inversion_files(rps=[0, 1, 2, 4, 5, 7, 9, 10, 11, 13, 14, 17, 18, 28, 29])
+    # make_stic_inversion_files(rps=[3, 6, 8, 12, 15, 16, 19, 20, 22, 23, 25])
+    # make_stic_inversion_files(rps=[21, 24])
+    # make_stic_inversion_files(rps=[26, 27])
+    # generate_input_atmos_file(length=15, temp=[[-8, -6, -4, -2, 0, 2], [7000, 5000, 4000, 5000, 7000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [0, 0, 0, 0, 0, 0]], blong=-100, name='quiet')
+    # generate_input_atmos_file(length=11, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [0, 0, 0, 0, 0, 0]], blong=-350, name='spot')
+    # generate_input_atmos_file(length=2, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [-10e5, -5e5, -3e3, 1e5, 0, 0]], blong=-450, name='red')
+    # generate_input_atmos_file(length=2, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [10e5, 5e5, 3e3, -1e5, 0, 0]], blong=-450, name='blue')
     # generate_input_atmos_file_from_previous_result(result_filename='/home/harsh/SpinorNagaraju/maps_1/stic/run_nagaraju/rps_stic_profiles_x_30_y_1_cycle_1_t_6_vl_3_vt_4_atmos.nc', rps=[3, 12, 25])
-    # make_rps_inversion_result_plots()
+    make_rps_inversion_result_plots()
     # combine_rps_atmos()
     # full_map_generate_input_atmos_file_from_previous_result()
