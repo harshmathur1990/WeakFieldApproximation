@@ -273,7 +273,7 @@ if __name__ == '__main__':
 
         sys.stdout.write('Made Output File.\n')
 
-        job_matrix = np.zeros((256, 512), dtype=np.int64)
+        job_matrix = np.zeros((nx, ny), dtype=np.int64)
 
         x, y = np.where(job_matrix == 0)
 
