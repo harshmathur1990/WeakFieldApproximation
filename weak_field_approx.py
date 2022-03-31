@@ -8,7 +8,8 @@ def calculate_b_los(
     lambda0,
     lambda_range_min,
     lambda_range_max,
-    g_eff
+    g_eff,
+    transition_skip_list=None
 ):
     '''
     stokes_I: Array of Intensties
@@ -27,6 +28,20 @@ def calculate_b_los(
             np.array(wavelength_arr) <= (lambda_range_max)
         )
     )[0]
+
+    if transition_skip_list is not None:
+        skip_ind = list()
+        for transition in transition_skip_list:
+            skip_ind += list(
+                np.where(
+                    (
+                            np.array(wavelength_arr) >= (transition[0] - transition[1])
+                    ) & (
+                            np.array(wavelength_arr) <= (transition[0] + transition[1])
+                    )
+                )[0]
+            )
+        indices = np.array(list(set(indices) - set(skip_ind)))
 
     wavelength = np.array(wavelength_arr)[indices]
 
@@ -52,9 +67,9 @@ def prepare_calculate_blos(
     lambda_range_min,
     lambda_range_max,
     g_eff,
+    transition_skip_list=None
 ):
     def actual_calculate_blos(i, j):
-
         i = int(i)
         j = int(j)
         stokes_I, stokes_V = obs[0, i, j, :, 0], obs[0, i, j, :, 3]
@@ -65,7 +80,8 @@ def prepare_calculate_blos(
             lambda0,
             lambda_range_min,
             lambda_range_max,
-            g_eff
+            g_eff,
+            transition_skip_list=transition_skip_list
         )
     return actual_calculate_blos
 

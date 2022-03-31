@@ -22,12 +22,12 @@ framerows[:, :, :, 1:4] /= framerows[:, :, :, 0][:, :, :, np.newaxis]
 framerows = framerows.reshape(19, 60, ind.size * 4).reshape(19 * 60, ind.size * 4)
 mn = np.mean(framerows, axis=0)
 sd = np.std(framerows, axis=0)
-weights = np.ones((ind.size, 4), dtype=np.float64) * 0.33/245
+weights = np.ones((ind.size, 4), dtype=np.float64) * 0.04 / 225
 line_indices = [[0, 58], [58, 97], [97, 306]]
 core_indices = [[19, 36], [18, 27], [85, 120]]
-weights[19:36] = 0.33/26
-weights[58+18:58+27] = 0.33/26
-weights[97+85:97+120] = 0.34/35
+weights[19:36] = 0.08 / 17
+weights[58+18:58+27] = 0.08 / 9
+weights[97+75:97+130] = 0.8 / 55
 weights = weights.reshape(ind.size * 4)
 # weights[10:20] = 0.05
 
@@ -135,7 +135,7 @@ def plot_inertia():
 
     axs.grid()
 
-    axs.axvline(x=40, linestyle='--')
+    axs.axvline(x=30, linestyle='--')
 
     axs.set_xticks([0, 20, 30, 40, 60, 80, 100])
 
