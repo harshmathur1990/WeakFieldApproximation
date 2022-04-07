@@ -918,6 +918,167 @@ def get_wfa():
     return magha
 
 
+def get_wfa_new():
+
+    fcaha = h5py.File(ca_ha_data_file, 'r')
+
+    ind = np.where(fcaha['profiles'][0, 0, 0, :, 0]!=0)[0]
+
+    ha_center_wave = 6562.8 / 10
+
+    transition_skip_list = np.array(
+        [
+            [6560.57, 0.25],
+            [6561.09, 0.1],
+            [6562.44, 0.05],
+            [6563.51, 0.15],
+            [6564.15, 0.35]
+        ]
+    ) / 10
+
+    wave_range = 0.3 / 10
+
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave,
+        1.048,
+        transition_skip_list=transition_skip_list
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_left = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_right = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
+    magha = np.add(magha_left, magha_right) / 2
+
+    wave_range_1 = 0.9 / 10
+
+    wave_range_2 = 0.5 / 10
+
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range_1,
+        ha_center_wave - wave_range_2,
+        1.048,
+        transition_skip_list=transition_skip_list
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_left = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave + wave_range_2,
+        ha_center_wave + wave_range_1,
+        1.048,
+        transition_skip_list=transition_skip_list
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_right = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
+    magha_p = np.add(magha_left, magha_right) / 2
+
+    fcaha.close()
+
+    print (magha.min(), magha.max())
+    print (magha_p.min(), magha_p.max())
+    return magha, magha_p
+
+
+def get_wfanew_alternate():
+
+    fcaha = h5py.File(ca_ha_data_file, 'r')
+
+    ind = np.where(fcaha['profiles'][0, 0, 0, :, 0]!=0)[0]
+
+    ha_center_wave = 6562.8 / 10
+    wave_range = 0.35 / 10
+
+    transition_skip_list = np.array(
+        [
+            [6560.57, 0.25],
+            [6561.09, 0.1],
+            [6562.44, 0.05],
+            [6563.51, 0.15],
+            [6564.15, 0.35]
+        ]
+    ) / 10
+
+
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
+    wave_range = 1.5 / 10
+
+    transition_skip_list = np.array(
+        [
+            [6560.57, 0.25],
+            [6561.09, 0.1],
+            [6562.44, 0.05],
+            [6563.51, 0.15],
+            [6564.15, 0.35],
+            [6562.8, 0.6]
+        ]
+    ) / 10
+
+
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_p = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
+    fcaha.close()
+
+    print (magha.min(), magha.max())
+    print (magha_p.min(), magha_p.max())
+
+    return magha, magha_p
+
+
 def plot_mag_field_compare():
 
     fontsize = 8
@@ -1194,10 +1355,412 @@ def plot_mag_field_compare():
 
     f.close()
 
+
+def plot_mag_field_compare_new():
+
+    fontsize = 8
+
+    a, b = get_wfanew_alternate()
+
+    magha, magha_p = a.T, b.T
+
+    interesting_ltaus = [0, -2, -3, -5]
+
+    ltau_indice = list()
+
+    for interesting_ltau in interesting_ltaus:
+        ltau_indice.append(np.argmin(np.abs(ltau500 - interesting_ltau)))
+
+    ltau_indice = np.array(ltau_indice)
+
+    _, _, _, _, _, mask = get_fov_data()
+
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/fulldata_inversions/')
+
+    f = h5py.File(base_path / 'combined_output.nc', 'r')
+
+    fig, axs = plt.subplots(2, 5, figsize=(7, 7))
+
+    a0 = f['blong'][0, 0:17, :, ltau_indice[0]].T
+    a1 = f['blong'][0, 0:17, :, ltau_indice[1]].T
+    a2 = f['blong'][0, 0:17, :, ltau_indice[2]].T
+    a3 = f['blong'][0, 0:17, :, ltau_indice[3]].T
+
+    colors = ["saddlebrown", "peru", "white", "green", "blue"]
+    cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
+
+    cmap = cmap1  #RdGy
+
+    X, Y = np.meshgrid(np.arange(0, 17 * 0.38, 0.38), np.arange(0, 60 * 0.38, 0.38))
+
+    im00 = axs[0][0].pcolormesh(X, Y, a1, cmap=cmap, shading='gouraud', vmin=-1000, vmax=1000)
+
+    im01 = axs[0][1].pcolormesh(X, Y, a2, cmap=cmap, shading='gouraud', vmin=-900, vmax=900)
+
+    im02 = axs[0][2].pcolormesh(X, Y, a3, cmap=cmap, shading='gouraud', vmin=-600, vmax=600)
+
+    im03 = axs[0][3].pcolormesh(X, Y, magha, cmap=cmap, shading='gouraud', vmin=-400, vmax=400)
+
+    im04 = axs[0][4].pcolormesh(X, Y, magha_p, cmap=cmap, shading='gouraud', vmin=-700, vmax=700)
+
+    im10 = axs[1][0].pcolormesh(X, Y, np.abs(a1) - np.abs(a0), cmap='bwr', shading='gouraud', vmin=-300, vmax=300)
+
+    im11 = axs[1][1].pcolormesh(X, Y, np.abs(a2) - np.abs(a1), cmap='bwr', shading='gouraud', vmin=-400, vmax=400)
+
+    im12 = axs[1][2].pcolormesh(X, Y, np.abs(a3) - np.abs(a2), cmap='bwr', shading='gouraud', vmin=-500, vmax=500)
+
+    im13 = axs[1][3].pcolormesh(X, Y, np.abs(magha) - np.abs(a3), cmap='bwr', shading='gouraud', vmin=-250, vmax=250)
+
+    im14 = axs[1][4].pcolormesh(X, Y, np.abs(magha_p) - np.abs(a1), cmap='bwr', shading='gouraud', vmin=-600, vmax=600)
+
+    for i in range(2):
+        for j in range(5):
+            color = 'black'
+            axs[i][j].contour(X, Y, mask[0, 0].T, levels=0, colors=color, linewidths=0.5)
+
+    cbaxes = inset_axes(
+        axs[0][0],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im00,
+        cax=cbaxes,
+        ticks=[-900, 0, 900],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    cbaxes = inset_axes(
+        axs[0][1],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im01,
+        cax=cbaxes,
+        ticks=[-800, 0, 800],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    cbaxes = inset_axes(
+        axs[0][2],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im02,
+        cax=cbaxes,
+        ticks=[-500, 0, 500],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    cbaxes = inset_axes(
+        axs[0][3],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im03,
+        cax=cbaxes,
+        ticks=[-300, 0, 300],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    cbaxes = inset_axes(
+        axs[0][4],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im04,
+        cax=cbaxes,
+        ticks=[-500, 0, 500],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    cbaxes = inset_axes(
+        axs[1][0],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im10,
+        cax=cbaxes,
+        ticks=[-200, 0, 200],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    cbaxes = inset_axes(
+        axs[1][1],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im11,
+        cax=cbaxes,
+        ticks=[-300, 0, 300],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    cbaxes = inset_axes(
+        axs[1][2],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im12,
+        cax=cbaxes,
+        ticks=[-400, 0, 400],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    cbaxes = inset_axes(
+        axs[1][3],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im13,
+        cax=cbaxes,
+        ticks=[-200, 0, 200],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    cbaxes = inset_axes(
+        axs[1][4],
+        width="100%",
+        height="5%",
+        loc='upper center',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im14,
+        cax=cbaxes,
+        ticks=[-500, 0, 500],
+        orientation='horizontal'
+    )
+    cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    axs[0][0].set_xticklabels([])
+    axs[0][1].set_xticklabels([])
+    axs[0][1].set_yticklabels([])
+    axs[0][2].set_xticklabels([])
+    axs[0][2].set_yticklabels([])
+    axs[0][3].set_xticklabels([])
+    axs[0][3].set_yticklabels([])
+    axs[0][4].set_xticklabels([])
+    axs[0][4].set_yticklabels([])
+
+    axs[1][1].set_yticklabels([])
+    axs[1][2].set_yticklabels([])
+    axs[1][3].set_yticklabels([])
+    axs[1][4].set_yticklabels([])
+
+    axs[0][0].set_yticks([0, 5, 10, 15, 20])
+    axs[0][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+    axs[0][1].set_yticks([0, 5, 10, 15, 20])
+    axs[0][2].set_yticks([0, 5, 10, 15, 20])
+    axs[0][3].set_yticks([0, 5, 10, 15, 20])
+    axs[0][4].set_yticks([0, 5, 10, 15, 20])
+    axs[1][0].set_yticks([0, 5, 10, 15, 20])
+    axs[1][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+    axs[1][1].set_yticks([0, 5, 10, 15, 20])
+    axs[1][2].set_yticks([0, 5, 10, 15, 20])
+    axs[1][3].set_yticks([0, 5, 10, 15, 20])
+    axs[1][4].set_yticks([0, 5, 10, 15, 20])
+
+    axs[0][0].set_xticks([0, 5])
+    axs[0][1].set_xticks([0, 5])
+    axs[0][2].set_xticks([0, 5])
+    axs[0][3].set_xticks([0, 5])
+    axs[0][4].set_xticks([0, 5])
+
+    axs[1][0].set_xticks([0, 5])
+    axs[1][0].set_xticklabels([0, 5], fontsize=fontsize)
+    axs[1][1].set_xticks([0, 5])
+    axs[1][1].set_xticklabels([0, 5], fontsize=fontsize)
+    axs[1][2].set_xticks([0, 5])
+    axs[1][2].set_xticklabels([0, 5], fontsize=fontsize)
+    axs[1][3].set_xticks([0, 5])
+    axs[1][3].set_xticklabels([0, 5], fontsize=fontsize)
+    axs[1][4].set_xticks([0, 5])
+    axs[1][4].set_xticklabels([0, 5], fontsize=fontsize)
+
+    axs[0][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][2].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][3].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][2].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][3].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][4].yaxis.set_minor_locator(MultipleLocator(1))
+
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][2].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][3].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][4].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][2].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][3].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][4].yaxis.set_minor_locator(MultipleLocator(1))
+
+    axs[0][0].set_ylabel('x [arcsec]', fontsize=fontsize)
+    axs[1][0].set_ylabel('x [arcsec]', fontsize=fontsize)
+
+    axs[1][0].set_xlabel('y [arcsec]', fontsize=fontsize)
+    axs[1][1].set_xlabel('y [arcsec]', fontsize=fontsize)
+    axs[1][2].set_xlabel('y [arcsec]', fontsize=fontsize)
+    axs[1][3].set_xlabel('y [arcsec]', fontsize=fontsize)
+    axs[1][4].set_xlabel('y [arcsec]', fontsize=fontsize)
+
+    axs[0][0].text(
+        0.05, 1.2,
+        r'$\log \tau_{\mathrm{500}}=-2$',
+        transform=axs[0][0].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][0].text(
+        0.05, 0.95,
+        r'(a)',
+        transform=axs[0][0].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][1].text(
+        0.05, 1.2,
+        r'$\log \tau_{\mathrm{500}}=-3$',
+        transform=axs[0][1].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][1].text(
+        0.05, 0.95,
+        r'(b)',
+        transform=axs[0][1].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][2].text(
+        0.05, 1.2,
+        r'$\log \tau_{\mathrm{500}}=-5$',
+        transform=axs[0][2].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][2].text(
+        0.05, 0.95,
+        r'(c)',
+        transform=axs[0][2].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][3].text(
+        0.03, 1.2,
+        r'WFA (H$\alpha \pm 0.35 \AA$)',
+        transform=axs[0][3].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][3].text(
+        0.05, 0.95,
+        r'(d)',
+        transform=axs[0][3].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][4].text(
+        0.15, 1.2,
+        r'WFA (H$\alpha$ Wing)',
+        transform=axs[0][4].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][4].text(
+        0.05, 0.95,
+        r'(e)',
+        transform=axs[0][4].transAxes,
+        fontsize=fontsize
+    )
+
+    axs[1][0].text(
+        0.05, 0.95,
+        r'|(a)| - |$B_{\log\tau_{\mathrm{500} = 0}}$|',
+        transform=axs[1][0].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][1].text(
+        0.05, 0.95,
+        r'|(b)|$-$|(a)|',
+        transform=axs[1][1].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][2].text(
+        0.05, 0.95,
+        r'|(c)|$-$|(b)|',
+        transform=axs[1][2].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][3].text(
+        0.05, 0.95,
+        r'|(d)|$-$|(c)|',
+        transform=axs[1][3].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][4].text(
+        0.05, 0.95,
+        r'|(e)|$-$|(a)|',
+        transform=axs[1][4].transAxes,
+        fontsize=fontsize
+    )
+
+    plt.subplots_adjust(left=0.1, bottom=0.07, right=0.96, top=0.9, wspace=0.2, hspace=0.2)
+
+    write_path = Path('/home/harsh/Spinor Paper/')
+
+    fig.savefig(write_path / 'MagneticField.pdf', format='pdf', dpi=300)
+
+    # plt.show()
+
+    f.close()
+
+
 if __name__ == '__main__':
     # make_fov_plots()
     # plot_stokes_parameters()
     # plot_profiles()
     # plot_spatial_variation_of_profiles()
-    # make_output_param_plots()
-    plot_mag_field_compare()
+    make_output_param_plots()
+    # plot_mag_field_compare()
+    # plot_mag_field_compare_new()

@@ -2,6 +2,8 @@ from datetime import timedelta
 from dateutil import parser
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
+from matplotlib.ticker import MultipleLocator
 
 
 def actual_make_image_movement_plots(sensor_name, mean_values, conversion_factor, time_factor, start_time):
@@ -262,3 +264,105 @@ def make_image_tracking_plots(
         format='png',
         dpi=1200
     )
+
+
+def plot_drift_plot():
+
+    fontsize = 10
+
+    size = plt.rcParams['lines.markersize']
+
+    base_path = Path('/home/harsh/AutoGuiderData/03Feb2021/Processed/')
+
+    drift_ra_file = base_path / 'Drift_RA_2021-02-03_12:54:48_1.21_min.txt'
+
+    drift_dec_file = base_path / 'Drift_DEC_2021-02-03_12:54:46_1.2_min.txt'
+
+    ra_drift = np.loadtxt(drift_ra_file)
+
+    dec_drift = np.loadtxt(drift_dec_file)
+
+    ra_drift[:, 1] *= 5.5
+
+    dec_drift[:, 1] *= 5.5
+
+    ra_drift[:, 1] -= ra_drift[:, 1].max()
+
+    dec_drift[:, 1] -= dec_drift[:, 1].min()
+
+    a, b = np.polyfit(ra_drift[:, 0], ra_drift[:, 1], 1)
+
+    ra_drift_fit = a * ra_drift[:, 0] + b
+
+    a, b = np.polyfit(dec_drift[:, 0], dec_drift[:, 1], 1)
+
+    dec_drift_fit = a * dec_drift[:, 0] + b
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
+
+    fig, axs = plt.subplots(1, 2, figsize=(6.75, 3))
+
+    axs[0].scatter(ra_drift[:, 0], ra_drift[:, 1], color='midnightblue', s=size/4)
+
+    axs[0].plot(ra_drift[:, 0], ra_drift_fit, color='brown')
+
+    axs[1].scatter(dec_drift[:, 0], dec_drift[:, 1], color='midnightblue', s=size/4)
+
+    axs[1].plot(dec_drift[:, 0], dec_drift_fit, color='brown')
+
+    axs[0].set_xlabel('Time [minutes]', fontsize=fontsize)
+
+    axs[1].set_xlabel('Time [minutes]', fontsize=fontsize)
+
+    axs[0].set_ylabel('Drift [arcsec]', fontsize=fontsize)
+
+    # axs[1].set_ylabel('Drift [arcsec]', fontsize=fontsize)
+
+    axs[0].set_xticks([0, 0.5, 1])
+    axs[0].set_xticklabels([0, 0.5, 1])
+
+    axs[1].set_xticks([0, 0.5, 1])
+    axs[1].set_xticklabels([0, 0.5, 1])
+
+    # axs[1].set_yticks([0, 2, 4, 6])
+    # axs[1].set_yticklabels([0, 2, 4, 6])
+
+    axs[0].xaxis.set_minor_locator(MultipleLocator(0.1))
+    axs[0].yaxis.set_minor_locator(MultipleLocator(0.5))
+
+    axs[1].xaxis.set_minor_locator(MultipleLocator(0.1))
+    axs[1].yaxis.set_minor_locator(MultipleLocator(0.5))
+
+    axs[0].text(
+        0.11, 0.94,
+        r'Drift = 6.93 arcsec $\mathrm{minutes^{-1}}$',
+        transform=axs[0].transAxes,
+        fontsize=fontsize
+    )
+
+    axs[1].text(
+        0.11, 0.94,
+        r'Drift = 5.005 arcsec $\mathrm{minutes^{-1}}$',
+        transform=axs[1].transAxes,
+        fontsize=fontsize
+    )
+
+    plt.subplots_adjust(left=0.1, bottom=0.15, right=0.98, top=0.98, wspace=0.2, hspace=0.2)
+
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+
+    fig.savefig(write_path / 'drift_measurement.pdf', format='pdf', dpi=300)
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
+
+
+if __name__ == '__main__':
+    plot_drift_plot()
