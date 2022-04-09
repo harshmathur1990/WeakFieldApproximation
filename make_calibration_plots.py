@@ -197,6 +197,7 @@ def make_calibration_plots(
 
     fig.suptitle('Calibration')
 
-    plt.savefig('Calibration_plots.eps', format='eps')
+    # plt.savefig('Calibration_plots.eps', format='eps')
+    plt.show()
 
     return np.array([[ra_a1, ra_a2], [dec_a2, dec_a1]])

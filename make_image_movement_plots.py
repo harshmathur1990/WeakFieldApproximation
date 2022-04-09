@@ -364,5 +364,64 @@ def plot_drift_plot():
     plt.cla()
 
 
+def plot_dark_data():
+
+    dark_data = np.array(
+        [
+            -14.7479, -13.459, -11.3645, 7.3249, 8.93605, 20.053,
+            32.7811, 28.5921, 9.90275, 4.10259, -10.72, 5.06928,
+            11.675, -11.3645, -8.46441, 9.09717, 14.0917, 13.9306,
+            20.8586, 12.9639, -5.56434, -7.49772, -16.198, -20.2258,
+            -0.891988, 22.4698, 15.5418, 14.7362, 13.2862, 7.00267,
+            -10.5589, -18.4536, -7.98107, -22.6426, -19.098, -16.8424,
+            3.29701, 15.5418, 21.9864, 10.3861, 14.414, 7.96936, 7.64713,
+            -22.8037, -6.53103, -2.98649, 2.00809, 7.96936, 15.0584,
+            29.7199, -2.98649, 6.35821, 7.00267, -17.9702, -16.6813,
+            -20.7092, 12.8028, -6.2088, 18.1196, 19.0863
+        ]
+    ) * 5.5 / (500 * 0.543)
+
+    fontsize = 8
+
+    plt.close('all')
+
+    plt.cla()
+
+    plt.clf()
+
+    plt.plot(dark_data)
+
+    plt.gca().set_xticks([0, 10, 20, 30, 40, 50, 60])
+    plt.gca().set_xticklabels([0, 10, 20, 30, 40, 50, 60], fontsize=fontsize)
+
+    plt.gca().set_yticks([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6])
+    plt.gca().set_xticklabels([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6], fontsize=fontsize)
+
+    plt.plot(np.ones_like(dark_data) * dark_data.mean())
+
+    plt.ylim(-0.7, 0.7)
+
+    fig = plt.gcf()
+
+    fig.set_size_inches(7, 3, forward=True)
+
+    plt.xlabel('Number of Samples', fontsize=fontsize)
+
+    plt.ylabel('Drift [arcsec]', fontsize=fontsize)
+
+    plt.gca().text(
+        0.4, 0.9,
+        'Std: {}'.format(np.round(dark_data.std(), 3)),
+        transform=plt.gca().transAxes,
+        fontsize=fontsize
+    )
+
+    plt.subplots_adjust(left=0.1, bottom=0.15, right=0.98, top=0.95, wspace=0., hspace=0.0)
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+
+    fig.savefig(write_path / 'darkdata.pdf', format='pdf', dpi=300)
+
+
 if __name__ == '__main__':
-    plot_drift_plot()
+    # plot_drift_plot()
+    plot_dark_data()
