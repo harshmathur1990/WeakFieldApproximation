@@ -70,6 +70,8 @@ def make_comparison_plots(filename_x_y_list):
 
     plt.gcf().savefig(write_path / 'RH_BASS2000_PORTA.pdf', format='pdf', dpi=300)
 
+    plt.gcf().savefig(write_path / 'RH_BASS2000_PORTA.png', format='png', dpi=300)
+
     plt.close('all')
 
     plt.clf()
@@ -80,7 +82,9 @@ def make_comparison_plots(filename_x_y_list):
 if __name__ == '__main__':
     make_comparison_plots(
         [
-            ('H_FALC_profs_11x11.h5', 5, 5, '11x11'),
-            ('H_FALC_profs_3x3.h5', 1, 1, '3x3')
+            ('H_FALC_11_11_profs.h5', 5, 5, '11x11'),
+            ('H_FALC_profs_3x3.h5', 1, 1, '3x3'),
+            ('H_FALC_21_21_profs.h5', 10, 10, '21x21'),
+            ('H_FALC_61_61_profs.h5', 30, 30, '61x61')
         ]
     )

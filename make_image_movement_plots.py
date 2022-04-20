@@ -4,6 +4,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 from matplotlib.ticker import MultipleLocator
+import os
+import h5py
+import sunpy.io.fits
+import scipy.signal
+from skimage.morphology import closing
+from skimage.measure import regionprops
 
 
 def actual_make_image_movement_plots(sensor_name, mean_values, conversion_factor, time_factor, start_time):
@@ -389,7 +395,7 @@ def plot_dark_data():
 
     plt.clf()
 
-    plt.plot(dark_data)
+    plt.plot(dark_data, color='black')
 
     plt.gca().set_xticks([0, 10, 20, 30, 40, 50, 60])
     plt.gca().set_xticklabels([0, 10, 20, 30, 40, 50, 60], fontsize=fontsize)
@@ -397,7 +403,7 @@ def plot_dark_data():
     plt.gca().set_yticks([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6])
     plt.gca().set_xticklabels([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6], fontsize=fontsize)
 
-    plt.plot(np.ones_like(dark_data) * dark_data.mean())
+    plt.plot(np.ones_like(dark_data) * dark_data.mean(), color='red')
 
     plt.ylim(-0.7, 0.7)
 
@@ -422,6 +428,724 @@ def plot_dark_data():
     fig.savefig(write_path / 'darkdata.pdf', format='pdf', dpi=300)
 
 
+def make_image_tracking_plots_new(
+        filename,
+        ylim1,
+        ylim2,
+        xticks,
+        yticks1,
+        yticks2,
+        label=None,
+        ra_slope=0.446,
+        dec_slope=0.417,
+        start_line=0,
+        end_line=None,
+        image_scale=5.5,
+        time_factor=1,
+        scatter_factor=4,
+        savefilename=None,
+):
+
+    fontsize = 6
+
+    size = plt.rcParams['lines.markersize']
+
+    try:
+        f = open(filename, encoding='utf-16-le')
+        lines = f.readlines()
+    except Exception:
+        f = open(filename)
+        lines = f.readlines()
+
+    ra_lines = [line.split(' ')[3] for line in lines if line.startswith('Mean Voltage RA:')][start_line:end_line]
+
+    dec_lines = [line.split(' ')[3] for line in lines if line.startswith('Mean Voltage DEC:')][start_line:end_line]
+
+    reference_ra = float([line.split(' ')[2] for line in lines if line.startswith('ReferenceVoltage RA:')][0])
+
+    reference_dec = float([line.split(' ')[2] for line in lines if line.startswith('ReferenceVoltage DEC:')][0])
+
+    ra_data = np.loadtxt(ra_lines)
+
+    dec_data = np.loadtxt(dec_lines)
+
+    ra_factor = 500 * ra_slope
+
+    dec_factor = 500 * dec_slope
+
+    time = np.arange(ra_data.shape[0]) * time_factor
+
+    ra_drift = (ra_data - reference_ra) / ra_factor
+
+    dec_drift = (dec_data - reference_dec) / dec_factor
+
+    ra_dec_drift_data = np.zeros((ra_drift.shape[0], 3))
+
+    ra_dec_drift_data[:, 0] = time
+
+    ra_dec_drift_data[:, 1] = ra_drift
+
+    ra_dec_drift_data[:, 2] = dec_drift
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
+
+    fig, axs = plt.subplots(2, 1, figsize=(3, 2))
+
+    axs[0].scatter(time / 60, ra_drift * image_scale, s=size/scatter_factor, color='black')
+
+    axs[0].plot(time / 60, np.zeros_like(time), color='red')
+
+    axs[0].set_ylabel('Drift [arcsec]',
+                      fontsize=fontsize)
+
+    axs[1].scatter(time / 60, dec_drift * image_scale, s=size/scatter_factor, color='black')
+
+    axs[1].plot(time / 60, np.zeros_like(time), color='red')
+
+    axs[1].set_xlabel(
+        'Time [minutes]',
+        fontsize=fontsize
+    )
+
+    axs[1].set_ylabel('Drift [arcsec]',
+                      fontsize=fontsize)
+
+    if label is not None:
+        axs[0].text(
+            -0.15, 1.1,
+            label,
+            transform=axs[0].transAxes,
+            fontsize=fontsize
+        )
+
+        # axs[1].text(
+        #     0.05, 0.9,
+        #     label,
+        #     transform=axs[1].transAxes,
+        #     fontsize=fontsize
+        # )
+
+    axs[0].text(
+        0.45, 0.9,
+        'EAST / RA',
+        transform=axs[0].transAxes,
+        fontsize=fontsize
+    )
+    axs[1].text(
+        0.43, 0.9,
+        'NORTH / DEC',
+        transform=axs[1].transAxes,
+        fontsize=fontsize
+    )
+    axs[0].set_ylim(*ylim1)
+    axs[1].set_ylim(*ylim2)
+
+    axs[0].set_xticks([])
+    axs[0].set_xticklabels([])
+
+    axs[1].set_xticks(xticks)
+    axs[1].set_xticklabels(xticks, fontsize=fontsize)
+
+    axs[0].set_yticks(yticks1)
+    axs[0].set_yticklabels(yticks1, fontsize=fontsize)
+
+    axs[1].set_yticks(yticks2)
+    axs[1].set_yticklabels(yticks2, fontsize=fontsize)
+
+    plt.subplots_adjust(left=0.15, bottom=0.17, right=0.98, top=0.91, wspace=0.1, hspace=0.1)
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+
+    if savefilename is None:
+        fig.savefig(write_path / '{}.pdf'.format(Path(filename).name), format='pdf', dpi=300)
+    else:
+        fig.savefig(write_path / savefilename, format='pdf', dpi=300)
+
+
+def make_sunspot_plot():
+    cwd = os.getcwd()
+    os.chdir('/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/AutoGuider March 2022/')
+    dark, _ = sunpy.io.fits.read('dark.fit')[0]
+    dark = np.mean(dark, 0)
+    flat_f = h5py.File('flat_31032022.hdf5', 'r')
+    tot = len(flat_f.keys()) // 2
+    flat = np.zeros((tot, flat_f['Image_0'].shape[0], flat_f['Image_0'].shape[1]))
+    for i in range(tot):
+        flat[i] = flat_f['Image_{}'.format(i)][()]
+    flat = np.mean(flat, 0)
+    flat_f.close()
+    data_f = h5py.File('buffer_31032022_082248_136_0_357.hdf5', 'r')
+    index = 690
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    fig, axs = plt.subplots(1, 1, figsize=(7, 5))
+    data = (data_f['Image_{}'.format(index)][()] - dark) * np.mean(flat-dark) / (flat - dark)
+    im = axs.imshow(data, cmap='gray', origin='lower', extent=[0, data.shape[1] * 5.5 * 9/1000, 0, data.shape[0] * 5.5 * 9/1000])
+    fig.colorbar(im, ax=axs)
+    axs.set_xlabel(r'$x$ [arcsec]')
+    axs.set_ylabel(r'$y$ [arcsec]')
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+    fig.savefig(write_path / 'sunspot_image.pdf', format='pdf', dpi=300)
+    fig.savefig(write_path / 'sunspot_image.png', format='png', dpi=300)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    data_f.close()
+    os.chdir(cwd)
+
+
+def plot_camera_drift_plot():
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+    fontsize = 6
+    size = plt.rcParams['lines.markersize']
+    cwd = os.getcwd()
+    os.chdir('/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/AutoGuider March 2022/')
+    dark, _ = sunpy.io.fits.read('dark.fit')[0]
+    dark = np.mean(dark, 0)
+    flat_f = h5py.File('flat_31032022.hdf5', 'r')
+    tot = len(flat_f.keys()) // 2
+    flat = np.zeros((tot, flat_f['Image_0'].shape[0], flat_f['Image_0'].shape[1]))
+    for i in range(tot):
+        flat[i] = flat_f['Image_{}'.format(i)][()]
+    flat = np.mean(flat, 0)
+    flat_f.close()
+    if Path(write_path / 'buffer_31032022_082248_034_0032_237_drifts.txt').exists():
+        gg = np.loadtxt(write_path / 'buffer_31032022_082248_034_0032_237_drifts.txt')
+        a = gg[:, 0]
+        b = gg[:, 1]
+    else:
+        data_f = h5py.File('buffer_31032022_082248_034_0032_237.hdf5', 'r')
+        dtot = len(data_f.keys()) // 2
+        a, b = np.zeros(dtot), np.zeros(dtot)
+        for index in range(dtot):
+            data = (data_f['Image_{}'.format(index)][()] - dark) / (flat - dark)
+            mn = data.mean()
+            sd = data.std()
+            k = -2
+            mask = np.zeros_like(data, dtype=np.int64)
+            i, j = np.where(data < (mn + (k * sd)))
+            mask[i, j] = 1
+            mask = closing(mask)
+            k = 0
+            for region in regionprops(mask, data):
+                a[index], b[index] = region.centroid
+                print (index)
+                break
+        gg = np.zeros((a.size, 2), dtype=np.float64)
+        gg[:, 0] = a
+        gg[:, 1] = b
+        np.savetxt(write_path / 'buffer_31032022_082248_034_0032_237_drifts.txt', gg)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    fig, axs = plt.subplots(1, 2, figsize=(6.5, 3))
+    time = np.arange(0, (dtot-240) * 0.5, 0.5) / 60
+    y1 = (a[240:] - a[240:].min()) * 0.0495
+    y2 = (b[240:] - b[240:].min()) * 0.0495
+    m1, c1 = np.polyfit(time, y1, 1)
+    m2, c2 = np.polyfit(time, y2, 1)
+    y1d = time * m1 + c1
+    y2d = time * m2 + c2
+    axs[0].scatter(time, y2, s=size/4, color='black')
+    axs[0].plot(time, y2d, color='red')
+    axs[1].scatter(time, y1, s=size/4, color='black')
+    axs[1].plot(time, y1d, color='red')
+    axs[0].text(
+        0.1, 0.9,
+        r'Drift RA = {} '.format(np.round(m2, 2))+r'arcsec $\mathrm{minute^{-1}}$',
+        transform=axs[0].transAxes,
+        fontsize=fontsize
+    )
+    axs[1].text(
+        0.1, 0.9,
+        r'Drift RA = {} '.format(np.round(m1, 2))+r'arcsec $\mathrm{minute^{-1}}$',
+        transform=axs[1].transAxes,
+        fontsize=fontsize
+    )
+    axs[0].set_ylabel(r'Drift [arcsec]', fontsize=fontsize)
+    axs[0].set_xlabel(r'Time [minutes]', fontsize=fontsize)
+    axs[1].set_xlabel(r'Time [minutes]', fontsize=fontsize)
+    axs[0].set_xticks([0, 2, 4, 6, 8])
+    axs[1].set_xticks([0, 2, 4, 6, 8])
+    axs[0].set_xticklabels([0, 2, 4, 6, 8], fontsize=fontsize)
+    axs[1].set_xticklabels([0, 2, 4, 6, 8], fontsize=fontsize)
+    axs[0].set_yticks([0, 2, 4, 6])
+    axs[1].set_yticks([0, 2, 4, 6, 8, 10])
+    axs[0].set_yticklabels([0, 2, 4, 6], fontsize=fontsize)
+    axs[1].set_yticklabels([0, 2, 4, 6, 8, 10], fontsize=fontsize)
+    plt.subplots_adjust(left=0.1, bottom=0.1, right=0.98, top=0.98, wspace=0.1, hspace=0)
+    fig.savefig(write_path / 'image_drift_31030822.pdf', format='pdf', dpi=300)
+    fig.savefig(write_path / 'image_drift_31030822.png', format='png', dpi=300)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    data_f.close()
+    os.chdir(cwd)
+
+
+def plot_camera_closeloop_plot_and_fft():
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+    fontsize = 8
+    size = plt.rcParams['lines.markersize']
+    cwd = os.getcwd()
+    os.chdir('/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/AutoGuider March 2022/')
+    dark, _ = sunpy.io.fits.read('dark.fit')[0]
+    dark = np.mean(dark, 0)
+    flat_f = h5py.File('flat_30032022.hdf5', 'r')
+    tot = len(flat_f.keys()) // 2
+    flat = np.zeros((tot, flat_f['Image_0'].shape[0], flat_f['Image_0'].shape[1]))
+    for i in range(tot):
+        flat[i] = flat_f['Image_{}'.format(i)][()]
+    flat = np.mean(flat, 0)
+    flat_f.close()
+    data_f = None
+    if Path(write_path / 'buffer_30032022_082118_17_0_0.hdf5.txt').exists():
+        gg = np.loadtxt(write_path / 'buffer_30032022_082118_17_0_0.hdf5.txt')
+        a = gg[:, 0]
+        b = gg[:, 1]
+        dtot = a.size
+    else:
+        data_f = h5py.File('buffer_30032022_082118_17_0_0.hdf5', 'r')
+        dtot = len(data_f.keys()) // 2
+        a, b = np.zeros(dtot), np.zeros(dtot)
+        for index in range(dtot):
+            data = (data_f['Image_{}'.format(index)][()] - dark) / (flat - dark)
+            mn = data.mean()
+            sd = data.std()
+            k = -2
+            mask = np.zeros_like(data, dtype=np.int64)
+            i, j = np.where(data < (mn + (k * sd)))
+            mask[i, j] = 1
+            mask = closing(mask)
+            k = 0
+            for region in regionprops(mask, data):
+                a[index], b[index] = region.centroid
+                print (index)
+                break
+        gg = np.zeros((a.size, 2), dtype=np.float64)
+        gg[:, 0] = a
+        gg[:, 1] = b
+        np.savetxt(write_path / 'buffer_30032022_082118_17_0_0.hdf5.txt', gg)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    fig, axs = plt.subplots(2, 2, figsize=(6.5, 5))
+    time = np.arange(0, dtot * 0.5, 0.5) / 60
+    y1 = (a - a.mean()) * 0.0495
+    y2 = (b - b.mean()) * 0.0495
+    fft_y1 = np.fft.fft(y1)
+    fft_y2 = np.fft.fft(y2)
+    fftfreq = np.fft.fftfreq(y1.size, 0.5)
+    ind = np.where((fftfreq > 0.004) & (fftfreq < 0.2))
+    axs[0][0].scatter(time, y2, s=size/4, color='black')
+    axs[0][0].plot(time, np.zeros_like(y2), color='red')
+    axs[0][1].scatter(time, y1, s=size/4, color='black')
+    axs[0][1].plot(time, np.zeros_like(y1), color='red')
+    axs[1][0].plot(1 / fftfreq[ind], np.abs(fft_y2[ind]))
+    axs[1][1].plot(1 / fftfreq[ind], np.abs(fft_y1[ind]))
+    axs[0][0].set_ylabel(r'Drift [arcsec]', fontsize=fontsize)
+    axs[0][0].set_xlabel(r'Time [minutes]', fontsize=fontsize)
+    axs[0][1].set_xlabel(r'Time [minutes]', fontsize=fontsize)
+    axs[1][0].set_ylabel(r'Power', fontsize=fontsize)
+    axs[1][0].set_xlabel(r'Period [s]', fontsize=fontsize)
+    axs[1][1].set_xlabel(r'Period [s]', fontsize=fontsize)
+    axs[0][0].set_xticks([0, 5, 10, 15])
+    axs[0][1].set_xticks([0, 5, 10, 15])
+    axs[0][0].set_xticklabels([0, 5, 10, 15], fontsize=fontsize)
+    axs[0][1].set_xticklabels([0, 5, 10, 15], fontsize=fontsize)
+    axs[0][0].set_yticks([-4, -2, 0, 2, 4])
+    axs[0][1].set_yticks([-4, -2, 0, 2, 4])
+    axs[0][0].set_yticklabels([-4, -2, 0, 2, 4], fontsize=fontsize)
+    axs[0][1].set_yticklabels([-4, -2, 0, 2, 4], fontsize=fontsize)
+    axs[0][0].set_ylim(-6, 6)
+    axs[0][1].set_ylim(-6, 6)
+    axs[1][0].set_xlim(0, 100)
+    axs[1][1].set_xlim(0, 100)
+    axs[1][0].set_xticks([0, 20, 40, 60, 80])
+    axs[1][1].set_xticks([0, 20, 40, 60, 80])
+    axs[1][0].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
+    axs[1][1].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
+    axs[1][0].set_yticks([0, 100, 200, 300])
+    axs[1][1].set_yticks([0, 50, 100, 150])
+    axs[1][0].set_yticklabels([0, 100, 200, 300], fontsize=fontsize)
+    axs[1][1].set_yticklabels([0, 50, 100, 150], fontsize=fontsize)
+    axs[0][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][0].yaxis.set_minor_locator(MultipleLocator(0.5))
+    axs[0][1].yaxis.set_minor_locator(MultipleLocator(0.5))
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(5))
+    axs[1][1].xaxis.set_minor_locator(MultipleLocator(5))
+    axs[1][0].yaxis.set_minor_locator(MultipleLocator(25))
+    axs[1][1].yaxis.set_minor_locator(MultipleLocator(25))
+    axs[0][0].text(
+        0.01, 0.94,
+        '(a)',
+        transform=axs[0][0].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][1].text(
+        0.01, 0.94,
+        '(b)',
+        transform=axs[0][1].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][0].text(
+        0.01, 0.94,
+        '(c)',
+        transform=axs[1][0].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][1].text(
+        0.01, 0.94,
+        '(d)',
+        transform=axs[1][1].transAxes,
+        fontsize=fontsize
+    )
+    plt.subplots_adjust(left=0.075, bottom=0.08, right=0.99, top=0.99, wspace=0.12, hspace=0.2)
+    fig.savefig(write_path / 'closeloop_17.pdf', format='pdf', dpi=300)
+    fig.savefig(write_path / 'closeloop_17.png', format='png', dpi=300)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    if data_f is not None:
+        data_f.close()
+    os.chdir(cwd)
+
+
+def plot_camera_closeloop_plot(filename, flatfilename, kp, ki, kd, xticks=None, yticks1=None, yticks2=None, ylim1=None, ylim2=None, xminortick=None, yminortick=None):
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+    fontsize = 8
+    size = plt.rcParams['lines.markersize']
+    cwd = os.getcwd()
+    os.chdir('/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/AutoGuider March 2022/')
+    dark, _ = sunpy.io.fits.read('dark.fit')[0]
+    dark = np.mean(dark, 0)
+    flat_f = h5py.File(flatfilename, 'r')
+    tot = len(flat_f.keys()) // 2
+    flat = np.zeros((tot, flat_f['Image_0'].shape[0], flat_f['Image_0'].shape[1]))
+    for i in range(tot):
+        flat[i] = flat_f['Image_{}'.format(i)][()]
+    flat = np.mean(flat, 0)
+    flat_f.close()
+    data_f = None
+    txtfile = write_path / '{}.txt'.format(filename)
+    if Path(txtfile).exists():
+        gg = np.loadtxt(txtfile)
+        a = gg[:, 0]
+        b = gg[:, 1]
+        dtot = a.size
+    else:
+        data_f = h5py.File(filename, 'r')
+        dtot = len(data_f.keys()) // 2
+        a, b = np.zeros(dtot), np.zeros(dtot)
+        for index in range(dtot):
+            data = (data_f['Image_{}'.format(index)][()] - dark) / (flat - dark)
+            mn = data.mean()
+            sd = data.std()
+            k = -2
+            mask = np.zeros_like(data, dtype=np.int64)
+            i, j = np.where(data < (mn + (k * sd)))
+            mask[i, j] = 1
+            mask = closing(mask)
+            k = 0
+            for region in regionprops(mask, data):
+                a[index], b[index] = region.centroid
+                print (index)
+                break
+        gg = np.zeros((a.size, 2), dtype=np.float64)
+        gg[:, 0] = a
+        gg[:, 1] = b
+        np.savetxt(txtfile, gg)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    fig, axs = plt.subplots(1, 2, figsize=(6.5, 3))
+    time = np.arange(0, dtot * 0.5, 0.5) / 60
+    y1 = (a - np.median(a)) * 0.0495
+    y2 = (b - np.median(b)) * 0.0495
+    axs[0].scatter(time, y2, s=size/4, color='black')
+    axs[0].plot(time, np.zeros_like(y2), color='red')
+    axs[1].scatter(time, y1, s=size/4, color='black')
+    axs[1].plot(time, np.zeros_like(y1), color='red')
+    axs[0].set_ylabel(r'Drift [arcsec]', fontsize=fontsize)
+    axs[0].set_xlabel(r'Time [minutes]', fontsize=fontsize)
+    axs[1].set_xlabel(r'Time [minutes]', fontsize=fontsize)
+    if xticks is None:
+        xticks = [0, 5, 10, 15]
+    if yticks1 is None:
+        yticks1 = [-4, -2, 0, 2, 4]
+    if yticks2 is None:
+        yticks2 = [-4, -2, 0, 2, 4]
+    if ylim1 is None:
+        ylim1 = (-6, 6)
+    if ylim2 is None:
+        ylim2 = (-6, 6)
+    if xminortick is None:
+        xminortick = 1
+    if yminortick is None:
+        yminortick = 0.5
+    axs[0].set_xticks(xticks)
+    axs[1].set_xticks(xticks)
+    axs[0].set_xticklabels(xticks, fontsize=fontsize)
+    axs[1].set_xticklabels(xticks, fontsize=fontsize)
+    axs[0].set_ylim(*ylim1)
+    axs[1].set_ylim(*ylim2)
+    axs[0].set_yticks(yticks1)
+    axs[1].set_yticks(yticks2)
+    axs[0].set_yticklabels(yticks1, fontsize=fontsize)
+    axs[1].set_yticklabels(yticks2, fontsize=fontsize)
+    axs[0].xaxis.set_minor_locator(MultipleLocator(xminortick))
+    axs[1].xaxis.set_minor_locator(MultipleLocator(xminortick))
+    axs[0].yaxis.set_minor_locator(MultipleLocator(yminortick))
+    axs[1].yaxis.set_minor_locator(MultipleLocator(yminortick))
+    plt.subplots_adjust(left=0.1, bottom=0.15, right=0.98, top=0.98, wspace=0.1, hspace=0)
+    fig.savefig(write_path / 'closeloop_{}_{}_{}.pdf'.format(kp, ki, kd), format='pdf', dpi=300)
+    fig.savefig(write_path / 'closeloop_{}_{}_{}.png'.format(kp, ki, kd), format='png', dpi=300)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    if data_f is not None:
+        data_f.close()
+    os.chdir(cwd)
+
+
+def plot_camera_closeloop_plot_and_fft_alternate(filename, flatfilename, kp, ki, kd, xticks=None, yticks1=None, yticks2=None, ylim1=None, ylim2=None, xminortick=None, yminortick=None, yticks3=None, yticks4=None, yminortick3=None, yminortick4=None, ylim3=None, ylim4=None):
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+    fontsize = 8
+    size = plt.rcParams['lines.markersize']
+    cwd = os.getcwd()
+    os.chdir('/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/AutoGuider March 2022/')
+    dark, _ = sunpy.io.fits.read('dark.fit')[0]
+    dark = np.mean(dark, 0)
+    flat_f = h5py.File(flatfilename, 'r')
+    tot = len(flat_f.keys()) // 2
+    flat = np.zeros((tot, flat_f['Image_0'].shape[0], flat_f['Image_0'].shape[1]))
+    for i in range(tot):
+        flat[i] = flat_f['Image_{}'.format(i)][()]
+    flat = np.mean(flat, 0)
+    flat_f.close()
+    data_f = None
+    txtfile = write_path / '{}.txt'.format(filename)
+    if Path(txtfile).exists():
+        gg = np.loadtxt(txtfile)
+        a = gg[:, 0]
+        b = gg[:, 1]
+        dtot = a.size
+    else:
+        data_f = h5py.File(filename, 'r')
+        dtot = len(data_f.keys()) // 2
+        a, b = np.zeros(dtot), np.zeros(dtot)
+        for index in range(dtot):
+            data = (data_f['Image_{}'.format(index)][()] - dark) / (flat - dark)
+            mn = data.mean()
+            sd = data.std()
+            k = -2
+            mask = np.zeros_like(data, dtype=np.int64)
+            i, j = np.where(data < (mn + (k * sd)))
+            mask[i, j] = 1
+            mask = closing(mask)
+            k = 0
+            for region in regionprops(mask, data):
+                a[index], b[index] = region.centroid
+                print (index)
+                break
+        gg = np.zeros((a.size, 2), dtype=np.float64)
+        gg[:, 0] = a
+        gg[:, 1] = b
+        np.savetxt(txtfile, gg)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    fig, axs = plt.subplots(2, 2, figsize=(6.5, 6))
+    time = np.arange(0, dtot * 0.5, 0.5) / 60
+    y1 = (a - np.median(a)) * 0.0495
+    y2 = (b - np.median(b)) * 0.0495
+    fft_y1 = np.fft.fft(y1)
+    fft_y2 = np.fft.fft(y2)
+    fftfreq = np.fft.fftfreq(y1.size, 0.5)
+    ind = np.where((fftfreq > 0.004) & (fftfreq < 0.2))
+    axs[0][0].scatter(time, y2, s=size/4, color='black')
+    axs[0][0].plot(time, np.zeros_like(y2), color='red')
+    axs[0][1].scatter(time, y1, s=size/4, color='black')
+    axs[0][1].plot(time, np.zeros_like(y1), color='red')
+    axs[1][0].plot(1 / fftfreq[ind], np.abs(fft_y2[ind]))
+    axs[1][1].plot(1 / fftfreq[ind], np.abs(fft_y1[ind]))
+    axs[0][0].set_ylabel(r'Drift [arcsec]', fontsize=fontsize)
+    axs[0][0].set_xlabel(r'Time [minutes]', fontsize=fontsize)
+    axs[0][1].set_xlabel(r'Time [minutes]', fontsize=fontsize)
+    axs[1][0].set_ylabel(r'Power', fontsize=fontsize)
+    axs[1][0].set_xlabel(r'Period [s]', fontsize=fontsize)
+    axs[1][1].set_xlabel(r'Period [s]', fontsize=fontsize)
+    if xticks is None:
+        xticks = [0, 5, 10, 15]
+    if yticks1 is None:
+        yticks1 = [-4, -2, 0, 2, 4]
+    if yticks2 is None:
+        yticks2 = [-4, -2, 0, 2, 4]
+    if ylim1 is None:
+        ylim1 = (-6, 6)
+    if ylim2 is None:
+        ylim2 = (-6, 6)
+    if xminortick is None:
+        xminortick = 1
+    if yminortick is None:
+        yminortick = 0.5
+    axs[0][0].set_xticks(xticks)
+    axs[0][1].set_xticks(xticks)
+    axs[0][0].set_xticklabels(xticks, fontsize=fontsize)
+    axs[0][1].set_xticklabels(xticks, fontsize=fontsize)
+    axs[0][0].set_ylim(*ylim1)
+    axs[0][1].set_ylim(*ylim2)
+    axs[0][0].set_yticks(yticks1)
+    axs[0][1].set_yticks(yticks2)
+    axs[0][0].set_yticklabels(yticks1, fontsize=fontsize)
+    axs[0][1].set_yticklabels(yticks2, fontsize=fontsize)
+    axs[0][0].xaxis.set_minor_locator(MultipleLocator(xminortick))
+    axs[0][1].xaxis.set_minor_locator(MultipleLocator(xminortick))
+    axs[0][0].yaxis.set_minor_locator(MultipleLocator(yminortick))
+    axs[0][1].yaxis.set_minor_locator(MultipleLocator(yminortick))
+    axs[1][0].set_xlim(0, 100)
+    axs[1][1].set_xlim(0, 100)
+    axs[1][0].set_xticks([0, 20, 40, 60, 80])
+    axs[1][1].set_xticks([0, 20, 40, 60, 80])
+    axs[1][0].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
+    axs[1][1].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
+    if yticks3 is None:
+        yticks3 = [0, 50, 100, 150, 200]
+    if yticks4 is None:
+        yticks4 = [0, 50, 100, 150, 200]
+    if yminortick3 is None:
+        yminortick3 = 25
+    if yminortick4 is None:
+        yminortick4 = 25
+    if ylim3 is None:
+        ylim3 = (0, 225)
+    if ylim4 is None:
+        ylim4 = (0, 225)
+    axs[1][0].set_yticks(yticks3)
+    axs[1][1].set_yticks(yticks4)
+    axs[1][0].set_ylim(*ylim3)
+    axs[1][1].set_ylim(*ylim4)
+    axs[1][0].set_yticklabels(yticks3, fontsize=fontsize)
+    axs[1][1].set_yticklabels(yticks4, fontsize=fontsize)
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(5))
+    axs[1][1].xaxis.set_minor_locator(MultipleLocator(5))
+    axs[1][0].yaxis.set_minor_locator(MultipleLocator(yminortick3))
+    axs[1][1].yaxis.set_minor_locator(MultipleLocator(yminortick4))
+    axs[0][0].text(
+        0.01, 0.94,
+        '(a)',
+        transform=axs[0][0].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][1].text(
+        0.01, 0.94,
+        '(b)',
+        transform=axs[0][1].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][0].text(
+        0.01, 0.94,
+        '(c)',
+        transform=axs[1][0].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][1].text(
+        0.01, 0.94,
+        '(d)',
+        transform=axs[1][1].transAxes,
+        fontsize=fontsize
+    )
+    plt.subplots_adjust(left=0.075, bottom=0.08, right=0.99, top=0.99, wspace=0.12, hspace=0.2)
+    fig.savefig(write_path / 'closeloop_fft_{}_{}_{}.pdf'.format(kp, ki, kd), format='pdf', dpi=300)
+    fig.savefig(write_path / 'closeloop_fft_{}_{}_{}.png'.format(kp, ki, kd), format='png', dpi=300)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    if data_f is not None:
+        data_f.close()
+    os.chdir(cwd)
+
+
 if __name__ == '__main__':
     # plot_drift_plot()
-    plot_dark_data()
+    # plot_dark_data()
+    # make_image_tracking_plots_new(
+    #     '/home/harsh/AutoGuiderData/05Feb2021/ClosedLoop_0502_1537_44Hz.txt',
+    #     label='(c) 44 Hz',
+    #     ylim1=(-5, 5), ylim2=(-2, 2), xticks=[0, 1, 2, 3, 4], yticks1=[-4, -2, 0, 2, 4], yticks2=[-1, 0, 1], time_factor=0.5
+    # )
+    # make_image_tracking_plots_new(
+    #     '/home/harsh/AutoGuiderData/05Feb2021/ClosedLoop_0502_1446_46Hz.txt',
+    #     label='(a) 46 Hz',
+    #     ylim1=(-3, 3), ylim2=(-3, 3), xticks=[0, 1, 2, 3, 4, 5, 6, 7, 8], yticks1=[-2, 0, 2], yticks2=[-2, 0, 2]
+    # )
+    # make_image_tracking_plots_new(
+    #     '/home/harsh/AutoGuiderData/05Feb2021/ClosedLoop_0502_1254_48Hz.txt',
+    #     label='(d) 48 Hz',
+    #     ylim1=(-5, 5), ylim2=(-4, 4), xticks=[0, 1, 2, 3], yticks1=[-4, -2, 0, 2, 4], yticks2=[-2, 0, 2]
+    # )
+    # make_image_tracking_plots_new(
+    #     '/home/harsh/AutoGuiderData/05Feb2021/ClosedLoop0502_1504_49Hz.txt',
+    #     label='(b) 49 Hz',
+    #     ylim1=(-4, 4), ylim2=(-2, 2), xticks=[0, 1, 2, 3, 4], yticks1=[-2, 0, 2], yticks2=[-1, 0, 1]
+    # )
+    # make_image_tracking_plots_new(
+    #     '/home/harsh/AutoGuiderData/03Feb2021/ClosedLoop_0302_0958_1250_1s_50ms.txt',
+    #     savefilename='closedLoop_0302.pdf',
+    #     label='(a) 03 Feb 2021 09:58 AM',
+    #     ylim1=(-6, 6), ylim2=(-4, 4), xticks=[0, 25, 50, 75, 100, 125, 150, 175], yticks1=[-4, -2, 0, 2, 4], yticks2=[-2, 0, 2], time_factor=2, scatter_factor=32
+    # )
+    # make_image_tracking_plots_new(
+    #     '/home/harsh/AutoGuiderData/07Feb2021/output_070221_1hr_norml.txt',
+    #     savefilename='closedloop_070221.pdf',
+    #     label='(b) 07 Feb 2021 07:30 AM',
+    #     ylim1=(-6, 6), ylim2=(-4, 4), xticks=[0, 10, 20, 30, 40], yticks1=[-4, -2, 0, 2, 4], yticks2=[-2, 0, 2], time_factor=1, scatter_factor=8
+    # )
+    # make_image_tracking_plots_new(
+    #     '/home/harsh/AutoGuiderData/10Feb2021/output_100221_8.15am_45mts_normal.txt',
+    #     savefilename='closedloop_100221.pdf',
+    #     label='(c) 10 Feb 2021 08:15 AM',
+    #     ylim1=(-4, 4), ylim2=(-4, 4), xticks=[0, 10, 20, 30, 40], yticks1=[-2, 0, 2], yticks2=[-2, 0, 2], time_factor=2, scatter_factor=16
+    # )
+    # make_image_tracking_plots_new(
+    #     '/home/harsh/AutoGuiderData/11Feb2021/output_110221_8.12am_1hr_normal.txt',
+    #     savefilename='closedloop_110221.pdf',
+    #     label='(d) 11 Feb 2021 08:12 AM',
+    #     ylim1=(-4, 4), ylim2=(-2, 2), xticks=[0, 10, 20, 30, 40, 50, 60], yticks1=[-2, 0, 2], yticks2=[-1, 0, 1], time_factor=2.5, scatter_factor=16
+    # )
+    # make_sunspot_plot()
+    # plot_camera_drift_plot()
+    # plot_camera_closeloop_plot_and_fft()
+    # plot_camera_closeloop_plot('buffer_31032022_082248_085_0_0.hdf5', 'flat_31032022.hdf5', 0.85, 0, 0)
+    # plot_camera_closeloop_plot('buffer_31032022_082248_076_004_0.hdf5', 'flat_31032022.hdf5', 0.76, 0.04, 0)
+    # plot_camera_closeloop_plot('buffer_31032022_082248_136_0_357.hdf5', 'flat_31032022.hdf5', 1.36, 0, 3.57)
+    # plot_camera_closeloop_plot('buffer_01042022_083839_102_009_267.hdf5', 'flat_31032022.hdf5', 1.02, 0.09, 2.67)
+    # plot_camera_closeloop_plot('buffer_02042022_083239_119_014_374.hdf5', 'flat_31032022.hdf5', 1.19, 0.14, 3.74)
+    # plot_camera_closeloop_plot('buffer_02042022_083239_056_005_396.hdf5', 'flat_31032022.hdf5', 0.56, 0.05, 3.96)
+    # plot_camera_closeloop_plot('buffer_02042022_083239_034_032_237.hdf5', 'flat_31032022.hdf5', 0.34, 0.032, 2.37)
+    # plot_camera_closeloop_plot('buffer_03042022_081727_0765_003_0.hdf5', 'flat_31032022.hdf5', 0.765, 0.036, 0)
+    # plot_camera_closeloop_plot('buffer_03042022_081727_136_0_425.hdf5', 'flat_31032022.hdf5', 1.36, 0, 4.25)
+    # plot_camera_closeloop_plot('buffer_03042022_081727_102_008_318.hdf5', 'flat_31032022.hdf5', 1.02, 0.08, 3.18)
+    # plot_camera_closeloop_plot('buffer_03042022_081727_119_0119_446.hdf5', 'flat_31032022.hdf5', 1.19, 0.119, 4.46)
+    # plot_camera_closeloop_plot('buffer_03042022_081727_056_004_471.hdf5', 'flat_31032022.hdf5', 0.56, 0.04, 4.71)
+    # plot_camera_closeloop_plot('buffer_03042022_081727_034_002_283.hdf5', 'flat_31032022.hdf5', 0.34, 0.02, 2.83, xticks=[0, 2, 4, 6, 8])
+    # plot_camera_closeloop_plot('buffer_28032022_083940_045_0216.hdf5', 'flat.hdf5', 0.45, 0.0216, 0)
+    # plot_camera_closeloop_plot('buffer_29032022_084944_05_0_0.hdf5', 'flat.hdf5', 0.5, 0, 0, xticks=[0, 5, 10, 15, 20, 25, 30])
+    # plot_camera_closeloop_plot('buffer_28032022_085823_07_0_0.hdf5', 'flat.hdf5', 0.7, 0, 0)
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_01042022_083839_102_009_267.hdf5', 'flat_31032022.hdf5', 1.02, 0.09, 2.67, yticks3=[0, 50, 100, 150, 200], yticks4=[0, 50, 100, 150, 200])
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_31032022_082248_085_0_0.hdf5', 'flat_31032022.hdf5', 0.85, 0, 0, ylim3=(0, 275), yticks3=[0, 50, 100, 150, 200, 250], yticks4=[0, 50, 100, 150, 200, 250])
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_31032022_082248_076_004_0.hdf5', 'flat_31032022.hdf5', 0.76, 0.04, 0, ylim3=(0, 400), ylim4=(0, 300), yticks3=[0, 50, 100, 150, 200, 250, 300, 350], yticks4=[0, 50, 100, 150, 200, 250])
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_31032022_082248_136_0_357.hdf5', 'flat_31032022.hdf5', 1.36, 0, 3.57)
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_02042022_083239_119_014_374.hdf5', 'flat_31032022.hdf5', 1.19, 0.14, 3.74, yticks3=[0, 50, 100, 150, 200], yticks4=[0, 50, 100, 150, 200])
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_02042022_083239_056_005_396.hdf5', 'flat_31032022.hdf5', 0.56, 0.05, 3.96)
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_02042022_083239_034_032_237.hdf5', 'flat_31032022.hdf5', 0.34, 0.032, 2.37)
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_0765_003_0.hdf5', 'flat_31032022.hdf5', 0.765, 0.036, 0, ylim3=(0, 400), ylim4=(0, 300), yticks3=[0, 50, 100, 150, 200, 250, 300, 350], yticks4=[0, 50, 100, 150, 200, 250])
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_136_0_425.hdf5', 'flat_31032022.hdf5', 1.36, 0, 4.25)
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_102_008_318.hdf5', 'flat_31032022.hdf5', 1.02, 0.08, 3.18)
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_119_0119_446.hdf5', 'flat_31032022.hdf5', 1.19, 0.119, 4.46)
+    plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_034_002_283.hdf5', 'flat_31032022.hdf5', 0.34, 0.02, 2.83, xticks=[0, 2, 4, 6, 8])

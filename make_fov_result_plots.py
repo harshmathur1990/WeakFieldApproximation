@@ -18,15 +18,6 @@ me_data_file = processed_inputs / 'me_results_6569.nc'
 
 wfa_8542_data_file = processed_inputs / 'wfa_8542.nc'
 
-points = [
-    57,
-    49,
-    40,
-    34,
-    31,
-    18,
-    8
-]
 
 
 ltau500 = np.array(
@@ -225,6 +216,9 @@ def make_fov_plots():
 
     fontsize = 8
 
+    colors = ["darkred", "darkgoldenrod", "white", "green", "blue"]
+    cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
+
     for i in range(4):
         for j in range(2):
             if i == 2:
@@ -235,7 +229,7 @@ def make_fov_plots():
                     vmin = -600
                     vmax = 600
 
-                gh = axs[i][j].imshow(data[i][j], cmap='RdGy', origin='lower', vmin=vmin, vmax=vmax, aspect='equal')
+                gh = axs[i][j].imshow(data[i][j], cmap=cmap1, origin='lower', vmin=vmin, vmax=vmax, aspect='equal')
                 if j == 0:
                     im20 = gh
                 else:
@@ -252,6 +246,7 @@ def make_fov_plots():
                 axs[i][j].imshow(data[i][j], cmap='gray', origin='lower')
             axs[i][j].contour(mask[i][j], levels=0, origin='lower', colors='blue', linewidths=0.5)
             axs[i][j].plot(np.ones(60) * 12, linestyle='--', color='brown', linewidth=0.5)
+            axs[i][j].plot(np.ones(60) * 8, linestyle='--', color='darkgreen', linewidth=0.5)
 
     axs[0][0].text(
         0.02, 0.04,
@@ -319,8 +314,8 @@ def make_fov_plots():
 
     cbaxes = inset_axes(
         axs[2][0],
-        width="2%",
-        height="50%",
+        width="3%",
+        height="80%",
         loc=4,
         borderpad=0.5
     )
@@ -338,8 +333,8 @@ def make_fov_plots():
 
     cbaxes = inset_axes(
         axs[2][1],
-        width="2%",
-        height="50%",
+        width="3%",
+        height="80%",
         loc=4,
         borderpad=0.5
     )
@@ -357,8 +352,8 @@ def make_fov_plots():
 
     cbaxes = inset_axes(
         axs[3][0],
-        width="2%",
-        height="50%",
+        width="3%",
+        height="80%",
         loc=4,
         borderpad=0.5
     )
@@ -376,8 +371,8 @@ def make_fov_plots():
 
     cbaxes = inset_axes(
         axs[3][1],
-        width="2%",
-        height="50%",
+        width="3%",
+        height="80%",
         loc=4,
         borderpad=0.5
     )
@@ -459,7 +454,7 @@ def make_fov_plots():
     plt.show()
 
 
-def plot_stokes_parameters():
+def plot_stokes_parameters(cut_indice, points, colors_p):
 
     fcaha = h5py.File(ca_ha_data_file, 'r')
 
@@ -471,13 +466,12 @@ def plot_stokes_parameters():
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
     X, Y = np.meshgrid(fcaha['wav'][ind[0:306]], np.arange(0, 60 * 0.38, 0.38))
-    im00 = axs[0][0].pcolormesh(X, Y, fcaha['profiles'][0, 12, :, ind[0:306], 0], cmap='gray', shading='gouraud')
-    im01 = axs[0][1].pcolormesh(X, Y, fcaha['profiles'][0, 12, :, ind[0:306], 3] * 100 / fcaha['profiles'][0, 12, :, ind[0:306], 0], cmap=cmap1, shading='gouraud', vmin=-10, vmax=10)
-    im10 = axs[1][0].pcolormesh(X, Y, fcaha['profiles'][0, 12, :, ind[0:306], 1] * 100 / fcaha['profiles'][0, 12, :, ind[0:306], 0], cmap=cmap1, shading='gouraud', vmin=-2, vmax=2)
-    im11 = axs[1][1].pcolormesh(X, Y, fcaha['profiles'][0, 12, :, ind[0:306], 2] * 100 / fcaha['profiles'][0, 12, :, ind[0:306], 0], cmap=cmap1, shading='gouraud', vmin=-2, vmax=2)
+    im00 = axs[0][0].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[0:306], 0], cmap='gray', shading='gouraud')
+    im01 = axs[0][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[0:306], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306], 0], cmap=cmap1, shading='gouraud', vmin=-10, vmax=10)
+    im10 = axs[1][0].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[0:306], 1] * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306], 0], cmap=cmap1, shading='gouraud', vmin=-2, vmax=2)
+    im11 = axs[1][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[0:306], 2] * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306], 0], cmap=cmap1, shading='gouraud', vmin=-2, vmax=2)
 
-    colors = ['violet', 'indigo', 'blue', 'black', 'orange', 'brown', 'red']
-
+    colors = colors_p
     for point, color in zip(points, colors):
         for i in range(1):
             for j in range(2):
@@ -531,7 +525,7 @@ def plot_stokes_parameters():
     fig.tight_layout()
 
     write_path = Path('/home/harsh/Spinor Paper/')
-    fig.savefig(write_path / 'CaII_Stokes_12.pdf', format='pdf', dpi=300)
+    fig.savefig(write_path / 'CaII_Stokes_{}.pdf'.format(cut_indice), format='pdf', dpi=300)
 
     fig, axs = plt.subplots(2, 2, figsize=(7, 4.5))
 
@@ -540,10 +534,10 @@ def plot_stokes_parameters():
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
     X, Y = np.meshgrid(fcaha['wav'][ind[306:]], np.arange(0, 60 * 0.38, 0.38))
-    im00 = axs[0][0].pcolormesh(X, Y, fcaha['profiles'][0, 12, :, ind[306:], 0], cmap='gray', shading='gouraud')
-    im01 = axs[0][1].pcolormesh(X, Y, fcaha['profiles'][0, 12, :, ind[306:], 3] * 100 / fcaha['profiles'][0, 12, :, ind[306:], 0], cmap=cmap1, shading='gouraud', vmin=-6, vmax=6)
-    im10 = axs[1][0].pcolormesh(X, Y, fcaha['profiles'][0, 12, :, ind[306:], 1] * 100 / fcaha['profiles'][0, 12, :, ind[306:], 0], cmap=cmap1, shading='gouraud', vmin=-2, vmax=2)
-    im11 = axs[1][1].pcolormesh(X, Y, fcaha['profiles'][0, 12, :, ind[306:], 2] * 100 / fcaha['profiles'][0, 12, :, ind[306:], 0], cmap=cmap1, shading='gouraud', vmin=-3, vmax=3)
+    im00 = axs[0][0].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap='gray', shading='gouraud')
+    im01 = axs[0][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap=cmap1, shading='gouraud', vmin=-6, vmax=6)
+    im10 = axs[1][0].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 1] * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap=cmap1, shading='gouraud', vmin=-2, vmax=2)
+    im11 = axs[1][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 2] * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap=cmap1, shading='gouraud', vmin=-3, vmax=3)
 
     colors = ['violet', 'indigo', 'blue', 'black', 'orange', 'brown', 'red']
 
@@ -590,7 +584,7 @@ def plot_stokes_parameters():
     # plt.show()
 
     write_path = Path('/home/harsh/Spinor Paper/')
-    fig.savefig(write_path / 'Ha_Stokes_12.pdf', format='pdf', dpi=300)
+    fig.savefig(write_path / 'Ha_Stokes_{}.pdf'.format(cut_indice), format='pdf', dpi=300)
 
     fcaha.close()
 
@@ -607,7 +601,7 @@ def plot_profiles():
     fcaha.close()
 
 
-def plot_spatial_variation_of_profiles():
+def plot_spatial_variation_of_profiles(cut_indice, points, colors, ylim1=0.13, ylim2=0.07):
 
     fcaha = h5py.File(ca_ha_data_file, 'r')
 
@@ -615,15 +609,14 @@ def plot_spatial_variation_of_profiles():
 
     fig, axs = plt.subplots(2, 2, figsize=(7, 4.5))
 
-    colors = ['violet', 'indigo', 'blue', 'black', 'orange', 'brown', 'red']
+    for point, color in zip(points, colors):
+        print ('{} - {}'.format(point, color))
+        axs[0][0].plot(fcaha['wav'][ind[0:306]], fcaha['profiles'][0, cut_indice, point, ind[0:306], 0], color=color, linewidth=0.5)
+        axs[0][1].plot(fcaha['wav'][ind[0:306]], fcaha['profiles'][0, cut_indice, point, ind[0:306], 3] / fcaha['profiles'][0, cut_indice, point, ind[0:306], 0], color=color, linewidth=0.5)
 
     for point, color in zip(points, colors):
-        axs[0][0].plot(fcaha['wav'][ind[0:306]], fcaha['profiles'][0, 12, point, ind[0:306], 0], color=color, linewidth=0.5)
-        axs[0][1].plot(fcaha['wav'][ind[0:306]], fcaha['profiles'][0, 12, point, ind[0:306], 3] / fcaha['profiles'][0, 12, point, ind[0:306], 0], color=color, linewidth=0.5)
-
-    for point, color in zip(points, colors):
-        axs[1][0].plot(fcaha['wav'][ind[306:]], fcaha['profiles'][0, 12, point, ind[306:], 0], color=color, linewidth=0.5)
-        axs[1][1].plot(fcaha['wav'][ind[306:]], fcaha['profiles'][0, 12, point, ind[306:], 3] / fcaha['profiles'][0, 12, point, ind[306:], 0], color=color, linewidth=0.5)
+        axs[1][0].plot(fcaha['wav'][ind[306:]], fcaha['profiles'][0, cut_indice, point, ind[306:], 0], color=color, linewidth=0.5)
+        axs[1][1].plot(fcaha['wav'][ind[306:]], fcaha['profiles'][0, cut_indice, point, ind[306:], 3] / fcaha['profiles'][0, cut_indice, point, ind[306:], 0], color=color, linewidth=0.5)
 
     axs[0][0].set_ylabel(r'$I/I_{c}$')
     axs[1][0].set_ylabel(r'$I/I_{c}$')
@@ -655,14 +648,14 @@ def plot_spatial_variation_of_profiles():
     axs[1][0].yaxis.set_minor_locator(MultipleLocator(0.1))
     axs[1][1].yaxis.set_minor_locator(MultipleLocator(0.01))
 
-    axs[0][1].set_ylim(-0.13, 0.13)
-    axs[1][1].set_ylim(-0.07, 0.07)
+    axs[0][1].set_ylim(-ylim1, ylim1)
+    axs[1][1].set_ylim(-ylim2, ylim2)
 
     fig.tight_layout()
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
-    fig.savefig(write_path / 'SpatialVariationProfiles.pdf', format='pdf', dpi=300)
+    fig.savefig(write_path / 'SpatialVariationProfiles_{}_{}.pdf'.format(cut_indice, '_'.join(colors)), format='pdf', dpi=300)
 
     fcaha.close()
 
@@ -1386,7 +1379,7 @@ def plot_mag_field_compare_new():
     a2 = f['blong'][0, 0:17, :, ltau_indice[2]].T
     a3 = f['blong'][0, 0:17, :, ltau_indice[3]].T
 
-    colors = ["saddlebrown", "peru", "white", "green", "blue"]
+    colors = ["darkred", "darkgoldenrod", "white", "green", "blue"]
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
     cmap = cmap1  #RdGy
@@ -1757,10 +1750,38 @@ def plot_mag_field_compare_new():
 
 
 if __name__ == '__main__':
-    # make_fov_plots()
-    # plot_stokes_parameters()
+    make_fov_plots()
+    points = [
+        49,
+        40,
+        34,
+        31,
+        18
+    ]
+    colors = ['indigo', 'blue', 'black', 'orange', 'brown']
+    cut_indice = 12
+    plot_stokes_parameters(cut_indice, points, colors)
+    points = [
+        34,
+        31
+    ]
+    colors = ['black', 'orange']
+    plot_spatial_variation_of_profiles(cut_indice, points, colors, ylim1=0.13, ylim2=0.07)
+    points = [
+        49,
+        40,
+        18
+    ]
+    colors = ['indigo', 'blue', 'brown']
+    plot_spatial_variation_of_profiles(cut_indice, points, colors, ylim1=0.02, ylim2=0.01)
+    cut_indice = 8
+    points = [
+        51,
+    ]
+    colors = ['blue']
+    plot_stokes_parameters(8, points, colors)
+    plot_spatial_variation_of_profiles(cut_indice, points, colors, ylim1=0.015, ylim2=0.03)
     # plot_profiles()
-    # plot_spatial_variation_of_profiles()
-    make_output_param_plots()
+    # make_output_param_plots()
     # plot_mag_field_compare()
     # plot_mag_field_compare_new()
