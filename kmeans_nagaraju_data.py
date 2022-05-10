@@ -17,18 +17,18 @@ input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspe
 # input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/aligned_Ca_Ha_stic_profiles.nc'
 f = h5py.File(input_file, 'r')
 ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
-framerows = f['profiles'][0, :, :, ind, :]
-framerows[:, :, :, 1:4] /= framerows[:, :, :, 0][:, :, :, np.newaxis]
-framerows = framerows.reshape(19, 60, ind.size * 4).reshape(19 * 60, ind.size * 4)
+framerows = f['profiles'][0, :, :, ind, :][:, :, :, np.array([0, 3])]
+framerows[:, :, :, 1:] /= framerows[:, :, :, 0][:, :, :, np.newaxis]
+framerows = framerows.reshape(19, 60, ind.size * 2).reshape(19 * 60, ind.size * 2)
 mn = np.mean(framerows, axis=0)
 sd = np.std(framerows, axis=0)
-weights = np.ones((ind.size, 4), dtype=np.float64) * 0.04 / 225
+weights = np.ones((ind.size, 2), dtype=np.float64) * 0.04 / 225
 line_indices = [[0, 58], [58, 97], [97, 306]]
 core_indices = [[19, 36], [18, 27], [85, 120]]
 weights[19:36] = 0.08 / 17
 weights[58+18:58+27] = 0.08 / 9
 weights[97+75:97+130] = 0.8 / 55
-weights = weights.reshape(ind.size * 4)
+weights = weights.reshape(ind.size * 2)
 # weights[10:20] = 0.05
 
 

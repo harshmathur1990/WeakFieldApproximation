@@ -1073,7 +1073,7 @@ def plot_camera_closeloop_plot_and_fft_alternate(filename, flatfilename, kp, ki,
 
 if __name__ == '__main__':
     # plot_drift_plot()
-    # plot_dark_data()
+    plot_dark_data()
     # make_image_tracking_plots_new(
     #     '/home/harsh/AutoGuiderData/05Feb2021/ClosedLoop_0502_1537_44Hz.txt',
     #     label='(c) 44 Hz',
