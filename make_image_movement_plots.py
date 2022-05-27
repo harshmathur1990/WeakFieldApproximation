@@ -401,7 +401,7 @@ def plot_dark_data():
     plt.gca().set_xticklabels([0, 10, 20, 30, 40, 50, 60], fontsize=fontsize)
 
     plt.gca().set_yticks([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6])
-    plt.gca().set_xticklabels([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6], fontsize=fontsize)
+    plt.gca().set_yticklabels([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6], fontsize=fontsize)
 
     plt.plot(np.ones_like(dark_data) * dark_data.mean(), color='red')
 
@@ -1148,4 +1148,4 @@ if __name__ == '__main__':
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_136_0_425.hdf5', 'flat_31032022.hdf5', 1.36, 0, 4.25)
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_102_008_318.hdf5', 'flat_31032022.hdf5', 1.02, 0.08, 3.18)
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_119_0119_446.hdf5', 'flat_31032022.hdf5', 1.19, 0.119, 4.46)
-    plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_034_002_283.hdf5', 'flat_31032022.hdf5', 0.34, 0.02, 2.83, xticks=[0, 2, 4, 6, 8])
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_034_002_283.hdf5', 'flat_31032022.hdf5', 0.34, 0.02, 2.83, xticks=[0, 2, 4, 6, 8])
