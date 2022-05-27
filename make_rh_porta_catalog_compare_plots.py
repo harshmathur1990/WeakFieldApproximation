@@ -11,9 +11,9 @@ import rhanalyze
 
 rh_output_path = Path('/home/harsh/BifrostRun/RH_HA_outputs/')
 base_path = Path('/home/harsh/BifrostRun/')
+rh_bifrost_output = Path('/home/harsh/BifrostRun/Rh15d_Bifrost_output/output_ray.hdf5')
 
-
-def make_comparison_plots(filename_x_y_list):
+def make_comparison_plots(filename_x_y_list, catalog_plot=True, falc_plot=True, bifrost_plot=False, bifrost_coords=None):
 
     catalog = np.loadtxt('/home/harsh/CourseworkRepo/WFAComparison/catalog_6563.txt')
 
@@ -37,16 +37,21 @@ def make_comparison_plots(filename_x_y_list):
 
     plt.cla()
 
-    plt.plot(wv3, out.rays[0].I[ind_3] / out.rays[0].I[ind_3][0], label='RH 6 level atom')
+    if falc_plot is True:
+        plt.plot(wv3, out.rays[0].I[ind_3] / out.rays[0].I[ind_3][0], label='RH 6 level atom')
 
-    plt.plot(catalog[ind_2, 0], catalog[ind_2, 1] / catalog[ind_2, 1][6], label='BASS 2000')
+    if catalog_plot is True:
+        plt.plot(catalog[ind_2, 0], catalog[ind_2, 1] / catalog[ind_2, 1][6], label='BASS 2000')
 
-    for (filename, x, y, name) in filename_x_y_list:
+    for indice, (filename, x, y, wavefile, label) in enumerate(filename_x_y_list):
         f = h5py.File(base_path / filename, 'r')
 
-        wave = np.loadtxt(base_path / 'output_falc.txt')
+        wave = np.loadtxt(base_path / wavefile)
 
-        wave = wave[:, 1][::-1]
+        if len(wave.shape) == 2:
+            wave = wave[:, 1][::-1]
+        else:
+            wave = wave[::-1]
 
         wv = vac_to_air(wave * u.angstrom)
 
@@ -54,17 +59,25 @@ def make_comparison_plots(filename_x_y_list):
 
         ind = np.where((wv >= 6559.77655) & (wv <= 6559.77655 + 1780 * 0.00561))[0]
 
-        plt.plot(wv[ind], f['stokes_I'][ind, x, y] / f['stokes_I'][ind, x, y][-2], label='FALC {} PORTA'.format(name))
-
-        plt.xlabel(r'$\lambda$ [$\mathrm{\AA}$]')
-
-        plt.ylabel(r'I/$I_{c}$')
-
-        plt.legend()
-
-        plt.gcf().set_size_inches(7, 5, forward=True)
+        plt.plot(wv[ind], f['stokes_I'][ind, x, y] / f['stokes_I'][ind, x, y][-2], label=label)
 
         f.close()
+
+    if bifrost_plot is True:
+        f = h5py.File(rh_bifrost_output, 'r')
+        wv = f['wavelength'][()] * 10
+        ind = np.where((wv >= 6559.77655) & (wv <= 6559.77655 + 1780 * 0.00561))[0]
+        for (xx, yy) in bifrost_coords:
+            plt.plot(wv[ind], f['intensity'][xx, yy, ind] / f['intensity'][xx, yy, ind][0], label='Bifrost {}x{} RH'.format(xx, yy))
+        f.close()
+
+    plt.xlabel(r'$\lambda$ [$\mathrm{\AA}$]')
+
+    plt.ylabel(r'I/$I_{c}$')
+
+    plt.gcf().set_size_inches(7, 5, forward=True)
+
+    plt.legend()
 
     write_path = base_path
 
@@ -82,9 +95,14 @@ def make_comparison_plots(filename_x_y_list):
 if __name__ == '__main__':
     make_comparison_plots(
         [
-            ('H_FALC_11_11_profs.h5', 5, 5, '11x11'),
-            ('H_FALC_profs_3x3.h5', 1, 1, '3x3'),
-            ('H_FALC_21_21_profs.h5', 10, 10, '21x21'),
-            ('H_FALC_61_61_profs.h5', 30, 30, '61x61')
-        ]
+            # ('H_FALC_11_11_profs.h5', 5, 5, 'output_falc.txt', 'FALC 5x5 PORTA'),
+            # ('H_FALC_profs_3x3.h5', 1, 1, 'output_falc.txt', 'FALC 3x3 PORTA'),
+            # ('H_FALC_21_21_profs.h5', 10, 10, 'output_falc.txt', 'FALC 21x21 PORTA'),
+            # ('H_FALC_61_61_profs.h5', 30, 30, 'output_falc.txt', 'FALC 61x61 PORTA'),
+            ('H_Bifrost_200_261_200_261_profs_3.h5', 30, 30, 'wave_ha.txt', 'Bifrost 61x61 PORTA')
+        ],
+        catalog_plot=True,
+        falc_plot=True,
+        bifrost_plot=True,
+        bifrost_coords=[(230, 230)]
     )
