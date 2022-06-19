@@ -8,6 +8,7 @@ import os
 import h5py
 import sunpy.io.fits
 import scipy.signal
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from skimage.morphology import closing
 from skimage.measure import regionprops
 
@@ -324,9 +325,9 @@ def plot_drift_plot():
 
     axs[1].set_xlabel('Time [minutes]', fontsize=fontsize)
 
-    axs[0].set_ylabel('Drift [arcsec]', fontsize=fontsize)
+    axs[0].set_ylabel('Position [arcsec]', fontsize=fontsize)
 
-    # axs[1].set_ylabel('Drift [arcsec]', fontsize=fontsize)
+    # axs[1].set_ylabel('Position [arcsec]', fontsize=fontsize)
 
     axs[0].set_xticks([0, 0.5, 1])
     axs[0].set_xticklabels([0, 0.5, 1])
@@ -352,7 +353,7 @@ def plot_drift_plot():
 
     axs[1].text(
         0.11, 0.94,
-        r'Drift = 5.005 arcsec $\mathrm{minutes^{-1}}$',
+        r'Drift = 5.01 arcsec $\mathrm{minutes^{-1}}$',
         transform=axs[1].transAxes,
         fontsize=fontsize
     )
@@ -385,7 +386,9 @@ def plot_dark_data():
             29.7199, -2.98649, 6.35821, 7.00267, -17.9702, -16.6813,
             -20.7092, 12.8028, -6.2088, 18.1196, 19.0863
         ]
-    ) * 5.5 / (500 * 0.543)
+    )
+
+    drift_data = dark_data * 5.5 / (500 * 0.543)
 
     fontsize = 8
 
@@ -395,34 +398,45 @@ def plot_dark_data():
 
     plt.clf()
 
-    plt.plot(dark_data, color='black')
+    plt.scatter(np.arange(dark_data.shape[0]), dark_data, color='black')
 
     plt.gca().set_xticks([0, 10, 20, 30, 40, 50, 60])
     plt.gca().set_xticklabels([0, 10, 20, 30, 40, 50, 60], fontsize=fontsize)
 
-    plt.gca().set_yticks([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6])
-    plt.gca().set_yticklabels([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6], fontsize=fontsize)
+    plt.gca().set_yticks([-30, -20, -10, 0, 10, 20, 30])
+    plt.gca().set_yticklabels([-30, -20, -10, 0, 10, 20, 30], fontsize=fontsize)
+
+    plt.gca().xaxis.set_minor_locator(MultipleLocator(1))
+    plt.gca().yaxis.set_minor_locator(MultipleLocator(1))
 
     plt.plot(np.ones_like(dark_data) * dark_data.mean(), color='red')
 
-    plt.ylim(-0.7, 0.7)
+    plt.ylim(-35, 35)
+    plt.xlim(-1, 61)
 
     fig = plt.gcf()
 
     fig.set_size_inches(7, 3, forward=True)
 
-    plt.xlabel('Number of Samples', fontsize=fontsize)
+    plt.xlabel('Samples [number]', fontsize=fontsize)
 
-    plt.ylabel('Drift [arcsec]', fontsize=fontsize)
+    plt.ylabel('Voltage [mVolts]', fontsize=fontsize)
 
     plt.gca().text(
         0.4, 0.9,
-        'Std: {}'.format(np.round(dark_data.std(), 3)),
+        'Std: {} mVolts or 0.3 arcsec'.format(np.round(dark_data.std(), 2)),
         transform=plt.gca().transAxes,
         fontsize=fontsize
     )
 
-    plt.subplots_adjust(left=0.1, bottom=0.15, right=0.98, top=0.95, wspace=0., hspace=0.0)
+    axs2 = plt.gca().twinx()
+    axs2.set_ylim(-0.7, 0.7)
+    axs2.set_yticks([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6])
+    axs2.set_yticklabels([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6], fontsize=fontsize)
+    axs2.yaxis.set_minor_locator(MultipleLocator(0.05))
+    axs2.set_ylabel('Position [arcsec]', fontsize=fontsize)
+
+    plt.subplots_adjust(left=0.07, bottom=0.13, right=0.93, top=0.99, wspace=0., hspace=0.0)
     write_path = Path('/home/harsh/AutoGuiderPaper/')
 
     fig.savefig(write_path / 'darkdata.pdf', format='pdf', dpi=300)
@@ -499,19 +513,27 @@ def make_image_tracking_plots_new(
 
     axs[0].plot(time / 60, np.zeros_like(time), color='red')
 
-    axs[0].set_ylabel('Drift [arcsec]',
+    axs[0].set_ylabel('Position [arcsec]',
                       fontsize=fontsize)
 
     axs[1].scatter(time / 60, dec_drift * image_scale, s=size/scatter_factor, color='black')
 
     axs[1].plot(time / 60, np.zeros_like(time), color='red')
 
+    print(
+        np.sqrt(
+            np.mean(
+                (dec_drift * image_scale)**2
+            )
+        )
+    )
+    print(np.sqrt(np.mean((ra_drift * image_scale)**2)))
     axs[1].set_xlabel(
         'Time [minutes]',
         fontsize=fontsize
     )
 
-    axs[1].set_ylabel('Drift [arcsec]',
+    axs[1].set_ylabel('Position [arcsec]',
                       fontsize=fontsize)
 
     if label is not None:
@@ -531,13 +553,13 @@ def make_image_tracking_plots_new(
 
     axs[0].text(
         0.45, 0.9,
-        'EAST / RA',
+        'East-West',
         transform=axs[0].transAxes,
         fontsize=fontsize
     )
     axs[1].text(
-        0.43, 0.9,
-        'NORTH / DEC',
+        0.43, 0.85,
+        'North-South',
         transform=axs[1].transAxes,
         fontsize=fontsize
     )
@@ -582,15 +604,52 @@ def make_sunspot_plot():
     plt.close('all')
     plt.clf()
     plt.cla()
-    fig, axs = plt.subplots(1, 1, figsize=(7, 5))
+    fontsize = 8
+    fig, axs = plt.subplots(1, 1, figsize=(3.5, 2))
     data = (data_f['Image_{}'.format(index)][()] - dark) * np.mean(flat-dark) / (flat - dark)
     im = axs.imshow(data, cmap='gray', origin='lower', extent=[0, data.shape[1] * 5.5 * 9/1000, 0, data.shape[0] * 5.5 * 9/1000])
-    fig.colorbar(im, ax=axs)
-    axs.set_xlabel(r'$x$ [arcsec]')
-    axs.set_ylabel(r'$y$ [arcsec]')
+    cbaxes = inset_axes(
+        axs,
+        width="5%",
+        height="100%",
+        loc='right',
+        borderpad=-1.5
+    )
+    cbar = fig.colorbar(
+        im,
+        cax=cbaxes,
+        ticks=[600, 800, 1000, 1200, 1400, 1600, 1800, 2000],
+        orientation='vertical'
+    )
+    # cbar.ax.xaxis.set_ticks_position('top')
+    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    axs.text(
+        1.33, 0.05,
+        'Intensity [digital counts]',
+        transform=axs.transAxes,
+        rotation=90,
+        fontsize=fontsize
+    )
+    axs.text(
+        -0.15, 0.9,
+        '(b)',
+        transform=axs.transAxes,
+        fontsize=fontsize
+    )
+    axs.set_xlabel(r'$x$ [arcsec]', fontsize=fontsize)
+    axs.set_ylabel(r'$y$ [arcsec]', fontsize=fontsize)
+    axs.set_yticks([0, 20, 40])
+    axs.set_yticklabels([0, 20, 40], fontsize=fontsize)
+    axs.set_xticks([0, 20, 40, 60])
+    axs.set_xticklabels([0, 20, 40, 60], fontsize=fontsize)
+    axs.xaxis.set_minor_locator(MultipleLocator(5))
+    axs.yaxis.set_minor_locator(MultipleLocator(5))
+    plt.subplots_adjust(left=0.13, bottom=0.2, right=0.75, top=0.99, wspace=0.0, hspace=0.0)
     write_path = Path('/home/harsh/AutoGuiderPaper/')
     fig.savefig(write_path / 'sunspot_image.pdf', format='pdf', dpi=300)
     fig.savefig(write_path / 'sunspot_image.png', format='png', dpi=300)
+    plt.show()
     plt.close('all')
     plt.clf()
     plt.cla()
@@ -666,7 +725,7 @@ def plot_camera_drift_plot():
         transform=axs[1].transAxes,
         fontsize=fontsize
     )
-    axs[0].set_ylabel(r'Drift [arcsec]', fontsize=fontsize)
+    axs[0].set_ylabel(r'Position [arcsec]', fontsize=fontsize)
     axs[0].set_xlabel(r'Time [minutes]', fontsize=fontsize)
     axs[1].set_xlabel(r'Time [minutes]', fontsize=fontsize)
     axs[0].set_xticks([0, 2, 4, 6, 8])
@@ -737,20 +796,20 @@ def plot_camera_closeloop_plot_and_fft():
     time = np.arange(0, dtot * 0.5, 0.5) / 60
     y1 = (a - a.mean()) * 0.0495
     y2 = (b - b.mean()) * 0.0495
-    fft_y1 = np.fft.fft(y1)
-    fft_y2 = np.fft.fft(y2)
+    fft_y1 = np.fft.fft(y1, norm='ortho')
+    fft_y2 = np.fft.fft(y2, norm='ortho')
     fftfreq = np.fft.fftfreq(y1.size, 0.5)
-    ind = np.where((fftfreq > 0.004) & (fftfreq < 0.2))
+    ind = np.where((fftfreq > 0.004) & (fftfreq < 0.2))[0]
     axs[0][0].scatter(time, y2, s=size/4, color='black')
     axs[0][0].plot(time, np.zeros_like(y2), color='red')
     axs[0][1].scatter(time, y1, s=size/4, color='black')
     axs[0][1].plot(time, np.zeros_like(y1), color='red')
-    axs[1][0].plot(1 / fftfreq[ind], np.abs(fft_y2[ind]))
-    axs[1][1].plot(1 / fftfreq[ind], np.abs(fft_y1[ind]))
-    axs[0][0].set_ylabel(r'Drift [arcsec]', fontsize=fontsize)
+    axs[1][0].plot(1 / fftfreq[ind], np.abs(fft_y2[ind])**2)
+    axs[1][1].plot(1 / fftfreq[ind], np.abs(fft_y1[ind])**2)
+    axs[0][0].set_ylabel(r'Position [arcsec]', fontsize=fontsize)
     axs[0][0].set_xlabel(r'Time [minutes]', fontsize=fontsize)
     axs[0][1].set_xlabel(r'Time [minutes]', fontsize=fontsize)
-    axs[1][0].set_ylabel(r'Power', fontsize=fontsize)
+    axs[1][0].set_ylabel(r'Relative Power [arbitrary units]', fontsize=fontsize)
     axs[1][0].set_xlabel(r'Period [s]', fontsize=fontsize)
     axs[1][1].set_xlabel(r'Period [s]', fontsize=fontsize)
     axs[0][0].set_xticks([0, 5, 10, 15])
@@ -769,8 +828,8 @@ def plot_camera_closeloop_plot_and_fft():
     axs[1][1].set_xticks([0, 20, 40, 60, 80])
     axs[1][0].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
     axs[1][1].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
-    axs[1][0].set_yticks([0, 100, 200, 300])
-    axs[1][1].set_yticks([0, 50, 100, 150])
+    # axs[1][0].set_yticks([0, 100, 200, 300])
+    # axs[1][1].set_yticks([0, 50, 100, 150])
     axs[1][0].set_yticklabels([0, 100, 200, 300], fontsize=fontsize)
     axs[1][1].set_yticklabels([0, 50, 100, 150], fontsize=fontsize)
     axs[0][0].xaxis.set_minor_locator(MultipleLocator(1))
@@ -871,7 +930,7 @@ def plot_camera_closeloop_plot(filename, flatfilename, kp, ki, kd, xticks=None, 
     axs[0].plot(time, np.zeros_like(y2), color='red')
     axs[1].scatter(time, y1, s=size/4, color='black')
     axs[1].plot(time, np.zeros_like(y1), color='red')
-    axs[0].set_ylabel(r'Drift [arcsec]', fontsize=fontsize)
+    axs[0].set_ylabel(r'Position [arcsec]', fontsize=fontsize)
     axs[0].set_xlabel(r'Time [minutes]', fontsize=fontsize)
     axs[1].set_xlabel(r'Time [minutes]', fontsize=fontsize)
     if xticks is None:
@@ -951,7 +1010,7 @@ def plot_camera_closeloop_plot_and_fft_alternate(filename, flatfilename, kp, ki,
             k = 0
             for region in regionprops(mask, data):
                 a[index], b[index] = region.centroid
-                print (index)
+                # print (index)
                 break
         gg = np.zeros((a.size, 2), dtype=np.float64)
         gg[:, 0] = a
@@ -964,20 +1023,40 @@ def plot_camera_closeloop_plot_and_fft_alternate(filename, flatfilename, kp, ki,
     time = np.arange(0, dtot * 0.5, 0.5) / 60
     y1 = (a - np.median(a)) * 0.0495
     y2 = (b - np.median(b)) * 0.0495
-    fft_y1 = np.fft.fft(y1)
-    fft_y2 = np.fft.fft(y2)
-    fftfreq = np.fft.fftfreq(y1.size, 0.5)
-    ind = np.where((fftfreq > 0.004) & (fftfreq < 0.2))
+    print(
+        np.sqrt(
+            np.mean(
+                y1**2
+            )
+        )
+    )
+    print(
+        np.sqrt(
+            np.mean(
+                y2 ** 2
+            )
+        )
+    )
+    fft_y1 = np.fft.fft(y1, norm='ortho')
+    fft_y2 = np.fft.fft(y2, norm='ortho')
+    fftfreq = np.round(np.fft.fftfreq(y1.size, 0.5), 3)
+    ind = np.where((fftfreq > 0.004) & (fftfreq < 0.2))[0]
+    # print(fftfreq[ind][1] - fftfreq[ind][0])
+    # print(fftfreq[ind][2] - fftfreq[ind][1])
+    # ind = np.where(fftfreq > 0)[0]
+    # print(np.max(np.abs(fft_y1[ind])**2))
+    # print(np.max(np.abs(fft_y2[ind])**2))
+    # print(fftfreq[ind][np.where(np.abs(fft_y1[ind])**2 > 15)[0]])
     axs[0][0].scatter(time, y2, s=size/4, color='black')
     axs[0][0].plot(time, np.zeros_like(y2), color='red')
     axs[0][1].scatter(time, y1, s=size/4, color='black')
     axs[0][1].plot(time, np.zeros_like(y1), color='red')
-    axs[1][0].plot(1 / fftfreq[ind], np.abs(fft_y2[ind]))
-    axs[1][1].plot(1 / fftfreq[ind], np.abs(fft_y1[ind]))
-    axs[0][0].set_ylabel(r'Drift [arcsec]', fontsize=fontsize)
+    axs[1][0].plot(fftfreq[ind], np.abs(fft_y2[ind])**2)
+    axs[1][1].plot(fftfreq[ind], np.abs(fft_y1[ind])**2)
+    axs[0][0].set_ylabel(r'Position [arcsec]', fontsize=fontsize)
     axs[0][0].set_xlabel(r'Time [minutes]', fontsize=fontsize)
     axs[0][1].set_xlabel(r'Time [minutes]', fontsize=fontsize)
-    axs[1][0].set_ylabel(r'Power', fontsize=fontsize)
+    axs[1][0].set_ylabel(r'Relative Power [arbitrary units]', fontsize=fontsize)
     axs[1][0].set_xlabel(r'Period [s]', fontsize=fontsize)
     axs[1][1].set_xlabel(r'Period [s]', fontsize=fontsize)
     if xticks is None:
@@ -1008,12 +1087,12 @@ def plot_camera_closeloop_plot_and_fft_alternate(filename, flatfilename, kp, ki,
     axs[0][1].xaxis.set_minor_locator(MultipleLocator(xminortick))
     axs[0][0].yaxis.set_minor_locator(MultipleLocator(yminortick))
     axs[0][1].yaxis.set_minor_locator(MultipleLocator(yminortick))
-    axs[1][0].set_xlim(0, 100)
-    axs[1][1].set_xlim(0, 100)
-    axs[1][0].set_xticks([0, 20, 40, 60, 80])
-    axs[1][1].set_xticks([0, 20, 40, 60, 80])
-    axs[1][0].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
-    axs[1][1].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
+    axs[1][0].set_xlim(0.004, 0.2)
+    axs[1][1].set_xlim(0.004, 0.2)
+    # axs[1][0].set_xticks([0, 20, 40, 60, 80])
+    # axs[1][1].set_xticks([0, 20, 40, 60, 80])
+    # axs[1][0].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
+    # axs[1][1].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
     if yticks3 is None:
         yticks3 = [0, 50, 100, 150, 200]
     if yticks4 is None:
@@ -1032,8 +1111,8 @@ def plot_camera_closeloop_plot_and_fft_alternate(filename, flatfilename, kp, ki,
     axs[1][1].set_ylim(*ylim4)
     axs[1][0].set_yticklabels(yticks3, fontsize=fontsize)
     axs[1][1].set_yticklabels(yticks4, fontsize=fontsize)
-    axs[1][0].xaxis.set_minor_locator(MultipleLocator(5))
-    axs[1][1].xaxis.set_minor_locator(MultipleLocator(5))
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(0.01))
+    axs[1][1].xaxis.set_minor_locator(MultipleLocator(0.01))
     axs[1][0].yaxis.set_minor_locator(MultipleLocator(yminortick3))
     axs[1][1].yaxis.set_minor_locator(MultipleLocator(yminortick4))
     axs[0][0].text(
@@ -1072,13 +1151,13 @@ def plot_camera_closeloop_plot_and_fft_alternate(filename, flatfilename, kp, ki,
 
 
 def plot_camera_drift_plot_and_fft(filename, flatfilename, xticks=None, yticks1=None, yticks2=None, ylim1=None, ylim2=None, xminortick=None, yminortick=None, yticks3=None, yticks4=None, yminortick3=None, yminortick4=None, ylim3=None, ylim4=None, flag=0):
-    # write_path = Path('/home/harsh/AutoGuiderPaper/')
-    write_path = Path('/Users/harshmathur/AutoGuiderPaper')
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+    # write_path = Path('/Users/harshmathur/AutoGuiderPaper')
     fontsize = 8
     size = plt.rcParams['lines.markersize']
     cwd = os.getcwd()
-    # os.chdir('/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/AutoGuider March 2022/')
-    os.chdir('/Volumes/SeagateHarsh9599771751/AutoGuider March 2022')
+    os.chdir('/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/AutoGuider March 2022/')
+    # os.chdir('/Volumes/SeagateHarsh9599771751/AutoGuider March 2022')
     dark, _ = sunpy.io.fits.read('dark.fit')[0]
     dark = np.mean(dark, 0)
     flat_f = h5py.File(flatfilename, 'r')
@@ -1128,10 +1207,10 @@ def plot_camera_drift_plot_and_fft(filename, flatfilename, xticks=None, yticks1=
     y1l = np.arange(a.size)**5 * g1 + np.arange(a.size)**4 * g2 + np.arange(a.size)**3 * g3 + np.arange(a.size)**2 * g4 + np.arange(a.size) * g5 + g6
     h1, h2, h3, h4, h5, h6 = np.polyfit(np.arange(b.size), y2, 5)
     y2l = np.arange(b.size)**5 * h1 + np.arange(b.size)**4 * h2 + np.arange(b.size)**3 * h3 + np.arange(b.size)**2 * h4 + np.arange(b.size) * h5 + h6
-    fft_y1 = np.fft.fft(y1 - y1l)
-    fft_y2 = np.fft.fft(y2 - y2l)
+    fft_y1 = np.fft.fft(y1 - y1l, norm='ortho')
+    fft_y2 = np.fft.fft(y2 - y2l, norm='ortho')
     fftfreq = np.fft.fftfreq(y1.size, 0.5)
-    ind = np.where((fftfreq > 0.004) & (fftfreq < 0.2))
+    ind = np.where((fftfreq > 0.004) & (fftfreq < 0.2))[0]
     if flag == 0:
         axs[0][0].scatter(time, y2, s=size/4, color='black')
         axs[0][0].plot(time, y2l, color='red')
@@ -1142,12 +1221,12 @@ def plot_camera_drift_plot_and_fft(filename, flatfilename, xticks=None, yticks1=
         axs[0][0].plot(time, np.zeros_like(y2), color='red')
         axs[0][1].scatter(time, y1 - y1l, s=size / 4, color='black')
         axs[0][1].plot(time, np.zeros_like(y1), color='red')
-    axs[1][0].plot(1 / fftfreq[ind], np.abs(fft_y2[ind]))
-    axs[1][1].plot(1 / fftfreq[ind], np.abs(fft_y1[ind]))
-    axs[0][0].set_ylabel(r'Drift [arcsec]', fontsize=fontsize)
+    axs[1][0].plot(1 / fftfreq[ind], np.abs(fft_y2[ind])**2)
+    axs[1][1].plot(1 / fftfreq[ind], np.abs(fft_y1[ind])**2)
+    axs[0][0].set_ylabel(r'Position [arcsec]', fontsize=fontsize)
     axs[0][0].set_xlabel(r'Time [minutes]', fontsize=fontsize)
     axs[0][1].set_xlabel(r'Time [minutes]', fontsize=fontsize)
-    axs[1][0].set_ylabel(r'Power', fontsize=fontsize)
+    axs[1][0].set_ylabel(r'Relative Power [arbitrary units]', fontsize=fontsize)
     axs[1][0].set_xlabel(r'Period [s]', fontsize=fontsize)
     axs[1][1].set_xlabel(r'Period [s]', fontsize=fontsize)
     if xticks is None:
@@ -1185,17 +1264,17 @@ def plot_camera_drift_plot_and_fft(filename, flatfilename, xticks=None, yticks1=
     axs[1][0].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
     axs[1][1].set_xticklabels([0, 20, 40, 60, 80], fontsize=fontsize)
     if yticks3 is None:
-        yticks3 = [0, 50, 100, 150, 200]
+        yticks3 = [0, 10, 20, 30, 40]
     if yticks4 is None:
-        yticks4 = [0, 50, 100, 150, 200]
+        yticks4 = [0, 10, 20, 30, 40]
     if yminortick3 is None:
         yminortick3 = 25
     if yminortick4 is None:
         yminortick4 = 25
     if ylim3 is None:
-        ylim3 = (0, 225)
+        ylim3 = (0, 40)
     if ylim4 is None:
-        ylim4 = (0, 225)
+        ylim4 = (0, 40)
     axs[1][0].set_yticks(yticks3)
     axs[1][1].set_yticks(yticks4)
     axs[1][0].set_ylim(*ylim3)
@@ -1247,7 +1326,7 @@ def plot_camera_drift_plot_and_fft(filename, flatfilename, xticks=None, yticks1=
 
 if __name__ == '__main__':
     # plot_drift_plot()
-    plot_dark_data()
+    # plot_dark_data()
     # make_image_tracking_plots_new(
     #     '/home/harsh/AutoGuiderData/05Feb2021/ClosedLoop_0502_1537_44Hz.txt',
     #     label='(c) 44 Hz',
@@ -1283,13 +1362,13 @@ if __name__ == '__main__':
     # make_image_tracking_plots_new(
     #     '/home/harsh/AutoGuiderData/10Feb2021/output_100221_8.15am_45mts_normal.txt',
     #     savefilename='closedloop_100221.pdf',
-    #     label='(c) 10 Feb 2021 08:15 AM',
+    #     label='(b) 10 Feb 2021 08:15 AM',
     #     ylim1=(-4, 4), ylim2=(-4, 4), xticks=[0, 10, 20, 30, 40], yticks1=[-2, 0, 2], yticks2=[-2, 0, 2], time_factor=2, scatter_factor=16
     # )
     # make_image_tracking_plots_new(
     #     '/home/harsh/AutoGuiderData/11Feb2021/output_110221_8.12am_1hr_normal.txt',
     #     savefilename='closedloop_110221.pdf',
-    #     label='(d) 11 Feb 2021 08:12 AM',
+    #     label='(b) 11 Feb 2021 08:12 AM',
     #     ylim1=(-4, 4), ylim2=(-2, 2), xticks=[0, 10, 20, 30, 40, 50, 60], yticks1=[-2, 0, 2], yticks2=[-1, 0, 1], time_factor=2.5, scatter_factor=16
     # )
     # make_sunspot_plot()
@@ -1311,19 +1390,20 @@ if __name__ == '__main__':
     # plot_camera_closeloop_plot('buffer_28032022_083940_045_0216.hdf5', 'flat.hdf5', 0.45, 0.0216, 0)
     # plot_camera_closeloop_plot('buffer_29032022_084944_05_0_0.hdf5', 'flat.hdf5', 0.5, 0, 0, xticks=[0, 5, 10, 15, 20, 25, 30])
     # plot_camera_closeloop_plot('buffer_28032022_085823_07_0_0.hdf5', 'flat.hdf5', 0.7, 0, 0)
-    # plot_camera_closeloop_plot_and_fft_alternate('buffer_01042022_083839_102_009_267.hdf5', 'flat_31032022.hdf5', 1.02, 0.09, 2.67, yticks3=[0, 50, 100, 150, 200], yticks4=[0, 50, 100, 150, 200])
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_01042022_083839_102_009_267.hdf5', 'flat_31032022.hdf5', 1.02, 0.09, 2.67, yticks3=[0, 10, 20, 30], yticks4=[0, 10, 20, 30], ylim3=[0, 30], ylim4=[0, 30], yminortick3=5, yminortick4=5)
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_31032022_082248_085_0_0.hdf5', 'flat_31032022.hdf5', 0.85, 0, 0, ylim3=(0, 275), yticks3=[0, 50, 100, 150, 200, 250], yticks4=[0, 50, 100, 150, 200, 250])
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_31032022_082248_076_004_0.hdf5', 'flat_31032022.hdf5', 0.76, 0.04, 0, ylim3=(0, 400), ylim4=(0, 300), yticks3=[0, 50, 100, 150, 200, 250, 300, 350], yticks4=[0, 50, 100, 150, 200, 250])
-    # plot_camera_closeloop_plot_and_fft_alternate('buffer_31032022_082248_136_0_357.hdf5', 'flat_31032022.hdf5', 1.36, 0, 3.57)
+    plot_camera_closeloop_plot_and_fft_alternate('buffer_31032022_082248_136_0_357.hdf5', 'flat_31032022.hdf5', 1.36, 0, 3.57, yticks3=[0, 5, 10, 15], yticks4=[0, 5, 10, 15], ylim3=[0, 15], ylim4=[0, 15], yminortick3=5, yminortick4=5)
+    # plot_camera_closeloop_plot_and_fft_alternate('buffer_30032022_082118_17_0_0.hdf5', 'flat_30032022.hdf5', 1.7, 0, 0, yticks3=[0, 25, 50, 75], yticks4=[0, 25, 50], ylim3=[0, 75], ylim4=[0, 50], yminortick3=5, yminortick4=5)
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_02042022_083239_119_014_374.hdf5', 'flat_31032022.hdf5', 1.19, 0.14, 3.74, yticks3=[0, 50, 100, 150, 200], yticks4=[0, 50, 100, 150, 200])
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_02042022_083239_056_005_396.hdf5', 'flat_31032022.hdf5', 0.56, 0.05, 3.96)
-    # plot_camera_closeloop_plot_and_fft_alternate('buffer_02042022_083239_034_032_237.hdf5', 'flat_31032022.hdf5', 0.34, 0.032, 2.37)
+    plot_camera_closeloop_plot_and_fft_alternate('buffer_02042022_083239_034_032_237.hdf5', 'flat_31032022.hdf5', 0.34, 0.032, 2.37, yticks3=[0, 5, 10, 15], yticks4=[0, 5, 10, 15], ylim3=[0, 20], ylim4=[0, 20], yminortick3=5, yminortick4=5)
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_0765_003_0.hdf5', 'flat_31032022.hdf5', 0.765, 0.036, 0, ylim3=(0, 400), ylim4=(0, 300), yticks3=[0, 50, 100, 150, 200, 250, 300, 350], yticks4=[0, 50, 100, 150, 200, 250])
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_136_0_425.hdf5', 'flat_31032022.hdf5', 1.36, 0, 4.25)
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_102_008_318.hdf5', 'flat_31032022.hdf5', 1.02, 0.08, 3.18)
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_119_0119_446.hdf5', 'flat_31032022.hdf5', 1.19, 0.119, 4.46)
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_034_002_283.hdf5', 'flat_31032022.hdf5', 0.34, 0.02, 2.83, xticks=[0, 2, 4, 6, 8])
-    # plot_camera_drift_plot_and_fft('buffer_20042022_085726_drift.hdf5', 'flats_buffer_20042022_085932.hdf5', ylim1=(0, 25), ylim2=(0, 6), yticks1=[0, 5, 10, 15, 20], yticks2=[0, 2, 4], ylim3=(0, 250))
-    # plot_camera_drift_plot_and_fft('buffer_20042022_083747_drift.hdf5', 'flats_buffer_20042022_085932.hdf5', ylim1=(0, 25), ylim2=(0, 6), yticks1=[0, 5, 10, 15, 20], yticks2=[0, 2, 4], ylim3=(0, 250))
+    # plot_camera_drift_plot_and_fft('buffer_20042022_085726_drift.hdf5', 'flats_buffer_20042022_085932.hdf5', ylim1=(0, 25), ylim2=(0, 6), yticks1=[0, 5, 10, 15, 20], yticks2=[0, 2, 4], yticks3=[0, 10, 20, 30], yticks4=[0, 5, 10], ylim3=(0, 30), ylim4=(0, 10), yminortick3=1, yminortick4=1)
+    # plot_camera_drift_plot_and_fft('buffer_20042022_083747_drift.hdf5', 'flats_buffer_20042022_085932.hdf5', ylim1=(0, 25), ylim2=(0, 6), yticks1=[0, 5, 10, 15, 20], yticks2=[0, 2, 4], yticks3=[0, 10, 20, 30], yticks4=[0, 5, 10], ylim3=(0, 30), ylim4=(0, 10), yminortick3=1, yminortick4=1)
     # plot_camera_drift_plot_and_fft('buffer_20042022_083747_drift.hdf5', 'flats_buffer_20042022_085932.hdf5', flag=1)
-    plot_camera_drift_plot_and_fft('buffer_20042022_085726_drift.hdf5', 'flats_buffer_20042022_085932.hdf5',  ylim3=(0, 250), flag=1)
+    # plot_camera_drift_plot_and_fft('buffer_20042022_085726_drift.hdf5', 'flats_buffer_20042022_085932.hdf5',  ylim3=(0, 250), flag=1)
