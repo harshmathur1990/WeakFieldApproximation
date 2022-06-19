@@ -1,6 +1,6 @@
 import sys
 # sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
-sys.path.insert(1, '/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/python')
+sys.path.insert(1, '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/python')
 import enum
 import os
 import numpy as np
@@ -20,11 +20,11 @@ from astropy import units as u
 
 # rh_base_dir = Path('/home/harsh/rh-uitenbroek/')
 
-rh_base_dir = Path('/home/harsh/Documents/CourseworkRepo/rh/RH-uitenbroek/')
+rh_base_dir = Path('/home/harsh/CourseworkRepo/rh/RH-uitenbroek/')
 
 # falc_path = Path('/home/harsh/rh/Atmos/FALC_82_5x5.hdf5')
 
-falc_path = Path('/home/harsh/Documents/CourseworkRepo/rh/rh/Atmos/FALC_82_5x5.hdf5')
+falc_path = Path('/home/harsh/CourseworkRepo/rh/rh/Atmos/FALC_82_5x5.hdf5')
 
 # response_function_out_file = Path(
 #     '/data/harsh/run_vishnu/FALC_response.nc'
@@ -49,19 +49,20 @@ input_filelist = [
     'keyword.input',
     'ray.input',
     'contribute.input',
-    'kurucz_6301_6302.input',
+    'kurucz_6173.input',
     'VishnuWave.wave'
 ]
 
 b_list = list(np.array([50, -50, 200, -200, 500, -500, 1000, -1000, 2000, -2000, 3000, -3000]) * 1e-4)
 
 regions = [
-    [8534.5900, 0.01068, 1404, 4.227743e-08, 4],
-    [6294.5000, 0.00788, 1904, 4.054384e-08, 4],
-    [5242.7086, 0.00656, 2286, 3.548769e-08, 4]
+    # [8534.5900, 0.01068, 1404, 4.227743e-08, 4],
+    # [6294.5000, 0.00788, 1904, 4.054384e-08, 4],
+    # [5242.7086, 0.00656, 2286, 3.548769e-08, 4],
+    [6165.8352, 0.00772, 1943, 4.014861e-08, 4]
 ]
 
-total_wave = regions[0][2] + regions[1][2] + regions[2][2]
+total_wave = regions[0][2]# + regions[1][2] + regions[2][2]
 
 
 def create_mag_file(
@@ -274,11 +275,11 @@ def create_atmosphere_file():
     f.close()
 
 
-# if __name__ == '__main__':
-    # create_wave_file_for_regions()
-    # create_atmosphere_file()
+if __name__ == '__main__':
+#     create_wave_file_for_regions()
+    create_atmosphere_file()
 
-
+'''
 if __name__ == '__main__':
 
     comm = MPI.COMM_WORLD
@@ -558,3 +559,4 @@ if __name__ == '__main__':
             response = (plus_profiles - negative_profiles) / (plus_perturbation - negative_perturbation)
 
             comm.send({'status': status_work, 'item': (item, b_val, height_index, height_len, profiles, response, ltau500)}, dest=0, tag=2)
+'''

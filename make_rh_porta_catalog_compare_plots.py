@@ -92,17 +92,89 @@ def make_comparison_plots(filename_x_y_list, catalog_plot=True, falc_plot=True, 
     plt.cla()
 
 
+def make_line_core_image(porta_file, wavefile, start_x, end_x, start_y, end_y):
+    f = h5py.File(base_path / porta_file, 'r')
+
+    wave = np.loadtxt(base_path / wavefile)
+
+    if len(wave.shape) == 2:
+        wave = wave[:, 1][::-1]
+    else:
+        wave = wave[::-1]
+
+    wv = vac_to_air(wave * u.angstrom)
+
+    wv = np.array(wv)
+
+    line_core_ind = np.argmin(np.abs(wv - 6562.8))
+
+    fb = h5py.File(rh_bifrost_output, 'r')
+    wvb = fb['wavelength'][()] * 10
+
+    line_core_bind = np.argmin(np.abs(wvb - 6562.8))
+
+    ind = np.where((wvb >= 6559.77655) & (wvb <= 6559.77655 + 1780 * 0.00561))[0]
+
+    intensity = fb['intensity'][start_x:end_x, start_y:end_y, line_core_bind]
+
+    a, b = np.where(intensity > 2)
+
+    intensity[a, b] = 0
+
+    max_norm = fb['intensity'][start_x:end_x, start_y:end_y, ind]
+
+    a, b, c = np.where(max_norm > 2)
+
+    max_norm[a, b, c] = 0
+
+    maxval = np.max(max_norm)
+
+    intensity /= maxval
+
+    fig, axs = plt.subplots(1, 2, figsize=(7, 3.5))
+
+    axs[0].imshow(f['stokes_I'][line_core_ind] / np.max(f['stokes_I'][-2]), cmap='gray', origin='lower')
+
+    axs[1].imshow(intensity, cmap='gray', origin='lower')
+
+    axs[0].set_title('PORTA')
+
+    axs[1].set_title('RH15D')
+
+    axs[0].set_ylabel('pixels')
+
+    axs[0].set_xlabel('pixels')
+
+    axs[1].set_xlabel('pixels')
+
+    plt.subplots_adjust(left=0.05, bottom=0.2, right=1, top=0.9, wspace=0.1, hspace=0.1)
+
+    write_path = base_path
+
+    fig.savefig(write_path / 'RH_PORTA_FOV.pdf', format='pdf', dpi=300)
+
+    fig.savefig(write_path / 'RH_PORTA_FOV.png', format='png', dpi=300)
+
+    plt.show()
+
+    fb.close()
+
+    f.close()
+
+
 if __name__ == '__main__':
-    make_comparison_plots(
-        [
-            # ('H_FALC_11_11_profs.h5', 5, 5, 'output_falc.txt', 'FALC 5x5 PORTA'),
-            # ('H_FALC_profs_3x3.h5', 1, 1, 'output_falc.txt', 'FALC 3x3 PORTA'),
-            # ('H_FALC_21_21_profs.h5', 10, 10, 'output_falc.txt', 'FALC 21x21 PORTA'),
-            # ('H_FALC_61_61_profs.h5', 30, 30, 'output_falc.txt', 'FALC 61x61 PORTA'),
-            ('H_Bifrost_200_261_200_261_profs_3.h5', 30, 30, 'wave_ha.txt', 'Bifrost 61x61 PORTA')
-        ],
-        catalog_plot=True,
-        falc_plot=True,
-        bifrost_plot=True,
-        bifrost_coords=[(230, 230)]
-    )
+    # make_comparison_plots(
+    #     [
+    #         # ('H_FALC_11_11_profs.h5', 5, 5, 'output_falc.txt', 'FALC 5x5 PORTA'),
+    #         # ('H_FALC_profs_3x3.h5', 1, 1, 'output_falc.txt', 'FALC 3x3 PORTA'),
+    #         # ('H_FALC_21_21_profs.h5', 10, 10, 'output_falc.txt', 'FALC 21x21 PORTA'),
+    #         # ('H_FALC_61_61_profs.h5', 30, 30, 'output_falc.txt', 'FALC 61x61 PORTA'),
+    #         ('H_Bifrost_200_261_200_261_profs_3.h5', 30, 30, 'wave_ha.txt', 'Bifrost 61x61 PORTA')
+    #     ],
+    #     catalog_plot=True,
+    #     falc_plot=True,
+    #     bifrost_plot=True,
+    #     bifrost_coords=[(230, 230)]
+    # )
+
+    make_line_core_image('H_Bifrost_200_261_200_261_profs_3.h5', 'wave_ha.txt', 200, 261, 200, 261)
