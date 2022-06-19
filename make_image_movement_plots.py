@@ -352,7 +352,7 @@ def plot_drift_plot():
 
     axs[1].text(
         0.11, 0.94,
-        r'Drift = 5.005 arcsec $\mathrm{minutes^{-1}}$',
+        r'Drift = 5.01 arcsec $\mathrm{minutes^{-1}}$',
         transform=axs[1].transAxes,
         fontsize=fontsize
     )
@@ -1072,22 +1072,22 @@ def plot_camera_closeloop_plot_and_fft_alternate(filename, flatfilename, kp, ki,
 
 
 def plot_camera_drift_plot_and_fft(filename, flatfilename, xticks=None, yticks1=None, yticks2=None, ylim1=None, ylim2=None, xminortick=None, yminortick=None, yticks3=None, yticks4=None, yminortick3=None, yminortick4=None, ylim3=None, ylim4=None, flag=0):
-    # write_path = Path('/home/harsh/AutoGuiderPaper/')
-    write_path = Path('/Users/harshmathur/AutoGuiderPaper')
+    write_path = Path('/home/harsh/AutoGuiderPaper/')
+    # write_path = Path('/Users/harshmathur/AutoGuiderPaper')
     fontsize = 8
     size = plt.rcParams['lines.markersize']
     cwd = os.getcwd()
     # os.chdir('/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/AutoGuider March 2022/')
-    os.chdir('/Volumes/SeagateHarsh9599771751/AutoGuider March 2022')
-    dark, _ = sunpy.io.fits.read('dark.fit')[0]
-    dark = np.mean(dark, 0)
-    flat_f = h5py.File(flatfilename, 'r')
-    tot = len(flat_f.keys()) // 2
-    flat = np.zeros((tot, flat_f['Image_0'].shape[0], flat_f['Image_0'].shape[1]))
-    for i in range(tot):
-        flat[i] = flat_f['Image_{}'.format(i)][()]
-    flat = np.mean(flat, 0)
-    flat_f.close()
+    # os.chdir('/Volumes/SeagateHarsh9599771751/AutoGuider March 2022')
+    # dark, _ = sunpy.io.fits.read('dark.fit')[0]
+    # dark = np.mean(dark, 0)
+    # flat_f = h5py.File(flatfilename, 'r')
+    # tot = len(flat_f.keys()) // 2
+    # flat = np.zeros((tot, flat_f['Image_0'].shape[0], flat_f['Image_0'].shape[1]))
+    # for i in range(tot):
+    #     flat[i] = flat_f['Image_{}'.format(i)][()]
+    # flat = np.mean(flat, 0)
+    # flat_f.close()
     data_f = None
     txtfile = write_path / '{}.txt'.format(filename)
     if Path(txtfile).exists():
@@ -1128,6 +1128,8 @@ def plot_camera_drift_plot_and_fft(filename, flatfilename, xticks=None, yticks1=
     y1l = np.arange(a.size)**5 * g1 + np.arange(a.size)**4 * g2 + np.arange(a.size)**3 * g3 + np.arange(a.size)**2 * g4 + np.arange(a.size) * g5 + g6
     h1, h2, h3, h4, h5, h6 = np.polyfit(np.arange(b.size), y2, 5)
     y2l = np.arange(b.size)**5 * h1 + np.arange(b.size)**4 * h2 + np.arange(b.size)**3 * h3 + np.arange(b.size)**2 * h4 + np.arange(b.size) * h5 + h6
+    print(np.std(y1-y1l))
+    print(np.std(y2 - y2l))
     fft_y1 = np.fft.fft(y1 - y1l)
     fft_y2 = np.fft.fft(y2 - y2l)
     fftfreq = np.fft.fftfreq(y1.size, 0.5)
@@ -1325,5 +1327,5 @@ if __name__ == '__main__':
     # plot_camera_closeloop_plot_and_fft_alternate('buffer_03042022_081727_034_002_283.hdf5', 'flat_31032022.hdf5', 0.34, 0.02, 2.83, xticks=[0, 2, 4, 6, 8])
     # plot_camera_drift_plot_and_fft('buffer_20042022_085726_drift.hdf5', 'flats_buffer_20042022_085932.hdf5', ylim1=(0, 25), ylim2=(0, 6), yticks1=[0, 5, 10, 15, 20], yticks2=[0, 2, 4], ylim3=(0, 250))
     # plot_camera_drift_plot_and_fft('buffer_20042022_083747_drift.hdf5', 'flats_buffer_20042022_085932.hdf5', ylim1=(0, 25), ylim2=(0, 6), yticks1=[0, 5, 10, 15, 20], yticks2=[0, 2, 4], ylim3=(0, 250))
-    # plot_camera_drift_plot_and_fft('buffer_20042022_083747_drift.hdf5', 'flats_buffer_20042022_085932.hdf5', flag=1)
+    plot_camera_drift_plot_and_fft('buffer_20042022_083747_drift.hdf5', 'flats_buffer_20042022_085932.hdf5', flag=1)
     plot_camera_drift_plot_and_fft('buffer_20042022_085726_drift.hdf5', 'flats_buffer_20042022_085932.hdf5',  ylim3=(0, 250), flag=1)
