@@ -166,7 +166,7 @@ def plot_inertia():
     plt.cla()
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     plot_inertia()
 
 '''
