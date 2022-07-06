@@ -277,7 +277,7 @@ if __name__ == '__main__':
         job_matrix = np.zeros((nx, ny), dtype=np.int64)
 
         fo = h5py.File(ltau_out_file, 'r')
-        a, b, c = np.where(fo['ltau500'][:, :, :, 0] == 0)
+        a, b, c = np.where(fo['ltau500'][:, :, :, 0] != 0)
         job_matrix[b, c] = 1
         fo.close()
 
