@@ -31,7 +31,7 @@ falc_path = Path('/home/harsh/CourseworkRepo/rh/rh/Atmos/FALC_82_5x5.hdf5')
 # )
 
 response_function_out_file = Path(
-    '/home/harsh/run_vishnu/FALC_response.nc'
+    '/home/harsh/run_vishnu/Harsh_FALC_response.nc'
 )
 
 rh_run_base_dirs = Path('/home/harsh/run_vishnu/')
@@ -49,17 +49,17 @@ input_filelist = [
     'keyword.input',
     'ray.input',
     'contribute.input',
-    'kurucz_6173.input',
+    # 'kurucz_6173.input',
     'VishnuWave.wave'
 ]
 
 b_list = list(np.array([50, -50, 200, -200, 500, -500, 1000, -1000, 2000, -2000, 3000, -3000]) * 1e-4)
 
 regions = [
-    # [8534.5900, 0.01068, 1404, 4.227743e-08, 4],
+    [8534.5900, 0.01068, 1404, 4.227743e-08, 4],
     # [6294.5000, 0.00788, 1904, 4.054384e-08, 4],
     # [5242.7086, 0.00656, 2286, 3.548769e-08, 4],
-    [6165.8352, 0.00772, 1943, 4.014861e-08, 4]
+    # [6165.8352, 0.00772, 1943, 4.014861e-08, 4]
 ]
 
 total_wave = regions[0][2]# + regions[1][2] + regions[2][2]
@@ -83,7 +83,7 @@ def create_mag_file(
         )
     )
 
-    Binc = np.arccos(np.divide(Bz, Babs))
+    Binc = np.zeros_like(Bz)  # np.arccos(np.divide(Bz, Babs))
 
     Bazi = np.arctan2(By, Bx)
 
@@ -123,7 +123,8 @@ def write_atmos_files(write_path, b_val, height_len, height_index=-1, multiplica
         id='FALC',
         scale='height'
     )
-    Bz = np.ones(height_len) * b_val
+    a, b = np.polyfit(f['z'][0][np.array([0, 81])], [b_val - 150e-4, b_val + 150e-4], 1)
+    Bz = a * f['z'][0] + b
     perturbation = None
     if height_index != -1:
         perturbation = Bz[height_index] * multiplicative_factor
@@ -222,7 +223,7 @@ def create_wave_file_for_regions():
 
 def create_atmosphere_file():
     falc = h5py.File(falc_path, 'r')
-    outfile = str(rh_run_base_dirs / 'FALC_Atmosphere_response.nc')
+    outfile = str(rh_run_base_dirs / 'Harsh_FALC_Atmosphere_response.nc')
     T = np.zeros((1, 1, len(b_list), falc['z'][0].size), np.float64)
     vz = np.zeros((1, 1, len(b_list), falc['z'][0].size), np.float64)
     z = np.zeros((1, 1, len(b_list), falc['z'][0].size), np.float64)
@@ -238,7 +239,9 @@ def create_atmosphere_file():
     ne[0, 0, :] = falc['electron_density'][0, 0, 0]
     vturb[0, 0, :] = falc['velocity_turbulent'][0, 0, 0]
     for index, b_val in enumerate(b_list):
-        Bz[0, 0, index] = np.ones(falc['z'][0].size) * b_val
+        a, b = np.polyfit(falc['z'][0][np.array([0, 81])], [b_val - 150e-4, b_val + 150e-4], 1)
+        b_z = a * falc['z'][0] + b
+        Bz[0, 0, index] = b_z
 
     rh15d.make_xarray_atmos(
         outfile=outfile,
