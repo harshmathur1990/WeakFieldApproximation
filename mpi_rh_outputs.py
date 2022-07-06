@@ -257,23 +257,29 @@ if __name__ == '__main__':
         height_len = f['temperature'].shape[3]
         f.close()
 
-        try:
-            os.remove(ltau_out_file)
-        except:
-            pass
+        # try:
+        #     os.remove(ltau_out_file)
+        # except:
+        #     pass
 
-        fo = h5py.File(ltau_out_file, 'w')
-        fo['ltau500'] = np.zeros((1, nx, ny, height_len), dtype=np.float64)
-        fo['a_voigt'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
-        fo['populations'] = np.zeros((1, nH, nx, ny, height_len), dtype=np.float64)
-        fo['Cul'] = np.zeros((1, n_transitions, nx, ny, height_len), dtype=np.float64)
-        fo['eta_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
-        fo['eps_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
-        fo.close()
+        if not os.path.exists(ltau_out_file):
+            fo = h5py.File(ltau_out_file, 'w')
+            fo['ltau500'] = np.zeros((1, nx, ny, height_len), dtype=np.float64)
+            fo['a_voigt'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
+            fo['populations'] = np.zeros((1, nH, nx, ny, height_len), dtype=np.float64)
+            fo['Cul'] = np.zeros((1, n_transitions, nx, ny, height_len), dtype=np.float64)
+            fo['eta_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
+            fo['eps_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
+            fo.close()
 
         sys.stdout.write('Made Output File.\n')
 
         job_matrix = np.zeros((nx, ny), dtype=np.int64)
+
+        fo = h5py.File(ltau_out_file, 'r')
+        a, b, c = np.where(fo['ltau500'][:, :, :, 0] == 0)
+        job_matrix[b, c] = 1
+        fo.close()
 
         x, y = np.where(job_matrix == 0)
 
