@@ -826,7 +826,7 @@ def make_output_param_plots(points, colors_scatter):
 
     _, _, _, _, _, mask = get_fov_data()
 
-    interesting_ltaus = [-5, -3, -1]
+    interesting_ltaus = [-4.5, -3, -1]
 
     ltau_indice = list()
 
@@ -835,7 +835,7 @@ def make_output_param_plots(points, colors_scatter):
 
     ltau_indice = np.array(ltau_indice)
 
-    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/fulldata_inversions/')
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/new_fulldata_inversions/')
 
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
@@ -1028,7 +1028,7 @@ def make_output_param_plots(points, colors_scatter):
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
-    fig.savefig(write_path / 'InversionResults.pdf', format='pdf', dpi=300)
+    fig.savefig(write_path / 'InversionResults_new.pdf', format='pdf', dpi=300)
 
     plt.close('all')
 
@@ -2435,9 +2435,9 @@ if __name__ == '__main__':
         (8, 9),
     ]
     colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # make_output_param_plots(points, colors)
+    make_output_param_plots(points, colors)
     # plot_mag_field_compare()
-    plot_mag_field_compare_new(points, colors)
+    # plot_mag_field_compare_new(points, colors)
     # points = [
     #     (12, 49),
     #     (12, 40),

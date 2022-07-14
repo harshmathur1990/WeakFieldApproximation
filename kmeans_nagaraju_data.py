@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 
-kmeans_output_dir = '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output/'
-input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+kmeans_output_dir = '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output_pca/'
+input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles_pca_filtered.nc'
 # input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/aligned_Ca_Ha_stic_profiles.nc'
 f = h5py.File(input_file, 'r')
 ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
@@ -166,10 +166,10 @@ def plot_inertia():
     plt.cla()
 
 
-if __name__ == '__main__':
-    plot_inertia()
+# if __name__ == '__main__':
+#     plot_inertia()
 
-'''
+
 if __name__ == '__main__':
 
     comm = MPI.COMM_WORLD
@@ -254,7 +254,7 @@ if __name__ == '__main__':
                 running_queue.add(new_item)
 
         f.close()
-
+        print(rank)
         for worker in range(1, size):
             work_type = {
                 'job': 'stopwork'
@@ -262,6 +262,7 @@ if __name__ == '__main__':
             comm.send(work_type, dest=worker, tag=1)
 
     if rank > 0:
+
         while 1:
             work_type = comm.recv(source=0, tag=1)
 
@@ -273,4 +274,3 @@ if __name__ == '__main__':
             status = do_work(item)
 
             comm.send({'status': status, 'item': item}, dest=0, tag=2)
-'''
