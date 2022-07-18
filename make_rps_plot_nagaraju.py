@@ -18,7 +18,7 @@ atmos_rp_write_path = Path(
 )
 
 input_file = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles_pca_filtered.nc'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
 )
 
 
@@ -28,7 +28,7 @@ input_halpha_file = Path(
 
 
 kmeans_file = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/intensity_chosen_out_30.h5'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/intensity_out_30.h5'
 )
 
 
@@ -39,7 +39,6 @@ rps_plot_write_dir = Path(
 falc_file_path = Path(
     '/home/harsh/CourseworkRepo/stic/run/falc_nicole_for_stic.nc'
 )
-
 
 
 cw = np.asarray([8542.])
@@ -2455,10 +2454,10 @@ def generate_file_for_rp_response_function():
 
 
 if __name__ == '__main__':
-    # make_rps()
+    make_rps()
     # make_halpha_rps()
     # plot_rp_map_fov()
-    # make_rps_plots()
+    make_rps_plots()
     # make_halpha_rps_plots()
     # make_stic_inversion_files(rps=[0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 25, 26, 27, 28, 29])
     # make_stic_inversion_files(rps=[1, 15, 16, 24, 28])
@@ -2476,7 +2475,7 @@ if __name__ == '__main__':
     # generate_input_atmos_file(length=1, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [-10e5, -5e5, -3e3, 1e5, 0, 0]], blong=-450, name='red')
     # generate_input_atmos_file(length=3, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [10e5, 5e5, 3e3, -1e5, 0, 0]], blong=-450, name='blue')
     # generate_input_atmos_file_from_previous_result(result_filename='/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/new_inversions/rps_stic_profiles_x_30_y_1_cycle_1_t_0_vl_0_vt_0_blong_2_atmos.nc', rps=[20])
-    make_rps_inversion_result_plots(nodes_temp=[-4, -3.5, -2.5, -1.5, -0.9, 0], nodes_vlos=[-6, -4.5, -1], nodes_vturb=[-5, -4, -3, -1], nodes_blos=None)
+    # make_rps_inversion_result_plots(nodes_temp=[-4, -3.5, -2.5, -1.5, -0.9, 0], nodes_vlos=[-6, -4.5, -1], nodes_vturb=[-5, -4, -3, -1], nodes_blos=None)
     # make_ha_ca_rps_inversion_result_plots()
     # combine_rps_atmos()
     # full_map_generate_input_atmos_file_from_previous_result()

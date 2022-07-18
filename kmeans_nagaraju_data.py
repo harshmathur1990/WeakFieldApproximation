@@ -13,21 +13,21 @@ from pathlib import Path
 
 
 kmeans_output_dir = '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output_intensity/'
-input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles_pca_filtered.nc'
+input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
 # input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/aligned_Ca_Ha_stic_profiles.nc'
 f = h5py.File(input_file, 'r')
-ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
+ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0][171:224]
 framerows = f['profiles'][0, :, :, ind, :][:, :, :, np.array([0])]
 # framerows[:, :, :, 1:] /= framerows[:, :, :, 0][:, :, :, np.newaxis]
 framerows = framerows.reshape(19, 60, ind.size * 1).reshape(19 * 60, ind.size * 1)
-mn = np.mean(framerows, axis=0)
-sd = np.std(framerows, axis=0)
-weights = np.ones((ind.size, 1), dtype=np.float64) * 0.04 / 225
-line_indices = [[0, 58], [58, 97], [97, 306]]
-core_indices = [[19, 36], [18, 27], [85, 120]]
-weights[19:36] = 0.08 / 17
-weights[58+18:58+27] = 0.08 / 9
-weights[97+75:97+130] = 0.8 / 55
+mn = 0  #np.mean(framerows, axis=0)
+sd = 1  #np.std(framerows, axis=0)
+weights = np.ones((ind.size, 1), dtype=np.float64)  # * 0.04 / 225
+# line_indices = [[0, 58], [58, 97], [97, 306]]
+# core_indices = [[19, 36], [18, 27], [85, 120]]
+# weights[19:36] = 0.08 / 17
+# weights[58+18:58+27] = 0.08 / 9
+# weights[97+75:97+130] = 0.8 / 55
 weights = weights.reshape(ind.size * 1)
 # weights[10:20] = 0.05
 
