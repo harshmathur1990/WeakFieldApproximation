@@ -826,7 +826,7 @@ def make_output_param_plots(points, colors_scatter):
 
     _, _, _, _, _, mask = get_fov_data()
 
-    interesting_ltaus = [-4.5, -3, -1]
+    interesting_ltaus = [-5, -3, -1]
 
     ltau_indice = list()
 

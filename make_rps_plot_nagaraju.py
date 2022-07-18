@@ -985,7 +985,7 @@ def make_stic_inversion_files(rps=None):
     ca.weights[ic8[97 + 85:97 + 120], 0] /= 2
 
     # ca.weights[ic8, 3] = ca.weights[ic8, 0]
-    #
+
     # ca.weights[ic8, 3] /= 2
 
     # ca.weights[ic8[97 + 85:97 + 120], 3] /= 2
@@ -1156,19 +1156,19 @@ def make_rps_inversion_result_plots(nodes_temp=None, nodes_vlos=None, nodes_vtur
     # )
 
     rps_atmos_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/Intensity_RPs_Plots/inversions/rps_stic_profiles_x_1_15_16_24_28_y_1_cycle_1_t_6_vl_3_vt_4_blong_0_atmos.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions_1407/rps_stic_profiles_x_0_1_2_4_5_6_7_8_9_10_11_12_13_14_15_16_17_18_19_22_23_25_26_27_28_29_y_1_cycle_1_t_5_vl_2_vt_4_blong_0_atmos.nc'
     )
 
     rps_profs_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/Intensity_RPs_Plots/inversions/rps_stic_profiles_x_1_15_16_24_28_y_1_1_t_6_vl_3_vt_4_blong_0_profs.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions_1407/rps_stic_profiles_x_0_1_2_4_5_6_7_8_9_10_11_12_13_14_15_16_17_18_19_22_23_25_26_27_28_29_y_1_cycle_1_t_5_vl_2_vt_4_blong_0_profs.nc'
     )
 
     rps_input_profs = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/rps_stic_profiles_x_1_15_16_24_28_y_1.nc'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/rps_stic_profiles_x_0_1_2_4_5_6_7_8_9_10_11_12_13_14_15_16_17_18_19_22_23_25_26_27_28_29_y_1.nc'
     )
     
     rps_plot_write_dir = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/Intensity_RPs_Plots/inversions/'
+        '/home/harsh/SpinorNagaraju/maps_1/stic/RPs_plots/inversions_1407/'
     )
 
     finputprofs = h5py.File(rps_input_profs, 'r')
@@ -1179,7 +1179,7 @@ def make_rps_inversion_result_plots(nodes_temp=None, nodes_vlos=None, nodes_vtur
 
     ind = np.where(finputprofs['profiles'][0, 0, 0, :, 0] != 0)[0]
 
-    for i, k in enumerate([1, 15, 16, 24, 28]):
+    for i, k in enumerate([0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 25, 26, 27, 28, 29]):
         print(i)
         plt.close('all')
 
@@ -2460,6 +2460,7 @@ if __name__ == '__main__':
     # plot_rp_map_fov()
     # make_rps_plots()
     # make_halpha_rps_plots()
+    # make_stic_inversion_files(rps=[0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 25, 26, 27, 28, 29])
     # make_stic_inversion_files(rps=[1, 15, 16, 24, 28])
     # make_stic_inversion_files(rps=[3, 9, 10, 13, 20, 21])
     # make_stic_inversion_files(rps=[24])
@@ -2469,6 +2470,7 @@ if __name__ == '__main__':
     # make_stic_inversion_files_halpha_ca_both(rps=[3, 6, 8, 12, 15, 16, 19, 20, 22, 23, 25])
     # make_stic_inversion_files_halpha_ca_both(rps=[21, 24])
     # make_stic_inversion_files_halpha_ca_both(rps=[26, 27])
+    # generate_input_atmos_file(length=26, temp=[[-8, -6, -4, -2, 0, 2], [7000, 5000, 4000, 5000, 7000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [0, 0, 0, 0, 0, 0]], blong=0, name='quiet')
     # generate_input_atmos_file(length=5, temp=[[-8, -6, -4, -2, 0, 2], [7000, 5000, 4000, 5000, 7000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [2e5, 2e5, 2e5, 2e5, 2e5, 2e5]], blong=100, name='emission')
     # generate_input_atmos_file(length=30, temp=[[-8, -6, -4, -2, 0, 2], [9000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [2e5, 2e5, 2e5, 2e5, 2e5, 2e5]], blong=0, name='interesting')
     # generate_input_atmos_file(length=1, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [-10e5, -5e5, -3e3, 1e5, 0, 0]], blong=-450, name='red')
