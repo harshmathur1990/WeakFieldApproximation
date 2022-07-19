@@ -8,6 +8,7 @@ import sunpy.io
 import h5py
 from mpi4py import MPI
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from pathlib import Path
 

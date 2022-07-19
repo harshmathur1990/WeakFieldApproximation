@@ -2455,7 +2455,7 @@ def generate_file_for_rp_response_function():
 
 
 if __name__ == '__main__':
-    # make_rps()
+    make_rps()
     # make_halpha_rps()
     # plot_rp_map_fov()
     # make_rps_plots()
