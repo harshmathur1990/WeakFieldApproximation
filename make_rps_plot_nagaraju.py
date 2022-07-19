@@ -28,12 +28,12 @@ input_halpha_file = Path(
 
 
 kmeans_file = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/intensity_out_30.h5'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/pca_out_30.h5'
 )
 
 
 rps_plot_write_dir = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/Intensity_RPs_Plots/'
+    '/home/harsh/SpinorNagaraju/maps_1/stic/PCA_RPs_Plots/'
 )
 
 falc_file_path = Path(
@@ -528,8 +528,8 @@ def make_rps_plots(name='RPs'):
                             ax1.text(
                                 0.2,
                                 0.6,
-                                'n = {} %'.format(
-                                    np.round(a.size * 100 / labels.size, 2)
+                                'n = {}'.format(
+                                    a.size
                                 ),
                                 transform=ax1.transAxes,
                                 fontsize=8

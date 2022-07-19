@@ -13,23 +13,27 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 
-kmeans_output_dir = '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output_intensity/'
+kmeans_output_dir = '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output_pca/'
 input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
 # input_file = '/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/aligned_Ca_Ha_stic_profiles.nc'
 f = h5py.File(input_file, 'r')
-ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0][171:224]
-framerows = f['profiles'][0, :, :, ind, :][:, :, :, np.array([0])]
-# framerows[:, :, :, 1:] /= framerows[:, :, :, 0][:, :, :, np.newaxis]
-framerows = framerows.reshape(19, 60, ind.size * 1).reshape(19 * 60, ind.size * 1)
+ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
+framerows = f['profiles'][0, :, :, ind, :][:, :, :, np.array([0, 3])]
+framerows[:, :, :, 1:] /= framerows[:, :, :, 0][:, :, :, np.newaxis]
+framerows[:, :, :, 0] /= framerows[:, :, :, 0].max()
+framerows[:, :, :, 0] -= framerows[:, :, :, 0].min()
+framerows[:, :, :, 1] /= np.abs(framerows[:, :, :, 1]).max()
+framerows[:, :, :, 1] -= framerows[:, :, :, 1].min()
+framerows = framerows.reshape(19, 60, ind.size * 2).reshape(19 * 60, ind.size * 2)
 mn = 0  #np.mean(framerows, axis=0)
 sd = 1  #np.std(framerows, axis=0)
-weights = np.ones((ind.size, 1), dtype=np.float64)  # * 0.04 / 225
+weights = np.ones((ind.size, 2), dtype=np.float64)  # * 0.04 / 225
 # line_indices = [[0, 58], [58, 97], [97, 306]]
 # core_indices = [[19, 36], [18, 27], [85, 120]]
 # weights[19:36] = 0.08 / 17
 # weights[58+18:58+27] = 0.08 / 9
 # weights[97+75:97+130] = 0.8 / 55
-weights = weights.reshape(ind.size * 1)
+weights = weights.reshape(ind.size * 2)
 # weights[10:20] = 0.05
 
 
@@ -52,8 +56,8 @@ def do_work(num_clusters):
 
         sys.stdout.write('Process: {} Read from File\n'.format(num_clusters))
 
-        framerows = (framerows - mn) / sd
-        framerows *= weights
+        # framerows = (framerows - mn) / sd
+        # framerows *= weights
 
         model = KMeans(
             n_clusters=num_clusters,
@@ -63,7 +67,12 @@ def do_work(num_clusters):
 
         sys.stdout.write('Process: {} Before KMeans\n'.format(num_clusters))
 
-        model.fit(framerows)
+        pca = PCA()
+
+        nCompsStart = 1
+        nCompsEnd = 30
+
+        model.fit(pca.fit_transform(framerows)[:, nCompsStart:nCompsEnd])
 
         sys.stdout.write('Process: {} Fitted KMeans\n'.format(num_clusters))
 
@@ -78,10 +87,10 @@ def do_work(num_clusters):
         fout['inertia_'] = model.inertia_
         fout['n_iter_'] = model.n_iter_
 
-        rps = np.zeros_like(model.cluster_centers_)
+        rps = np.zeros((num_clusters, ind.size*2), dtype=np.float64)
 
-        framerows /= weights
-        framerows = (framerows * sd) - mn
+        # framerows /= weights
+        # framerows = (framerows * sd) - mn
 
         for i in range(num_clusters):
             a = np.where(model.labels_ == i)
