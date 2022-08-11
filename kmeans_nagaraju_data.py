@@ -176,10 +176,10 @@ def plot_inertia():
     plt.cla()
 
 
-# if __name__ == '__main__':
-#     plot_inertia()
+if __name__ == '__main__':
+    plot_inertia()
 
-
+'''
 if __name__ == '__main__':
 
     comm = MPI.COMM_WORLD
@@ -284,3 +284,4 @@ if __name__ == '__main__':
             status = do_work(item)
 
             comm.send({'status': status, 'item': item}, dest=0, tag=2)
+'''

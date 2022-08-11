@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from pathlib import Path
+from matplotlib.patches import Patch
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from collections import defaultdict
 import queue
@@ -826,7 +827,7 @@ def make_output_param_plots(points, colors_scatter):
 
     _, _, _, _, _, mask = get_fov_data()
 
-    interesting_ltaus = [-5, -3, -1]
+    interesting_ltaus = [-4.5, -3, -1]
 
     ltau_indice = list()
 
@@ -835,7 +836,7 @@ def make_output_param_plots(points, colors_scatter):
 
     ltau_indice = np.array(ltau_indice)
 
-    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/new_fulldata_inversions/')
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
 
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
@@ -1007,7 +1008,7 @@ def make_output_param_plots(points, colors_scatter):
 
     axs[0][0].text(
         0.35, 1.7,
-        r'$\log \tau_{\mathrm{500}}=-5$',
+        r'$\log \tau_{\mathrm{500}}=-4.5$',
         transform=axs[0][0].transAxes,
         fontsize=fontsize
     )
@@ -1028,7 +1029,7 @@ def make_output_param_plots(points, colors_scatter):
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
-    fig.savefig(write_path / 'InversionResults_new.pdf', format='pdf', dpi=300)
+    fig.savefig(write_path / 'InversionResults.pdf', format='pdf', dpi=300)
 
     plt.close('all')
 
@@ -1545,7 +1546,7 @@ def plot_mag_field_compare_new(points, colors_scatter):
 
     magha, magha_p, magha_full_line = a.T, b.T, c.T
 
-    interesting_ltaus = [0, -2, -3, -5]
+    interesting_ltaus = [0, -2, -3, -4.5]
 
     ltau_indice = list()
 
@@ -1556,7 +1557,7 @@ def plot_mag_field_compare_new(points, colors_scatter):
 
     _, _, _, _, _, mask = get_fov_data()
 
-    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/fulldata_inversions/')
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
 
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
@@ -1957,7 +1958,7 @@ def plot_mag_field_compare_new(points, colors_scatter):
     )
     axs[0][2].text(
         0.05, 1.2,
-        r'$\log \tau_{\mathrm{500}}=-5$',
+        r'$\log \tau_{\mathrm{500}}=-4.5$',
         transform=axs[0][2].transAxes,
         fontsize=fontsize
     )
@@ -2070,7 +2071,7 @@ def get_quality_of_fits_data(points):
 
     wave = None
 
-    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/new_fulldata_inversions/')
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
 
     f = h5py.File(base_path / 'combined_output_profs.nc', 'r')
 
@@ -2384,6 +2385,341 @@ def make_forward_synthesis_plots(forward_file, points, colors_scatter, name):
 
     plt.cla()
 
+
+def get_data_for_mean_profile_inversion_plots():
+
+    calib_velocity = 2.72363206e5
+
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
+
+    pore_observed_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_spot_mean_10_34_1_total_1.nc'
+    pore_synth_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_spot_mean_10_34_1_total_1_cycle_1_t_6_vl_2_vt_4_blong_2_profs.nc'
+    pore_atmos_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_spot_mean_10_34_1_total_1_cycle_1_t_6_vl_2_vt_4_blong_2_atmos.nc'
+
+    emission_observed_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_mean_12_40_1_total_1.nc'
+    emission_synth_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_mean_12_40_1_total_1_cycle_1_t_6_vl_4_vt_4_blong_2_profs.nc'
+    emission_atmos_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_mean_12_40_1_total_1_cycle_1_t_6_vl_4_vt_4_blong_2_atmos.nc'
+
+    opposite_polarity_observed_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_mean_8_51_1_total_1.nc'
+    opposite_polarity_synth_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_mean_8_51_1_total_1_cycle_1_t_6_vl_2_vt_4_blong_2_nw_profs.nc'
+    opposite_polarity_atmos_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_mean_8_51_1_total_1_cycle_1_t_6_vl_2_vt_4_blong_2_nw_atmos.nc'
+
+    quiet_atmos_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_mean_13_17_1_total_1_cycle_1_t_6_vl_2_vt_4_blong_2_atmos.nc'
+
+    data_1 = [[], [], []]
+    data_2 = [[], [], []]
+
+    f = h5py.File(pore_observed_file, 'r')
+    ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
+    wave = f['wav'][ind]
+    data_1[0].append(f['profiles'][0, 0, 0, ind, 0])
+    data_1[0].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    f.close()
+
+    f = h5py.File(pore_atmos_file, 'r')
+    ltau = f['ltau500'][0, 0, 0]
+    data_1[0].append(f['temp'][0, 0, 0] / 1e3)
+    data_1[0].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
+    data_1[0].append(f['vturb'][0, 0, 0] / 1e5)
+    data_1[0].append(f['blong'][0, 0, 0] / 1e2)
+    f.close()
+
+    f = h5py.File(emission_observed_file, 'r')
+    data_1[1].append(f['profiles'][0, 0, 0, ind, 0])
+    data_1[1].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    f.close()
+
+    f = h5py.File(emission_atmos_file, 'r')
+    data_1[1].append(f['temp'][0, 0, 0] / 1e3)
+    data_1[1].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
+    data_1[1].append(f['vturb'][0, 0, 0] / 1e5)
+    data_1[1].append(f['blong'][0, 0, 0] / 1e2)
+    f.close()
+
+    f = h5py.File(opposite_polarity_observed_file, 'r')
+    data_1[2].append(f['profiles'][0, 0, 0, ind, 0])
+    data_1[2].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    f.close()
+
+    f = h5py.File(opposite_polarity_atmos_file, 'r')
+    data_1[2].append(f['temp'][0, 0, 0] / 1e3)
+    data_1[2].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
+    data_1[2].append(f['vturb'][0, 0, 0] / 1e5)
+    data_1[2].append(f['blong'][0, 0, 0] / 1e2)
+    f.close()
+
+    f = h5py.File(pore_synth_file, 'r')
+    data_2[0].append(f['profiles'][0, 0, 0, ind, 0])
+    data_2[0].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    f.close()
+
+    f = h5py.File(quiet_atmos_file, 'r')
+    data_2[0].append(f['temp'][0, 0, 0] / 1e3)
+    data_2[0].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
+    data_2[0].append(f['vturb'][0, 0, 0] / 1e5)
+    data_2[0].append(f['blong'][0, 0, 0] / 1e2)
+    f.close()
+
+    f = h5py.File(emission_synth_file, 'r')
+    data_2[1].append(f['profiles'][0, 0, 0, ind, 0])
+    data_2[1].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    f.close()
+
+    f = h5py.File(quiet_atmos_file, 'r')
+    data_2[1].append(f['temp'][0, 0, 0] / 1e3)
+    data_2[1].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
+    data_2[1].append(f['vturb'][0, 0, 0] / 1e5)
+    data_2[1].append(f['blong'][0, 0, 0] / 1e2)
+    f.close()
+
+    f = h5py.File(opposite_polarity_synth_file, 'r')
+    data_2[2].append(f['profiles'][0, 0, 0, ind, 0])
+    data_2[2].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    f.close()
+
+    f = h5py.File(quiet_atmos_file, 'r')
+    data_2[2].append(f['temp'][0, 0, 0] / 1e3)
+    data_2[2].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
+    data_2[2].append(f['vturb'][0, 0, 0] / 1e5)
+    data_2[2].append(f['blong'][0, 0, 0] / 1e2)
+    f.close()
+
+    return wave, ltau, data_1, data_2
+
+
+def mean_profile_inversion_plots():
+    wave, ltau, data_1, data_2 = get_data_for_mean_profile_inversion_plots()
+
+    fontsize = 6
+
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+
+    fig, axs = plt.subplots(3, 6, figsize=(7, 3.5))
+
+    color = 'black'
+    axs[0][0].plot(wave, data_1[0][0], linestyle='dotted', linewidth=0.5, color=color)
+    axs[0][1].plot(wave, data_1[0][1], linestyle='dotted', linewidth=0.5, color=color)
+    axs[0][2].plot(ltau, data_1[0][2], linestyle='-', linewidth=0.5, color=color)
+    axs[0][3].plot(ltau, data_1[0][3], linestyle='-', linewidth=0.5, color=color)
+    axs[0][4].plot(ltau, data_1[0][4], linestyle='-', linewidth=0.5, color=color)
+    axs[0][5].plot(ltau, data_1[0][5], linestyle='-', linewidth=0.5, color=color)
+
+    color = 'darkblue'
+    axs[1][0].plot(wave, data_1[1][0], linestyle='dotted', linewidth=0.5, color=color)
+    axs[1][1].plot(wave, data_1[1][1], linestyle='dotted', linewidth=0.5, color=color)
+    axs[1][2].plot(ltau, data_1[1][2], linestyle='-', linewidth=0.5, color=color)
+    axs[1][3].plot(ltau, data_1[1][3], linestyle='-', linewidth=0.5, color=color)
+    axs[1][4].plot(ltau, data_1[1][4], linestyle='-', linewidth=0.5, color=color)
+    axs[1][5].plot(ltau, data_1[1][5], linestyle='-', linewidth=0.5, color=color)
+
+    color = 'mediumvioletred'
+    axs[2][0].plot(wave, data_1[2][0], linestyle='dotted', linewidth=0.5, color=color)
+    axs[2][1].plot(wave, data_1[2][1], linestyle='dotted', linewidth=0.5, color=color)
+    axs[2][2].plot(ltau, data_1[2][2], linestyle='-', linewidth=0.5, color=color)
+    axs[2][3].plot(ltau, data_1[2][3], linestyle='-', linewidth=0.5, color=color)
+    axs[2][4].plot(ltau, data_1[2][4], linestyle='-', linewidth=0.5, color=color)
+    axs[2][5].plot(ltau, data_1[2][5], linestyle='-', linewidth=0.5, color=color)
+
+    color = 'black'
+    axs[0][0].plot(wave, data_2[0][0], linestyle='-', linewidth=0.5, color=color)
+    axs[0][1].plot(wave, data_2[0][1], linestyle='-', linewidth=0.5, color=color)
+    color = 'gray'
+    axs[0][2].plot(ltau, data_2[0][2], linestyle='-', linewidth=0.5, color=color)
+    axs[0][3].plot(ltau, data_2[0][3], linestyle='-', linewidth=0.5, color=color)
+    axs[0][4].plot(ltau, data_2[0][4], linestyle='-', linewidth=0.5, color=color)
+    axs[0][5].plot(ltau, data_2[0][5], linestyle='-', linewidth=0.5, color=color)
+
+    color = 'darkblue'
+    axs[1][0].plot(wave, data_2[1][0], linestyle='-', linewidth=0.5, color=color)
+    axs[1][1].plot(wave, data_2[1][1], linestyle='-', linewidth=0.5, color=color)
+    color = 'gray'
+    axs[1][2].plot(ltau, data_2[1][2], linestyle='-', linewidth=0.5, color=color)
+    axs[1][3].plot(ltau, data_2[1][3], linestyle='-', linewidth=0.5, color=color)
+    axs[1][4].plot(ltau, data_2[1][4], linestyle='-', linewidth=0.5, color=color)
+    axs[1][5].plot(ltau, data_2[1][5], linestyle='-', linewidth=0.5, color=color)
+
+    color = 'mediumvioletred'
+    axs[2][0].plot(wave, data_2[2][0], linestyle='-', linewidth=0.5, color=color)
+    axs[2][1].plot(wave, data_2[2][1], linestyle='-', linewidth=0.5, color=color)
+    color = 'gray'
+    axs[2][2].plot(ltau, data_2[2][2], linestyle='-', linewidth=0.5, color=color)
+    axs[2][3].plot(ltau, data_2[2][3], linestyle='-', linewidth=0.5, color=color)
+    axs[2][4].plot(ltau, data_2[2][4], linestyle='-', linewidth=0.5, color=color)
+    axs[2][5].plot(ltau, data_2[2][5], linestyle='-', linewidth=0.5, color=color)
+
+    axs[0][0].set_ylim(0.1, 1)
+    axs[1][0].set_ylim(0.1, 1)
+    axs[2][0].set_ylim(0.1, 1)
+
+    axs[0][0].set_yticks([0.2, 0.4, 0.6, 0.8])
+    axs[0][0].set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=fontsize)
+    axs[1][0].set_yticks([0.2, 0.4, 0.6, 0.8])
+    axs[1][0].set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=fontsize)
+    axs[2][0].set_yticks([0.2, 0.4, 0.6, 0.8])
+    axs[2][0].set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=fontsize)
+
+    ymax = 1.1 * max(
+        np.abs(data_1[0][1]).max(),
+        np.abs(data_2[0][1]).max()
+    )
+    axs[0][1].set_ylim(-ymax, ymax)
+    yticks = [-np.round(ymax * 2 / 3, 1), -np.round(ymax * 1 / 3, 1), 0, np.round(ymax * 1 / 3, 1), np.round(ymax * 2 / 3, 1)]
+    axs[0][1].set_yticks(yticks)
+    axs[0][1].set_yticklabels(yticks, fontsize=fontsize)
+
+    ymax = 1.1 * max(
+        np.abs(data_1[1][1]).max(),
+        np.abs(data_2[1][1]).max()
+    )
+    axs[1][1].set_ylim(-ymax, ymax)
+    yticks = [-np.round(ymax * 2 / 3, 1), -np.round(ymax * 1 / 3, 1), 0, np.round(ymax * 1 / 3, 1),
+              np.round(ymax * 2 / 3, 1)]
+    axs[1][1].set_yticks(yticks)
+    axs[1][1].set_yticklabels(yticks, fontsize=fontsize)
+
+    ymax = 1.1 * max(
+        np.abs(data_1[2][1]).max(),
+        np.abs(data_2[2][1]).max()
+    )
+    axs[2][1].set_ylim(-ymax, ymax)
+    yticks = [-np.round(ymax * 2 / 3, 1), -np.round(ymax * 1 / 3, 1), 0, np.round(ymax * 1 / 3, 1),
+              np.round(ymax * 2 / 3, 1)]
+    axs[2][1].set_yticks(yticks)
+    axs[2][1].set_yticklabels(yticks, fontsize=fontsize)
+
+    yticks = [4, 6, 8, 10, 12]
+    axs[0][2].set_ylim(3.5, 14)
+    axs[1][2].set_ylim(3.5, 14)
+    axs[2][2].set_ylim(3.5, 14)
+    axs[0][2].set_yticks(yticks)
+    axs[1][2].set_yticks(yticks)
+    axs[2][2].set_yticks(yticks)
+    axs[0][2].set_yticklabels(yticks, fontsize=fontsize)
+    axs[1][2].set_yticklabels(yticks, fontsize=fontsize)
+    axs[2][2].set_yticklabels(yticks, fontsize=fontsize)
+
+    axs[0][3].tick_params(axis='y', labelsize=fontsize)
+    axs[1][3].tick_params(axis='y', labelsize=fontsize)
+    axs[2][3].tick_params(axis='y', labelsize=fontsize)
+
+    axs[0][4].tick_params(axis='y', labelsize=fontsize)
+    axs[1][4].tick_params(axis='y', labelsize=fontsize)
+    axs[2][4].tick_params(axis='y', labelsize=fontsize)
+
+    axs[0][5].tick_params(axis='y', labelsize=fontsize)
+    axs[1][5].tick_params(axis='y', labelsize=fontsize)
+    axs[2][5].tick_params(axis='y', labelsize=fontsize)
+
+    xticks = np.array([8536, 8538, 8540, 8540, 8542, 8544])
+    axs[0][0].set_xticks(xticks)
+    axs[0][1].set_xticks(xticks)
+    axs[1][0].set_xticks(xticks)
+    axs[1][1].set_xticks(xticks)
+    axs[2][0].set_xticks(xticks)
+    axs[2][1].set_xticks(xticks)
+    axs[0][0].set_xticklabels([])
+    axs[0][1].set_xticklabels([])
+    axs[1][0].set_xticklabels([])
+    axs[1][1].set_xticklabels([])
+    axs[2][0].set_xticklabels(xticks - 8530, fontsize=fontsize)
+    axs[2][1].set_xticklabels(xticks - 8530, fontsize=fontsize)
+
+    xticks = np.array([-6, -4, -2, 0])
+    axs[0][2].set_xticks(xticks)
+    axs[0][3].set_xticks(xticks)
+    axs[0][4].set_xticks(xticks)
+    axs[0][5].set_xticks(xticks)
+    axs[1][2].set_xticks(xticks)
+    axs[1][3].set_xticks(xticks)
+    axs[1][4].set_xticks(xticks)
+    axs[1][5].set_xticks(xticks)
+    axs[2][2].set_xticks(xticks)
+    axs[2][3].set_xticks(xticks)
+    axs[2][4].set_xticks(xticks)
+    axs[2][5].set_xticks(xticks)
+    axs[0][2].set_xticklabels([])
+    axs[0][3].set_xticklabels([])
+    axs[0][4].set_xticklabels([])
+    axs[0][5].set_xticklabels([])
+    axs[1][2].set_xticklabels([])
+    axs[1][3].set_xticklabels([])
+    axs[1][4].set_xticklabels([])
+    axs[1][5].set_xticklabels([])
+    axs[2][2].set_xticklabels(xticks, fontsize=fontsize)
+    axs[2][3].set_xticklabels(xticks, fontsize=fontsize)
+    axs[2][4].set_xticklabels(xticks, fontsize=fontsize)
+    axs[2][5].set_xticklabels(xticks, fontsize=fontsize)
+
+    axs[2][0].set_xlabel(r'$\Delta\lambda$ ($\lambda$ - 8530) [$\mathrm{\AA}$]', fontsize=fontsize)
+    axs[2][1].set_xlabel(r'$\Delta\lambda$ ($\lambda$ - 8530) [$\mathrm{\AA}$]', fontsize=fontsize)
+    axs[2][2].set_xlabel(r'$\log \tau_{500}$', fontsize=fontsize)
+    axs[2][3].set_xlabel(r'$\log \tau_{500}$', fontsize=fontsize)
+    axs[2][4].set_xlabel(r'$\log \tau_{500}$', fontsize=fontsize)
+    axs[2][5].set_xlabel(r'$\log \tau_{500}$', fontsize=fontsize)
+
+    axs[0][0].set_title(r'$I/I_{\mathrm{c}}$', fontsize=fontsize)
+    # axs[1][0].set_ylabel(r'$I/I_{\mathrm{c}}$', fontsize=fontsize)
+    # axs[2][0].set_ylabel(r'$I/I_{\mathrm{c}}$', fontsize=fontsize)
+
+    axs[0][1].set_title(r'$V/I$ [%]', fontsize=fontsize)
+    # axs[1][1].set_ylabel(r'$V/I$ [%]', fontsize=fontsize)
+    # axs[2][1].set_ylabel(r'$V/I$ [%]', fontsize=fontsize)
+
+    axs[0][2].set_title('T [kK]', fontsize=fontsize)
+    # axs[1][2].set_ylabel('T [kK]', fontsize=fontsize)
+    # axs[2][2].set_ylabel('T [kK]', fontsize=fontsize)
+
+    axs[0][3].set_title(r'$V_{\mathrm{LOS}}$ $\mathrm{[km\;s^{-1}]}$', fontsize=fontsize)
+    # axs[1][3].set_ylabel(r'$V_{\mathrm{LOS}}$ $\mathrm{[km\;s^{-1}]}$', fontsize=fontsize)
+    # axs[2][3].set_ylabel(r'$V_{\mathrm{LOS}}$ $\mathrm{[km\;s^{-1}]}$', fontsize=fontsize)
+
+    axs[0][4].set_title(r'$V_{\mathrm{turb}}$ $\mathrm{[km\;s^{-1}]}$', fontsize=fontsize)
+    # axs[1][4].set_ylabel(r'$V_{\mathrm{turb}}$ $\mathrm{[km\;s^{-1}]}$', fontsize=fontsize)
+    # axs[2][4].set_ylabel(r'$V_{\mathrm{turb}}$ $\mathrm{[km\;s^{-1}]}$', fontsize=fontsize)
+
+    axs[0][5].set_title(r'$B_{\mathrm{LOS}}$ [x 100 G]', fontsize=fontsize)
+    # axs[1][5].set_ylabel(r'$B_{\mathrm{LOS}}$ [G]', fontsize=fontsize)
+    # axs[2][5].set_ylabel(r'$B_{\mathrm{LOS}}$ [G]', fontsize=fontsize)
+
+    plt.subplots_adjust(left=0.04, bottom=0.12, right=0.99, top=0.94, wspace=0.4, hspace=0.2)
+
+    write_path = Path('/home/harsh/Spinor Paper/')
+
+    fig.savefig(write_path / 'mean_profile_inversions.pdf', format='pdf', dpi=300)
+
+def make_legend(fontsize=6):
+    color = ['black', 'darkblue', 'mediumvioletred', 'gray']
+    label_list = ['pore', 'microflare', 'opposite polarity', 'median profile']
+
+    handles = [Patch(color=c, label=l) for l, c in zip(label_list, color)]
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+
+    fig = plt.figure(figsize=(7, 3.5))
+    legend = plt.legend(
+        handles,
+        label_list,
+        ncol=4,
+        bbox_to_anchor=(0., 1.02, 1., .102),
+        loc='lower left',
+        mode="expand",
+        borderaxespad=0.,
+        fontsize=fontsize
+    )
+    fig.canvas.draw()
+    bbox = legend.get_window_extent().padded(2)
+    bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
+
+    write_path = Path('/home/harsh/Spinor Paper/')
+    fig.savefig(write_path / 'legends_{}.pdf'.format(fontsize), dpi=300, transparent=True, bbox_inches=bbox)
+
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+
 if __name__ == '__main__':
     # points = [
     #     (12, 49),
@@ -2422,22 +2758,6 @@ if __name__ == '__main__':
     # plot_stokes_parameters(8, points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors)
     # plot_profiles()
-    # points = [
-    #     (12, 49),
-    #     (12, 40),
-    #     (12, 34),
-    #     (12, 31),
-    #     (12, 18),
-    #     (8, 53),
-    #     (8, 50),
-    #     (8, 37),
-    #     (8, 31),
-    #     (8, 9),
-    # ]
-    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # make_output_param_plots(points, colors)
-    # plot_mag_field_compare()
-    # plot_mag_field_compare_new(points, colors)
     points = [
         (12, 49),
         (12, 40),
@@ -2451,8 +2771,26 @@ if __name__ == '__main__':
         (8, 9),
     ]
     colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    make_quality_of_fits(points, colors)
+    make_output_param_plots(points, colors)
+    # plot_mag_field_compare()
+    plot_mag_field_compare_new(points, colors)
+    # points = [
+    #     (12, 49),
+    #     (12, 40),
+    #     (12, 34),
+    #     (12, 31),
+    #     (12, 18),
+    #     (8, 53),
+    #     (8, 50),
+    #     (8, 37),
+    #     (8, 31),
+    #     (8, 9),
+    # ]
+    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    # make_quality_of_fits(points, colors)
     # make_atmos_for_response_functions(points)
+    mean_profile_inversion_plots()
+    # make_legend()
     # points = [
     #     (12, 49),
     #     (12, 40),
