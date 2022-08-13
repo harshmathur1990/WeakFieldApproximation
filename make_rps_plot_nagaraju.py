@@ -2421,15 +2421,15 @@ def merge_atmospheres():
         base_path / 'pixel_indices_quiet_retry_total_77.h5',
         base_path / 'pixel_indices_opposite_polarity_total_67.h5',
         base_path / 'pixel_indices_emission_total_110.h5',
-        base_path / 'pixel_indices_emission_retry_total_12.h5'
+        # base_path / 'pixel_indices_emission_retry_total_12.h5'
     ]
 
     atmos_files = [
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_total_843_cycle_1_t_6_vl_2_vt_4_blong_2_atmos.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_retry_total_77_cycle_1_t_6_vl_2_vt_4_blong_2_atmos.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_total_67_cycle_1_t_6_vl_2_vt_4_blong_2_nw_atmos.nc',
-        base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_total_110_cycle_1_t_6_vl_4_vt_4_blong_2_atmos.nc',
-        base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_retry_total_12_cycle_1_t_6_vl_4_vt_4_blong_2_atmos.nc',
+        base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_total_110_cycle_1_t_6_vl_4_vt_4_blong_2_nw_atmos.nc',
+        # base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_retry_total_12_cycle_1_t_6_vl_4_vt_4_blong_2_atmos.nc',
     ]
 
     keys = [
@@ -2470,15 +2470,15 @@ def merge_output_profiles():
         base_path / 'pixel_indices_quiet_retry_total_77.h5',
         base_path / 'pixel_indices_opposite_polarity_total_67.h5',
         base_path / 'pixel_indices_emission_total_110.h5',
-        base_path / 'pixel_indices_emission_retry_total_12.h5'
+        # base_path / 'pixel_indices_emission_retry_total_12.h5'
     ]
 
     atmos_files = [
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_total_843_cycle_1_t_6_vl_2_vt_4_blong_2_profs.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_retry_total_77_cycle_1_t_6_vl_2_vt_4_blong_2_profs.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_total_67_cycle_1_t_6_vl_2_vt_4_blong_2_nw_profs.nc',
-        base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_total_110_cycle_1_t_6_vl_4_vt_4_blong_2_profs.nc',
-        base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_retry_total_12_cycle_1_t_6_vl_4_vt_4_blong_2_profs.nc'
+        base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_total_110_cycle_1_t_6_vl_4_vt_4_blong_2_nw_profs.nc',
+        # base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_retry_total_12_cycle_1_t_6_vl_4_vt_4_blong_2_profs.nc'
     ]
 
     keys = [
@@ -2949,7 +2949,7 @@ if __name__ == '__main__':
     # make_emission_retry_retry(indices=np.array([17, 19]))
     # generate_actual_inversion_files_quiet()
     # generate_actual_inversion_files_median_profile()
-    generate_actual_inversion_files_emission()
+    # generate_actual_inversion_files_emission()
     # generate_actual_inversion_files_opposite_polarity()
     # generate_init_atmos_from_previous_result()
     # generate_actual_inversion_files_spot()
@@ -2958,8 +2958,8 @@ if __name__ == '__main__':
     # generate_mean_files_for_inversions_from_coordinates(12, 40, 1, 'emission')
     # generate_mean_files_for_inversions_from_coordinates(13, 17, 1, 'quiet')
     # generate_mean_files_for_inversions_from_coordinates(10, 34, 1, 'spot')
-    # merge_atmospheres()
-    # merge_output_profiles()
+    merge_atmospheres()
+    merge_output_profiles()
     # generate_actual_inversion_pixels((np.array([12, 12]), np.array([49, 31])))
     # generate_actual_inversion_pixels((np.array([12]), np.array([40])))
     # generate_input_atmos_file(length=2, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [-10e5, -5e5, -3e3, 1e5, 0, 0]], blong=-200, name='red')
