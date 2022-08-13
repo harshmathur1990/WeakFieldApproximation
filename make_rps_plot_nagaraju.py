@@ -2181,13 +2181,17 @@ def generate_actual_inversion_files_emission():
     for line_indice, core_indice in zip(line_indices, core_indices):
         ca_8.weights[ic8[line_indice[0]+core_indice[0]:line_indice[0]+core_indice[1]], 0] = 0.002
 
-    ca_8.weights[ic8[97 + 85:97 + 120], 0] /= 2
+    ca_8.weights[ic8[line_indices[2][0] + core_indices[2][0]:line_indices[2][0] + core_indices[2][1]], 0] /= 2
 
     ca_8.weights[ic8, 3] = ca_8.weights[ic8, 0]
 
     ca_8.weights[ic8, 3] /= 2
 
-    ca_8.weights[ic8[97 + 85:97 + 120], 3] /= 2
+    ca_8.weights[ic8[line_indices[0][0] + core_indices[0][0]:line_indices[0][0] + core_indices[0][1]], 3] /= 4
+
+    ca_8.weights[ic8[line_indices[1][0] + core_indices[1][0]:line_indices[1][0] + core_indices[1][1]], 3] /= 4
+
+    ca_8.weights[ic8[line_indices[2][0] + core_indices[2][0]:line_indices[2][0] + core_indices[2][1]], 3] /= 2
 
     ca_8.write(
         write_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_total_{}.nc'.format(rp_final.size)
@@ -2199,7 +2203,7 @@ def generate_actual_inversion_files_emission():
 
     m.pgas[:, :, :] = 1.0
 
-    fold = h5py.File('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/old/combined_output.nc', 'r')
+    fold = h5py.File('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/combined_output.nc', 'r')
 
     m.temp[0, 0] = fold['temp'][()][0, a_arr, b_arr]
 
@@ -2324,7 +2328,6 @@ def generate_actual_inversion_files_opposite_polarity():
 
     ca_8.weights[ic8, 3] /= 2
 
-    # ca_8.weights[ic8[97 + 85:97 + 120], 3] /= 2
     ca_8.weights[ic8[line_indices[0][0]+core_indices[0][0]:line_indices[0][0]+core_indices[0][1]], 3] /= 4
 
     ca_8.weights[ic8[line_indices[1][0]+core_indices[1][0]:line_indices[1][0]+core_indices[1][1]], 3] /= 4
@@ -2946,16 +2949,16 @@ if __name__ == '__main__':
     # make_emission_retry_retry(indices=np.array([17, 19]))
     # generate_actual_inversion_files_quiet()
     # generate_actual_inversion_files_median_profile()
-    # generate_actual_inversion_files_emission()
+    generate_actual_inversion_files_emission()
     # generate_actual_inversion_files_opposite_polarity()
     # generate_init_atmos_from_previous_result()
     # generate_actual_inversion_files_spot()
     # generate_actual_inversion_files_mean()
-    generate_mean_files_for_inversions_from_coordinates(8, 51, 1, 'opposite_polarity')
+    # generate_mean_files_for_inversions_from_coordinates(8, 51, 1, 'opposite_polarity')
     # generate_mean_files_for_inversions_from_coordinates(12, 40, 1, 'emission')
     # generate_mean_files_for_inversions_from_coordinates(13, 17, 1, 'quiet')
     # generate_mean_files_for_inversions_from_coordinates(10, 34, 1, 'spot')
-    merge_atmospheres()
+    # merge_atmospheres()
     # merge_output_profiles()
     # generate_actual_inversion_pixels((np.array([12, 12]), np.array([49, 31])))
     # generate_actual_inversion_pixels((np.array([12]), np.array([40])))

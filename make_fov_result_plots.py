@@ -2687,6 +2687,8 @@ def mean_profile_inversion_plots():
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
+    plt.show()
+
     fig.savefig(write_path / 'mean_profile_inversions.pdf', format='pdf', dpi=300)
 
 def make_legend(fontsize=6):
