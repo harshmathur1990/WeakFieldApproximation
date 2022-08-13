@@ -1948,13 +1948,17 @@ def generate_actual_inversion_files_quiet():
     for line_indice, core_indice in zip(line_indices, core_indices):
         ca_8.weights[ic8[line_indice[0]+core_indice[0]:line_indice[0]+core_indice[1]], 0] = 0.002
 
-    ca_8.weights[ic8[97 + 85:97 + 120], 0] /= 2
+    ca_8.weights[ic8[line_indices[2][0] + core_indices[2][0]:line_indices[2][0] + core_indices[2][1]], 0] /= 2
 
     ca_8.weights[ic8, 3] = ca_8.weights[ic8, 0]
 
     ca_8.weights[ic8, 3] /= 2
 
-    ca_8.weights[ic8[97 + 85:97 + 120], 3] /= 2
+    ca_8.weights[ic8[line_indices[0][0] + core_indices[0][0]:line_indices[0][0] + core_indices[0][1]], 3] /= 4
+
+    ca_8.weights[ic8[line_indices[1][0] + core_indices[1][0]:line_indices[1][0] + core_indices[1][1]], 3] /= 4
+
+    ca_8.weights[ic8[line_indices[2][0] + core_indices[2][0]:line_indices[2][0] + core_indices[2][1]], 3] /= 2
 
     ca_8.write(
         write_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_total_{}.nc'.format(rp_final.size)
@@ -1966,7 +1970,7 @@ def generate_actual_inversion_files_quiet():
 
     m.pgas[:, :, :] = 1.0
 
-    fold = h5py.File('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/old/combined_output.nc', 'r')
+    fold = h5py.File('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/combined_output.nc', 'r')
 
     m.temp[0, 0] = fold['temp'][()][0, a_arr, b_arr]
 
@@ -2421,7 +2425,6 @@ def merge_atmospheres():
         base_path / 'pixel_indices_quiet_retry_total_77.h5',
         base_path / 'pixel_indices_opposite_polarity_total_67.h5',
         base_path / 'pixel_indices_emission_total_110.h5',
-        # base_path / 'pixel_indices_emission_retry_total_12.h5'
     ]
 
     atmos_files = [
@@ -2429,7 +2432,6 @@ def merge_atmospheres():
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_retry_total_77_cycle_1_t_6_vl_2_vt_4_blong_2_atmos.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_total_67_cycle_1_t_6_vl_2_vt_4_blong_2_nw_atmos.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_total_110_cycle_1_t_6_vl_4_vt_4_blong_2_nw_atmos.nc',
-        # base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_retry_total_12_cycle_1_t_6_vl_4_vt_4_blong_2_atmos.nc',
     ]
 
     keys = [
@@ -2470,7 +2472,6 @@ def merge_output_profiles():
         base_path / 'pixel_indices_quiet_retry_total_77.h5',
         base_path / 'pixel_indices_opposite_polarity_total_67.h5',
         base_path / 'pixel_indices_emission_total_110.h5',
-        # base_path / 'pixel_indices_emission_retry_total_12.h5'
     ]
 
     atmos_files = [
@@ -2478,7 +2479,6 @@ def merge_output_profiles():
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_retry_total_77_cycle_1_t_6_vl_2_vt_4_blong_2_profs.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_total_67_cycle_1_t_6_vl_2_vt_4_blong_2_nw_profs.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_total_110_cycle_1_t_6_vl_4_vt_4_blong_2_nw_profs.nc',
-        # base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_retry_total_12_cycle_1_t_6_vl_4_vt_4_blong_2_profs.nc'
     ]
 
     keys = [
@@ -2614,13 +2614,17 @@ def make_quiet_retry(indices):
     for line_indice, core_indice in zip(line_indices, core_indices):
         ca_8.weights[ic8[line_indice[0] + core_indice[0]:line_indice[0] + core_indice[1]], 0] = 0.002
 
-    ca_8.weights[ic8[97 + 85:97 + 120], 0] /= 2
+    ca_8.weights[ic8[line_indices[2][0] + core_indices[2][0]:line_indices[2][0] + core_indices[2][1]], 0] /= 2
 
     ca_8.weights[ic8, 3] = ca_8.weights[ic8, 0]
 
     ca_8.weights[ic8, 3] /= 2
 
-    ca_8.weights[ic8[97 + 85:97 + 120], 3] /= 2
+    ca_8.weights[ic8[line_indices[0][0] + core_indices[0][0]:line_indices[0][0] + core_indices[0][1]], 3] /= 4
+
+    ca_8.weights[ic8[line_indices[1][0] + core_indices[1][0]:line_indices[1][0] + core_indices[1][1]], 3] /= 4
+
+    ca_8.weights[ic8[line_indices[2][0] + core_indices[2][0]:line_indices[2][0] + core_indices[2][1]], 3] /= 2
 
     ca_8.write(
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_retry_total_{}.nc'.format(indices.size)
@@ -2628,7 +2632,7 @@ def make_quiet_retry(indices):
 
     f.close()
 
-    old_atmos_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_total_843_cycle_1_t_6_vl_2_vt_4_blong_2_atmos.nc'
+    old_atmos_file = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_total_843_cycle_1_t_6_vl_2_vt_4_blong_2_nw_atmos.nc'
 
     f = h5py.File(old_atmos_file, 'r')
 
@@ -2945,6 +2949,14 @@ if __name__ == '__main__':
     #    386, 397, 422, 442, 452, 469, 472, 498, 510, 512, 535, 541, 550,
     #    555, 584, 590, 603, 621, 627, 636, 663, 681, 695, 698, 708, 718,
     #    719, 726, 730, 736, 772, 773, 794, 798, 811, 816, 827, 830]))
+    # make_quiet_retry(
+    #     indices=np.array(
+    #         [6,  48,  50,  60,  66,  68,  77, 102, 104, 139, 143, 144, 147,
+    #     166, 171, 194, 199, 204, 209, 211, 227, 234, 247, 260, 291, 309,
+    #     310, 330, 344, 375, 378, 383, 384, 386, 401, 418, 424, 447, 454,
+    #     469, 470, 472, 487, 498, 584, 612, 627, 658, 703, 775]
+    #     )
+    # )
     # make_emission_retry(indices=np.array([ 4, 21, 22, 24, 25, 29, 50, 51, 62, 91, 92, 95]))
     # make_emission_retry_retry(indices=np.array([17, 19]))
     # generate_actual_inversion_files_quiet()
