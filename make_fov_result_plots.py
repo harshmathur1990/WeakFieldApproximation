@@ -234,12 +234,12 @@ def make_fov_plots(points, colors_scatter):
     for i in range(4):
         for j in range(2):
             if i == 2:
-                if j == 0:
-                    vmin = -700
-                    vmax = 700
-                else:
-                    vmin = -600
-                    vmax = 600
+                maxval = np.abs(data[i][j]).max()
+                limval = (maxval // 100) * 100 + 100
+                vmin = -limval
+                vmax = limval
+
+                print(limval)
 
                 gh = axs[i][j].imshow(data[i][j], cmap=cmap1, origin='lower', vmin=vmin, vmax=vmax, aspect='equal')
                 if j == 0:
@@ -336,7 +336,7 @@ def make_fov_plots(points, colors_scatter):
     cbar = fig.colorbar(
         im20,
         cax=cbaxes,
-        ticks=[-600, 0, 600],
+        ticks=[-700, 0, 700],
         orientation='vertical'
     )
 
@@ -355,7 +355,7 @@ def make_fov_plots(points, colors_scatter):
     cbar = fig.colorbar(
         im21,
         cax=cbaxes,
-        ticks=[-400, 0, 400],
+        ticks=[-500, 0, 500],
         orientation='vertical'
     )
 
@@ -2720,6 +2720,111 @@ def make_legend(fontsize=6):
     plt.clf()
     plt.cla()
 
+
+def make_mag_field_scatter_plots():
+    fontsize = 8
+
+    a, b, c = get_wfanew_alternate()
+
+    magha, magha_p, magha_full_line = a.T, b.T, c.T
+
+    interesting_ltaus = [-2, -4.5]
+
+    ltau_indice = list()
+
+    for interesting_ltau in interesting_ltaus:
+        ltau_indice.append(np.argmin(np.abs(ltau500 - interesting_ltau)))
+
+    ltau_indice = np.array(ltau_indice)
+
+    _, _, _, _, _, mask = get_fov_data()
+
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
+
+    f = h5py.File(base_path / 'combined_output.nc', 'r')
+
+    a0 = f['blong'][0, 0:17, :, ltau_indice[0]].T
+    a1 = f['blong'][0, 0:17, :, ltau_indice[1]].T
+
+    f.close()
+
+    fontsize = 8
+
+    fig, axs = plt.subplots(2, 2, figsize=(7, 3.5))
+
+    a, b = np.where(a0 >= 0)
+    c, d = np.where(a0 < 0)
+
+    axs[0][0].scatter(np.abs(a0[c, d]), np.abs(a1[c, d]), s=1, color='royalblue')
+    axs[0][0].scatter(np.abs(a0[a, b]), np.abs(a1[a, b]), s=1, color='red')
+
+    maxval = np.abs(a0).max().astype(np.int64) + 1
+    axs[0][0].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
+
+    axs[0][1].scatter(np.abs(a1[c, d]), np.abs(magha[c, d]), s=1, color='royalblue')
+    axs[0][1].scatter(np.abs(a1[a, b]), np.abs(magha[a, b]), s=1, color='red')
+    maxval = np.abs(a1).max().astype(np.int64) + 1
+    axs[0][1].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
+
+    axs[1][0].scatter(np.abs(a0[c, d]), np.abs(magha_p[c, d]), s=1, color='royalblue')
+    axs[1][0].scatter(np.abs(a0[a, b]), np.abs(magha_p[a, b]), s=1, color='red')
+    maxval = np.abs(a0).max().astype(np.int64) + 1
+    axs[1][0].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
+
+    axs[1][1].scatter(np.abs(a0[c, d]), np.abs(magha_full_line[c, d]), s=1, color='royalblue')
+    axs[1][1].scatter(np.abs(a0[a, b]), np.abs(magha_full_line[a, b]), s=1, color='red')
+    maxval = np.abs(a0).max().astype(np.int64) + 1
+    axs[1][1].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
+
+    for i in range(2):
+        for j in range(2):
+            axs[i][j].tick_params(axis='x', labelsize=fontsize)
+            axs[i][j].tick_params(axis='y', labelsize=fontsize)
+            axs[i][j].xaxis.set_minor_locator(MultipleLocator(50))
+            axs[i][j].yaxis.set_minor_locator(MultipleLocator(50))
+
+    axs[0][0].set_xlabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$2) [G]', fontsize=fontsize)
+    axs[0][1].set_xlabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$4.5) [G]', fontsize=fontsize)
+    axs[1][0].set_xlabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$2) [G]', fontsize=fontsize)
+    axs[1][1].set_xlabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$2) [G]', fontsize=fontsize)
+    axs[0][0].set_ylabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$4.5) [G]', fontsize=fontsize)
+    axs[0][1].set_ylabel(r'$B_{\mathrm{LOS}}$ WFA (H$\alpha$ core) [G]', fontsize=fontsize)
+    axs[1][0].set_ylabel(r'$B_{\mathrm{LOS}}$ WFA (H$\alpha$ wing) [G]', fontsize=fontsize)
+    axs[1][1].set_ylabel(r'$B_{\mathrm{LOS}}$ WFA (H$\alpha\pm1.5\AA$) [G]', fontsize=fontsize)
+
+    axs[0][0].text(
+        0.05, 0.85,
+        '(a)',
+        transform=axs[0][0].transAxes,
+        fontsize=fontsize
+    )
+
+    axs[0][1].text(
+        0.05, 0.85,
+        '(b)',
+        transform=axs[0][1].transAxes,
+        fontsize=fontsize
+    )
+
+    axs[1][0].text(
+        0.05, 0.85,
+        '(c)',
+        transform=axs[1][0].transAxes,
+        fontsize=fontsize
+    )
+
+    axs[1][1].text(
+        0.05, 0.85,
+        '(d)',
+        transform=axs[1][1].transAxes,
+        fontsize=fontsize
+    )
+    plt.subplots_adjust(left=0.08, bottom=0.12, right=0.99, top=0.99, wspace=0.25, hspace=0.35)
+
+    write_path = Path('/home/harsh/Spinor Paper/')
+    fig.savefig(write_path / 'MagScatter.pdf', format='pdf', dpi=300)
+
+
 if __name__ == '__main__':
     # points = [
     #     (12, 49),
@@ -2771,9 +2876,10 @@ if __name__ == '__main__':
         (8, 9),
     ]
     colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    make_output_param_plots(points, colors)
+    # make_output_param_plots(points, colors)
     # plot_mag_field_compare()
     plot_mag_field_compare_new(points, colors)
+    # make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),
@@ -2789,7 +2895,7 @@ if __name__ == '__main__':
     # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
     # make_quality_of_fits(points, colors)
     # make_atmos_for_response_functions(points)
-    mean_profile_inversion_plots()
+    # mean_profile_inversion_plots()
     # make_legend()
     # points = [
     #     (12, 49),
