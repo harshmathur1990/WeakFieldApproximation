@@ -2878,10 +2878,10 @@ if __name__ == '__main__':
         (8, 9),
     ]
     colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # make_output_param_plots(points, colors)
+    make_output_param_plots(points, colors)
     # plot_mag_field_compare()
     plot_mag_field_compare_new(points, colors)
-    # make_mag_field_scatter_plots()
+    make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),
