@@ -2785,14 +2785,14 @@ def make_mag_field_scatter_plots():
             axs[i][j].xaxis.set_minor_locator(MultipleLocator(50))
             axs[i][j].yaxis.set_minor_locator(MultipleLocator(50))
 
-    axs[0][0].set_xlabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$2) [G]', fontsize=fontsize)
-    axs[0][1].set_xlabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$4.5) [G]', fontsize=fontsize)
-    axs[1][0].set_xlabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$2) [G]', fontsize=fontsize)
-    axs[1][1].set_xlabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$2) [G]', fontsize=fontsize)
-    axs[0][0].set_ylabel(r'$B_{\mathrm{LOS}}$ ($\log \tau_{500}$=$-$4.5) [G]', fontsize=fontsize)
-    axs[0][1].set_ylabel(r'$B_{\mathrm{LOS}}$ WFA (H$\alpha$ core) [G]', fontsize=fontsize)
-    axs[1][0].set_ylabel(r'$B_{\mathrm{LOS}}$ WFA (H$\alpha$ wing) [G]', fontsize=fontsize)
-    axs[1][1].set_ylabel(r'$B_{\mathrm{LOS}}$ WFA (H$\alpha\pm1.5\AA$) [G]', fontsize=fontsize)
+    axs[0][0].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$2) [G]', fontsize=fontsize)
+    axs[0][1].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$4.5) [G]', fontsize=fontsize)
+    axs[1][0].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$2) [G]', fontsize=fontsize)
+    axs[1][1].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$2) [G]', fontsize=fontsize)
+    axs[0][0].set_ylabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$4.5) [G]', fontsize=fontsize)
+    axs[0][1].set_ylabel(r'$|B_{\mathrm{LOS}}|$ WFA (H$\alpha$ core) [G]', fontsize=fontsize)
+    axs[1][0].set_ylabel(r'$|B_{\mathrm{LOS}}|$ WFA (H$\alpha$ wing) [G]', fontsize=fontsize)
+    axs[1][1].set_ylabel(r'$|B_{\mathrm{LOS}}|$ WFA (H$\alpha\pm1.5\AA$) [G]', fontsize=fontsize)
 
     axs[0][0].text(
         0.05, 0.85,
@@ -2821,7 +2821,7 @@ def make_mag_field_scatter_plots():
         transform=axs[1][1].transAxes,
         fontsize=fontsize
     )
-    plt.subplots_adjust(left=0.08, bottom=0.12, right=0.99, top=0.99, wspace=0.25, hspace=0.35)
+    plt.subplots_adjust(left=0.08, bottom=0.12, right=0.99, top=0.95, wspace=0.25, hspace=0.35)
 
     write_path = Path('/home/harsh/Spinor Paper/')
     fig.savefig(write_path / 'MagScatter.pdf', format='pdf', dpi=300)

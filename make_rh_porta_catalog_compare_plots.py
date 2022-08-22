@@ -178,7 +178,7 @@ if __name__ == '__main__':
             # ('H_FALC_profs_3x3.h5', 1, 1, 'output_falc.txt', 'FALC 3x3 PORTA'),
             # ('H_FALC_21_21_profs.h5', 10, 10, 'output_falc.txt', 'FALC 21x21 PORTA'),
             # ('H_FALC_61_61_profs.h5', 30, 30, 'output_falc.txt', 'FALC 61x61 PORTA'),
-            ('H_Bifrost_180_60_61_3_profs.h5', 30, 30, 'wave_ha.txt', 'Bifrost 61x61 PORTA')
+            ('combined_output_profs.h5', 100, 100, 'wave_ha.txt', 'Bifrost 61x61 PORTA')
         ],
         catalog_plot=True,
         falc_plot=True,
@@ -186,4 +186,4 @@ if __name__ == '__main__':
         bifrost_coords=[(230, 230)]
     )
 
-    make_line_core_image('H_Bifrost_180_60_61_3_profs.h5', 'wave_ha.txt', 200, 261, 200, 261)
+    # make_line_core_image('H_Bifrost_180_60_61_3_profs.h5', 'wave_ha.txt', 200, 261, 200, 261)
