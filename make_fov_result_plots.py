@@ -197,15 +197,15 @@ def get_fov_data():
     ind_8542_wav = ind[np.where((fcaha['wav'][ind] >= (8542.09 - 0.40)) & (fcaha['wav'][ind] <= (8542.09 + 0.40)))[0]]
 
     data[0][0] = fcaha['profiles'][0, :, :, ind_8542_wing, 0]
-    data[0][1] = fcaha['profiles'][0, :, :, ind_8542_core, 0]
-    data[1][0] = fcaha['profiles'][0, :, :, ind_6563_wing, 0]
+    data[0][1] = fcaha['profiles'][0, :, :, ind_6563_wing, 0]
+    data[1][0] = fcaha['profiles'][0, :, :, ind_8542_core, 0]
     data[1][1] = fcaha['profiles'][0, :, :, ind_6563_core, 0]
     data[2][0] = fme['B_abs'][()] * np.cos(fme['inclination_rad'][()])
     data[2][1] = fwfa['blos_gauss'][()]
     data[3][0] = get_linear_polarisation(fcaha, ind_6569_wav)
     data[3][1] = get_linear_polarisation(fcaha, ind_8542_wav)
 
-    mask_arr = relaxed_pore_image_in_c(data[1][0], data[1, 0].mean() + (-1 * data[1, 0].std()))
+    mask_arr = relaxed_pore_image_in_c(data[0][1], data[0, 1].mean() + (-1 * data[0, 1].std()))
     mask[:, :] = mask_arr[np.newaxis, np.newaxis, :, :]
 
     aa, bb, cc, dd = fcaha['wav'][ind_8542_wing], fcaha['wav'][ind_8542_core], fcaha['wav'][ind_6563_wing], fcaha['wav'][ind_6563_core]
@@ -273,16 +273,16 @@ def make_fov_plots(points, colors_scatter):
     )
     axs[0][1].text(
         0.02, 0.04,
-        r'(b) Ca II 8542 $\mathrm{{\AA}}$ core',
+        r'(b) H$\alpha$ +{} $\mathrm{{\AA}}$'.format(
+            np.round(wing_ha - 6562.8), 2
+        ),
         transform=axs[0][1].transAxes,
         color='white',
         fontsize=fontsize
     )
     axs[1][0].text(
         0.02, 0.04,
-        r'(c) H$\alpha$ +{} $\mathrm{{\AA}}$'.format(
-            np.round(wing_ha - 6562.8), 2
-        ),
+        r'(c) Ca II 8542 $\mathrm{{\AA}}$ core',
         transform=axs[1][0].transAxes,
         color='white',
         fontsize=fontsize
@@ -2828,20 +2828,20 @@ def make_mag_field_scatter_plots():
 
 
 if __name__ == '__main__':
-    # points = [
-    #     (12, 49),
-    #     (12, 40),
-    #     (12, 34),
-    #     (12, 31),
-    #     (12, 18),
-    #     (8, 53),
-    #     (8, 50),
-    #     (8, 37),
-    #     (8, 31),
-    #     (8, 9),
-    # ]
-    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # make_fov_plots(points, colors)
+    points = [
+        (12, 49),
+        (12, 40),
+        (12, 34),
+        (12, 31),
+        (12, 18),
+        (8, 53),
+        (8, 50),
+        (8, 37),
+        (8, 31),
+        (8, 9),
+    ]
+    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    make_fov_plots(points, colors)
     # points = [
     #     49,
     #     40,
@@ -2865,23 +2865,23 @@ if __name__ == '__main__':
     # plot_stokes_parameters(8, points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors)
     # plot_profiles()
-    points = [
-        (12, 49),
-        (12, 40),
-        (12, 34),
-        (12, 31),
-        (12, 18),
-        (8, 53),
-        (8, 50),
-        (8, 37),
-        (8, 31),
-        (8, 9),
-    ]
-    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    make_output_param_plots(points, colors)
+    # points = [
+    #     (12, 49),
+    #     (12, 40),
+    #     (12, 34),
+    #     (12, 31),
+    #     (12, 18),
+    #     (8, 53),
+    #     (8, 50),
+    #     (8, 37),
+    #     (8, 31),
+    #     (8, 9),
+    # ]
+    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    # make_output_param_plots(points, colors)
     # plot_mag_field_compare()
-    plot_mag_field_compare_new(points, colors)
-    make_mag_field_scatter_plots()
+    # plot_mag_field_compare_new(points, colors)
+    # make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),

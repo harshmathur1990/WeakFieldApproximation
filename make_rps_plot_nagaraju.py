@@ -2471,14 +2471,14 @@ def merge_output_profiles():
         base_path / 'pixel_indices_quiet_total_843.h5',
         base_path / 'pixel_indices_quiet_retry_total_77.h5',
         base_path / 'pixel_indices_opposite_polarity_total_67.h5',
-        base_path / 'pixel_indices_emission_total_110.h5'
+        base_path / 'pixel_indices_emission_total_110.h5',
     ]
 
     atmos_files = [
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_total_843_cycle_1_t_6_vl_2_vt_4_blong_2_profs.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_retry_total_77_cycle_1_t_6_vl_2_vt_4_blong_2_profs.nc',
         base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_total_67_cycle_1_t_6_vl_2_vt_4_blong_2_nw_profs.nc',
-        base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_total_110_cycle_1_t_6_vl_4_vt_4_blong_2_nw_profs.nc'
+        base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_emission_total_110_cycle_1_t_6_vl_4_vt_4_blong_2_nw_profs.nc',
     ]
 
     keys = [
