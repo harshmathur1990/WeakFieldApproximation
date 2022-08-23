@@ -1,6 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
-from lightweaver.atomic_model import AtomicModel, AtomicLevel
+from lightweaver.atomic_model import AtomicModel, AtomicLevel, ExplicitContinuum
 from lightweaver.broadening import RadiativeBroadening, LineBroadening
 from lightweaver.collisional_rates import *
 from lightweaver.constants import QElectron, Epsilon0, MElectron, CLight, ERydberg, RBohr, KBoltzmann
@@ -261,7 +261,7 @@ def impactParam(line, flag, Ntemp, temp, f, PIa0square):
 
     atom = line.atom
 
-    CE = np.zeros(Ntemp)
+    rates = np.zeros(Ntemp)
 
     if flag is True:
         n_eff_min = np.min(line.iLevel.n_eff, line.jLevel.n_eff)
@@ -275,14 +275,20 @@ def impactParam(line, flag, Ntemp, temp, f, PIa0square):
     for k in range(Ntemp):
         x0 = deltaE / (KBoltzmann * temp[k])
         ERkT  = ERydberg / (KBoltzmann * temp[k]);
-        CE[k] = GaussLaguerre(x0, ERkT, R0, f, PIa0square)
+        rates[k] = GaussLaguerre(x0, ERkT, R0, f, PIa0square)
 
-    return CE
+    return rates
 
 
 @dataclass
 class NewAtomicLevel(AtomicLevel):
     n_eff: Optional[int] = 0
+
+
+@dataclass
+class NewExplicitContinuum(ExplicitContinuum):
+    alpha0 = Optional[float] = 0.0
+
 
 @dataclass
 class NewAtomicModel(AtomicModel):
@@ -338,8 +344,8 @@ class NewAtomicModel(AtomicModel):
 
         collisions: List[CollisionalRates] = []
 
-        for i_level in self.levels:
-            for j_level in self.levels[1:]:
+        for i, i_level in enumerate(self.levels):
+            for j_level in self.levels[i+1:]:
                 if i_level.stage == j_level.stage:
 
                     deltaE = line.jLevel.E_SI - line.iLevel.E_SI
@@ -357,9 +363,40 @@ class NewAtomicModel(AtomicModel):
 
                     if i_level.stage == 0:
                         if validtransition is True:
-                            CE = impactParam(line, R_AVG_FLAG, NTEMP, temp, f, PIa0square)
+                            rates = impactParam(line, R_AVG_FLAG, NTEMP, temp, f, PIa0square)
 
-                            CE *= C3
+                            rates *= C3
 
                         else:
-                            CE = C2_atom / np.square(temp) * f * np.power(KBoltzmann * temp / deltaE, 1.68)
+                            rates = C2_atom / np.square(temp) * f * np.power(KBoltzmann * np.array(temp) / deltaE, 1.68)
+
+                        collisions.append(CE(j=line.j, i=line.i, temperature=temp, rates=rates))
+
+                    else:
+                        rates = np.zeros(NTEMP)
+
+                        for k in range(NTEMP):
+                            rates[k] = line.iLevel.g * C2_ion / (C1 * temp[k]) * f * ((KBoltzmann * temp[k]) / deltaE)
+
+                        collisions.append(Omega(j=line.j, i=line.i, temperature=temp, rates=rates))
+
+        for continuum in self.continua:
+            i = continuum.i
+            ic = continuum.j
+
+            alpha0 = continuum.alpha0
+
+            deltaE = self.levels[ic].E_SI - self.levels[i].E_SI
+
+            if continuum.iLevel.stage == 0:
+                gbar_i = 0.1
+            elif continuum.iLevel.stage == 1:
+                gbar_i = 0.2
+            else:
+                gbar_i = 0.3
+
+            rates = np.zeros(NTEMP)
+
+            rates = C0 / np.array(temp) * alpha0 * gbar_i * ((KBoltzmann * np.array(temp)) / deltaE)
+
+            collisions.append(Omega(j=ic, i=i, temperature=temp, rates=rates))
