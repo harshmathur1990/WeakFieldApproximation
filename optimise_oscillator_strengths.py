@@ -3,34 +3,235 @@ from dataclasses import dataclass
 from lightweaver.atomic_model import AtomicModel, AtomicLevel
 from lightweaver.broadening import RadiativeBroadening, LineBroadening
 from lightweaver.collisional_rates import *
-from lightweaver.constants import QElectron, Epsilon0, MElectron, CLight, ERydberg, RBohr, KBoltzmann,
-from typing import List
+from lightweaver.constants import QElectron, Epsilon0, MElectron, CLight, ERydberg, RBohr, KBoltzmann
+from typing import List, Optional
 
 
 F_QUADRUPOLE = 0.1
 R_AVG_FLAG = True
+N_MAX_TRY = 20
+DELTA = 1.0E-3
+BETA_START = 1.0E-5
+
+def Bessel_I0(x):
+    ax = np.abs(x)
+    if ax < 3.75:
+        y = (x * x) / (3.75 * 3.75)
+        ans = 1.0 + y * (
+            3.5156229 + y * (
+                3.0899424 + y * (
+                    1.2067492 + y * (
+                        0.2659732 + y * (
+                            0.360768E-1 + y * 0.45813E-2
+                        )
+                    )
+                )
+            )
+        )
+    else:
+        y = 3.75 / ax
+        ans = (
+            np.exp(ax) / np.sqrt(ax)
+        ) * (
+            0.39894228 + y * (
+                0.1328592E-1 + y * (
+                    0.225319E-2 + y * (
+                        -0.157565E-2 + y * (
+                            0.916281E-2 + y * (
+                                -0.2057706E-1 + y * (
+                                    0.2635537E-1 + y * (
+                                        -0.1647633E-1 + y * 0.392377E-2
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+    return ans
+
+def Bessel_I1(x):
+
+    ax = np.abs(x)
+
+    if ax < 3.75:
+        y = (x * x) / (3.75 * 3.75)
+        ans = ax * (
+            0.5 + y * (
+                0.87890594 + y * (
+                    0.51498869 + y * (
+                        0.15084934 + y * (
+                            0.2658733E-1 + y * (
+                                0.301532E-2 + y * 0.32411E-3
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    else:
+        y = 3.75 / ax
+        ans = 0.2282967E-1 + y * (
+            -0.2895312E-1 + y * (
+                0.1787654E-1 - y * 0.420059E-2
+            )
+        )
+        ans = 0.39894228 + y * (
+            -0.3988024E-1 + y * (
+                -0.362018E-2 + y * (
+                    0.163801E-2 + y * (
+                        -0.1031555E-1 + y * ans
+                    )
+                )
+            )
+        )
+        ans *= (
+                np.exp(ax) / np.sqrt(ax)
+        )
+
+    if x < 0.0:
+        ans *= -1
+    return ans
 
 
-double phiImpact(double x)
-{
-  double beta0, beta1, zeta1, sigma_0, sigma_1, righthand;
+def Bessel_K0(x):
 
-  x += x0;
+    if x <= 2.0:
+        y = x * x / 4.0
+        ans = (
+                -np.log(x / 2.0) * Bessel_I0(x)
+              ) + (
+                -0.57721566 + y * (
+                    0.42278420 + y * (
+                        0.23069756 + y * (
+                            0.3488590E-1 + y * (
+                                0.262698E-2 + y * (
+                                    0.10750E-3 + y * 0.74E-5
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+    else:
+        y = 2.0 / x
+        ans = (
+            np.exp(-x) / np.sqrt(x)
+        ) * (
+            1.25331414 + y * (
+                -0.7832358E-1 + y * (
+                    0.2189568E-1 + y * (
+                        -0.1062446E-1 + y * (
+                            0.587872E-2 + y * (
+                                -0.251540E-2 + y * 0.53208E-3
+                            )
+                        )
+                    )
+                )
+            )
+        )
 
-  beta0 = sqrt(x/ERkT) * x0/(2*x + x0) * R0;
-  sigma_0 = beta0 * Bessel_K0(beta0) * Bessel_K1(beta0);
+    return ans
 
-  righthand = SQ(2*x + x0) / (8 * ERkT * x0 * f);
-  beta1 = findbeta1(righthand, &zeta1);
-  sigma_1 = 0.5*zeta1 + beta1 * Bessel_K0(beta1) * Bessel_K1(beta1);
+def Bessel_K1(x):
 
-  if (VERBOSE >= 1) {
-    fprintf(stderr, "sigma_0: %E,  sigma_1: %E\n", sigma_0, sigma_1);
-  }
-  return 8.0*PIa0square * SQ(ERkT) * (f/x0) * MIN(sigma_0, sigma_1);
-}
+    if x <= 2.0:
+        y = x * x / 4.0
+        ans = (
+            np.log(x / 2.0) * Bessel_I1(x)
+        ) + (
+            1.0 / x
+        ) * (
+            1.0 + y * (
+                0.15443144 + y * (
+                    -0.67278579 + y * (
+                        -0.18156897 + y * (
+                            -0.1919402E-1 + y * (
+                                -0.110404E-2 + y * (
+                                    -0.4686E-4
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    else:
+        y = 2.0 / x
+        ans = (
+            np.exp(-x) / np.sqrt(x)
+        ) * (
+            1.25331414 + y * (
+                0.23498619 + y * (
+                    -0.3655620E-1 + y * (
+                        0.1504268E-1 + y * (
+                            -0.780353E-2 + y * (
+                                0.325614E-2 + y * (
+                                    -0.68245E-3
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
 
-def GaussLaguerre(function):
+    return ans
+
+
+def findbeta1(righthand):
+
+    beta1 = BETA_START
+    y = np.square(Bessel_K0(beta1)) + np.square(Bessel_K1(beta1)) - righthand
+
+    if y <= 0.0:
+        zeta1 = righthand * np.square(beta1)
+        return beta1, zeta1
+
+    Ntry = 0
+
+    while Ntry <= N_MAX_TRY:
+        beta2 = 2.0 * beta1
+        y = np.square(Bessel_K0(beta2)) + np.square(Bessel_K1(beta2)) - righthand
+        if y > 0.0:
+            beta1 = beta2
+            Ntry += 1
+        else:
+            break
+
+    if Ntry > N_MAX_TRY:
+        zeta1 = np.square(beta2) * righthand
+        return beta2, zeta1
+
+    delta = 1.0 - beta1 / beta2
+    while delta > DELTA:
+        beta = 0.5*(beta1 + beta2)
+        y = np.square(Bessel_K0(beta))
+        if (y + np.square(Bessel_K1(beta)) - righthand) > 0.0:
+          beta1 = beta
+        else:
+          beta2 = beta
+
+    zeta1 = np.square(beta) * righthand
+    return beta, zeta1
+
+def phiImpact(x, x0, ERkT, R0, f, PIa0square):
+
+    x += x0
+
+    beta0 = np.sqrt(x / ERkT) * x0/(2 * x + x0) * R0
+    sigma_0 = beta0 * Bessel_K0(beta0) * Bessel_K1(beta0);
+
+    righthand = np.square(2 * x + x0) / (8 * ERkT * x0 * f)
+    beta1, zeta1 = findbeta1(righthand)
+    sigma_1 = 0.5 * zeta1 + beta1 * Bessel_K0(beta1) * Bessel_K1(beta1)
+
+    return 8.0 * PIa0square * np.square(ERkT) * (f/x0) * np.min(sigma_0, sigma_1)
+
+
+def GaussLaguerre(x0, ERkT, R0, f, PIa0square):
 
     integral = 0.0
 
@@ -48,12 +249,12 @@ def GaussLaguerre(function):
     N_LAGUERRE = len(x_Laguerre)
 
     for nl in range(N_LAGUERRE):
-        integral += w_Laguerre[nl] * function(x_Laguerre[nl])
+        integral += w_Laguerre[nl] * phiImpact(x_Laguerre[nl], x0, ERkT, R0, f, PIa0square)
 
     return integral
 
 
-def impactParam(line, flag, Ntemp, temp):
+def impactParam(line, flag, Ntemp, temp, f, PIa0square):
 
     i = line.i
     j = line.j
@@ -66,22 +267,22 @@ def impactParam(line, flag, Ntemp, temp):
         n_eff_min = np.min(line.iLevel.n_eff, line.jLevel.n_eff)
         R0 = 0.25 * (5.0 * np.square(n_eff_min) + n_eff_min + 1.0)
     else:
-        Ri = 0.5 * (3.0*square(line.iLevel.n_eff) - line.iLevel.L*(line.iLevel.L + 1.0))
-        Rj = 0.5 * (3.0*square(n_eff[j]) - l[j]*(l[j] + 1.0))
+        Ri = 0.5 * (3.0 * np.square(line.iLevel.n_eff) - line.iLevel.L * (line.iLevel.L + 1.0))
+        Rj = 0.5 * (3.0 * np.square(line.jLevel.n_eff) - line.jLevel.L * (line.jLevel.L + 1.0))
         R0 = np.min(Ri, Rj)
 
     deltaE = line.jLevel.E_SI - line.iLevel.E_SI
     for k in range(Ntemp):
         x0 = deltaE / (KBoltzmann * temp[k])
         ERkT  = ERydberg / (KBoltzmann * temp[k]);
-        CE[k] = GaussLaguerre(phiImpact)
+        CE[k] = GaussLaguerre(x0, ERkT, R0, f, PIa0square)
 
     return CE
 
 
 @dataclass
 class NewAtomicLevel(AtomicLevel):
-    n_eff: int
+    n_eff: Optional[int] = 0
 
 @dataclass
 class NewAtomicModel(AtomicModel):
@@ -135,10 +336,13 @@ class NewAtomicModel(AtomicModel):
 
         PIa0square = np.pi * np.square(RBohr)
 
+        collisions: List[CollisionalRates] = []
+
         for i_level in self.levels:
             for j_level in self.levels[1:]:
                 if i_level.stage == j_level.stage:
 
+                    deltaE = line.jLevel.E_SI - line.iLevel.E_SI
 
                     validtransition = False
 
@@ -153,9 +357,9 @@ class NewAtomicModel(AtomicModel):
 
                     if i_level.stage == 0:
                         if validtransition is True:
-                            pass
+                            CE = impactParam(line, R_AVG_FLAG, NTEMP, temp, f, PIa0square)
 
-        collisions: List[CollisionalRates] = []
+                            CE *= C3
 
-
-
+                        else:
+                            CE = C2_atom / np.square(temp) * f * np.power(KBoltzmann * temp / deltaE, 1.68)
