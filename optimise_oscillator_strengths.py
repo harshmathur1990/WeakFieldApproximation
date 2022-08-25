@@ -68,7 +68,7 @@ def synthesize_line(atoms, atmos, conserve, useNe, wave, q):
     # backend, and provides the python interface to the backend.
     # Feel free to increase Nthreads to increase the number of threads the
     # program will use.
-    ctx = lw.Context(atmos, spect, eqPops, conserveCharge=conserve, Nthreads=3)
+    ctx = lw.Context(atmos, spect, eqPops, conserveCharge=conserve, Nthreads=16)
     # Iterate the Context to convergence (using the iteration function now
     # provided by Lightweaver)
     lw.iterate_ctx_se(ctx)
@@ -79,7 +79,7 @@ def synthesize_line(atoms, atmos, conserve, useNe, wave, q):
     # return ctx, Iwave
     q.put(Iwave)
 
-def cost_function(observation, synth1, synth2, f_values):
+def cost_function(observation, synth1, synth2):
 
     observation /= observation[0]
 
@@ -116,12 +116,6 @@ def cost_function(observation, synth1, synth2, f_values):
 
     res = np.array(list(chi1) + list(chi2) + list(chi3))
 
-    for ff in f_values:
-        if ff < 0:
-            res = np.zeros(len(res))
-            res[:] = np.inf
-            break
-
     return res
 
 
@@ -144,6 +138,24 @@ def prepare_minimization_func(waver):
     observation = get_observation()
     def minimization_func(f_values):
 
+        print(f_values)
+
+        for ff in f_values:
+            if ff <= 0:
+                res = np.zeros(waver.size * 3)
+                res[:] = np.inf
+                return res
+
+        line_indices = [
+            (5, 1),
+            (5, 3),
+            (7, 2),
+            (4, 2),
+            (6, 1),
+            (8, 3),
+            (6, 3)
+        ]
+
         atoms_no_substructure = list()
 
         atoms_with_substructure = list()
@@ -154,14 +166,21 @@ def prepare_minimization_func(waver):
         for at in atoms_with_substructure_list:
             atoms_with_substructure.append(conv_atom(base_path / at))
 
-        line_indices = [2, 3, 6, 7, 8, 9, 10]
+        # line_indices = [2, 3, 6, 7, 8, 9, 10]
 
         total_gf = 0
 
         h_with_substructure = atoms_with_substructure[0]
-        for index, line_indice in enumerate(line_indices):
-            h_with_substructure.lines[line_indice].f = f_values[index]
-            total_gf += f_values[index] * h_with_substructure.lines[line_indice].iLevel.g
+
+        index = 0
+
+        for line_indice in line_indices:
+            for line in h_with_substructure.lines:
+                if line.j == line_indice[0] and line.i == line_indice[1]:
+                    line.f = f_values[index]
+                    total_gf += f_values[index] * line.iLevel.g
+                    index += 1
+                    break
 
         h_with_substructure.recompute_radiative_broadening()
         h_with_substructure.recompute_collisional_rates()
@@ -199,7 +218,7 @@ def prepare_minimization_func(waver):
 
         i_obs_2 = q.get()
 
-        return cost_function(observation, i_obs_1, i_obs_2, f_values)
+        return cost_function(observation, i_obs_1, i_obs_2)
 
     return minimization_func
 
