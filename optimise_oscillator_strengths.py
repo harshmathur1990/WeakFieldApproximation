@@ -166,8 +166,6 @@ def prepare_minimization_func(waver):
         for at in atoms_with_substructure_list:
             atoms_with_substructure.append(conv_atom(base_path / at))
 
-        # line_indices = [2, 3, 6, 7, 8, 9, 10]
-
         total_gf = 0
 
         h_with_substructure = atoms_with_substructure[0]
