@@ -45,7 +45,7 @@ atoms_with_substructure_list = [
 
 wave = np.arange(6562.8-4, 6562.8 + 4, 0.01)
 
-def synthesize_line(atoms, atmos, conserve, useNe, wave, q):
+def synthesize_line(atoms, atmos, conserve, useNe, wave, q=None):
     # Configure the atmospheric angular quadrature
     atmos.quadrature(5)
     # Configure the set of atomic models to use.
@@ -77,7 +77,10 @@ def synthesize_line(atoms, atmos, conserve, useNe, wave, q):
     eqPops.update_lte_atoms_Hmin_pops(atmos)
     Iwave = ctx.compute_rays(wave, [atmos.muz[-1]], stokes=False)
     # return ctx, Iwave
-    q.put(Iwave)
+    if q is not None:
+        q.put(Iwave)
+
+    return ctx, Iwave
 
 def cost_function(observation, synth1, synth2):
 
@@ -134,7 +137,7 @@ def get_observation():
     return intensity[indices]
 
 
-def synthesize(f_values, waver):
+def synthesize(f_values, waver, parallel=True):
     line_indices = [
         (5, 1),
         (5, 3),
@@ -183,27 +186,34 @@ def synthesize(f_values, waver):
     h_with_substructure.__post_init__()
     h_without_substructure.__post_init__()
 
-    q = multiprocessing.Queue()
+    if not parallel:
+        fal = Falc82()
+        _, i_obs_1 = synthesize_line(atoms_with_substructure, fal, False, True, waver)
+        fal = Falc82()
+        _, i_obs_2 = synthesize_line(atoms_no_substructure, fal, False, True, waver)
 
-    fal = Falc82()
+    else:
+        q = multiprocessing.Queue()
 
-    p1 = multiprocessing.Process(target=synthesize_line, args=(atoms_with_substructure, fal, False, True, waver, q))
+        fal = Falc82()
 
-    fal = Falc82()
+        p1 = multiprocessing.Process(target=synthesize_line, args=(atoms_with_substructure, fal, False, True, waver, q))
 
-    p2 = multiprocessing.Process(target=synthesize_line, args=(atoms_no_substructure, fal, False, True, waver, q))
+        fal = Falc82()
 
-    p1.start()
+        p2 = multiprocessing.Process(target=synthesize_line, args=(atoms_no_substructure, fal, False, True, waver, q))
 
-    p2.start()
+        p1.start()
 
-    p1.join()
+        p2.start()
 
-    p2.join()
+        p1.join()
 
-    i_obs_1 = q.get()
+        p2.join()
 
-    i_obs_2 = q.get()
+        i_obs_1 = q.get()
+
+        i_obs_2 = q.get()
 
     return i_obs_1, i_obs_2
 
@@ -232,10 +242,10 @@ if __name__ == '__main__':
     obs = get_observation()
     f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
     # f_values = np.ones(7) * 0.01
-    min_func = prepare_minimization_func(wave)
-    res_1 = scipy.optimize.least_squares(min_func, f_values, method='lm')
-    np.savetxt('solution.txt', res_1.x)
-    obs_1, obs_2 = synthesize(res_1.x, wave)
+    # min_func = prepare_minimization_func(wave)
+    # res_1 = scipy.optimize.least_squares(min_func, f_values, method='lm')
+    # np.savetxt('solution.txt', res_1.x)
+    obs_1, obs_2 = synthesize(f_values, wave, parallel=False)
     fig, axs = plt.subplots(1, 1, figsize=(7, 7))
     axs.plot(wave, obs_1 / obs_1[0], color='blue')
     axs.plot(wave, obs_2 / obs_2[0], color='green')
