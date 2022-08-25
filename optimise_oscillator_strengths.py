@@ -229,9 +229,9 @@ def prepare_minimization_func(waver):
 
 
 if __name__ == '__main__':
-    # f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
     obs = get_observation()
-    f_values = np.ones(7) * 0.01
+    f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
+    # f_values = np.ones(7) * 0.01
     min_func = prepare_minimization_func(wave)
     res_1 = scipy.optimize.least_squares(min_func, f_values, method='lm')
     np.savetxt('solution.txt', res_1.x)
