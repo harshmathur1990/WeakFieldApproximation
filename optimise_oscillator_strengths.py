@@ -133,6 +133,81 @@ def get_observation():
 
     return intensity[indices]
 
+
+def synthesize(f_values, waver):
+    line_indices = [
+        (5, 1),
+        (5, 3),
+        (7, 2),
+        (4, 2),
+        (6, 1),
+        (8, 3),
+        (6, 3)
+    ]
+
+    atoms_no_substructure = list()
+
+    atoms_with_substructure = list()
+
+    for at in atoms_no_substructure_list:
+        atoms_no_substructure.append(conv_atom(base_path / at))
+
+    for at in atoms_with_substructure_list:
+        atoms_with_substructure.append(conv_atom(base_path / at))
+
+    total_gf = 0
+
+    h_with_substructure = atoms_with_substructure[0]
+
+    index = 0
+
+    for line_indice in line_indices:
+        for line in h_with_substructure.lines:
+            if line.j == line_indice[0] and line.i == line_indice[1]:
+                line.f = f_values[index]
+                total_gf += f_values[index] * line.iLevel.g
+                index += 1
+                break
+
+    h_with_substructure.recompute_radiative_broadening()
+    h_with_substructure.recompute_collisional_rates()
+
+    total_gf /= 8
+
+    h_without_substructure = atoms_no_substructure[0]
+
+    h_without_substructure.lines[4].f = total_gf
+    h_without_substructure.recompute_radiative_broadening()
+    h_without_substructure.recompute_collisional_rates()
+
+    h_with_substructure.__post_init__()
+    h_without_substructure.__post_init__()
+
+    q = multiprocessing.Queue()
+
+    fal = Falc82()
+
+    p1 = multiprocessing.Process(target=synthesize_line, args=(atoms_with_substructure, fal, False, True, waver, q))
+
+    fal = Falc82()
+
+    p2 = multiprocessing.Process(target=synthesize_line, args=(atoms_no_substructure, fal, False, True, waver, q))
+
+    p1.start()
+
+    p2.start()
+
+    p1.join()
+
+    p2.join()
+
+    i_obs_1 = q.get()
+
+    i_obs_2 = q.get()
+
+    return i_obs_1, i_obs_2
+
+
 def prepare_minimization_func(waver):
 
     observation = get_observation()
@@ -146,75 +221,7 @@ def prepare_minimization_func(waver):
                 res[:] = np.inf
                 return res
 
-        line_indices = [
-            (5, 1),
-            (5, 3),
-            (7, 2),
-            (4, 2),
-            (6, 1),
-            (8, 3),
-            (6, 3)
-        ]
-
-        atoms_no_substructure = list()
-
-        atoms_with_substructure = list()
-
-        for at in atoms_no_substructure_list:
-            atoms_no_substructure.append(conv_atom(base_path / at))
-
-        for at in atoms_with_substructure_list:
-            atoms_with_substructure.append(conv_atom(base_path / at))
-
-        total_gf = 0
-
-        h_with_substructure = atoms_with_substructure[0]
-
-        index = 0
-
-        for line_indice in line_indices:
-            for line in h_with_substructure.lines:
-                if line.j == line_indice[0] and line.i == line_indice[1]:
-                    line.f = f_values[index]
-                    total_gf += f_values[index] * line.iLevel.g
-                    index += 1
-                    break
-
-        h_with_substructure.recompute_radiative_broadening()
-        h_with_substructure.recompute_collisional_rates()
-
-        total_gf /= 8
-
-        h_without_substructure = atoms_no_substructure[0]
-
-        h_without_substructure.lines[4].f = total_gf
-        h_without_substructure.recompute_radiative_broadening()
-        h_without_substructure.recompute_collisional_rates()
-
-        h_with_substructure.__post_init__()
-        h_without_substructure.__post_init__()
-
-        q = multiprocessing.Queue()
-
-        fal = Falc82()
-
-        p1 = multiprocessing.Process(target=synthesize_line, args=(atoms_with_substructure, fal, False, True, waver, q))
-
-        fal = Falc82()
-
-        p2 = multiprocessing.Process(target=synthesize_line, args=(atoms_no_substructure, fal, False, True, waver, q))
-
-        p1.start()
-
-        p2.start()
-
-        p1.join()
-
-        p2.join()
-
-        i_obs_1 = q.get()
-
-        i_obs_2 = q.get()
+        i_obs_1, i_obs_2 = synthesize(f_values, waver)
 
         return cost_function(observation, i_obs_1, i_obs_2)
 
@@ -222,7 +229,16 @@ def prepare_minimization_func(waver):
 
 
 if __name__ == '__main__':
-    f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
+    # f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
+    obs = get_observation()
+    f_values = np.ones(7) * 0.01
     min_func = prepare_minimization_func(wave)
     res_1 = scipy.optimize.least_squares(min_func, f_values, method='lm')
     np.savetxt('solution.txt', res_1.x)
+    obs_1, obs_2 = synthesize(res_1.x, wave)
+    fig, axs = plt.subplots(1, 1, figsize=(7, 7))
+    axs.plot(wave, obs_1 / obs_1[0], color='blue')
+    axs.plot(wave, obs_2 / obs_2[0], color='green')
+    axs.plot(wave, obs / obs[0], color='orange')
+    fig.tight_layout()
+    fig.savefig('solution.pdf', format='pdf', dpi=300)
