@@ -1,3 +1,4 @@
+import scipy.optimize
 from lightweaver.fal import Falc82
 import lightweaver as lw
 import matplotlib.pyplot as plt
@@ -5,6 +6,7 @@ import time
 import numpy as np
 from pathlib import Path
 from lightweaver_extension import conv_atom
+import multiprocessing
 
 
 base_path = Path(
@@ -43,43 +45,14 @@ atoms_with_substructure_list = [
 
 wave = np.arange(6562.8-4, 6562.8 + 4, 0.01)
 
-
-catalog = np.loadtxt('catalog_6563.txt')
-
-def synth_halpha(atoms, atmos, conserve, useNe, wave):
-    '''
-    Synthesise a spectral line for given atmosphere with different
-    conditions.
-
-    Parameters
-    ----------
-    atmos : lw.Atmosphere
-        The atmospheric model in which to synthesise the line.
-    conserve : bool
-        Whether to start from LTE electron density and conserve charge, or
-        simply use from the electron density present in the atomic model.
-    useNe : bool
-        Whether to use the electron density present in the model as the
-        starting solution, or compute the LTE electron density.
-    wave : np.ndarray
-        Array of wavelengths over which to resynthesise the final line
-        profile for muz=1.
-
-    Returns
-    -------
-    ctx : lw.Context
-        The Context object that was used to compute the equilibrium
-        populations.
-    Iwave : np.ndarray
-        The intensity at muz=1 for each wavelength in `wave`.
-    '''
+def synthesize_line(atoms, atmos, conserve, useNe, wave, q):
     # Configure the atmospheric angular quadrature
     atmos.quadrature(5)
     # Configure the set of atomic models to use.
     aSet = lw.RadiativeSet(atoms)
     # Set H and Ca to "active" i.e. NLTE, everything else participates as an
     # LTE background.
-    aSet.set_active('H', 'Ca', 'He')
+    aSet.set_active('H', 'Ca')
     # Compute the necessary wavelength dependent information (SpectrumConfiguration).
     spect = aSet.compute_wavelength_grid()
 
@@ -95,7 +68,7 @@ def synth_halpha(atoms, atmos, conserve, useNe, wave):
     # backend, and provides the python interface to the backend.
     # Feel free to increase Nthreads to increase the number of threads the
     # program will use.
-    ctx = lw.Context(atmos, spect, eqPops, conserveCharge=conserve, Nthreads=1)
+    ctx = lw.Context(atmos, spect, eqPops, conserveCharge=conserve, Nthreads=3)
     # Iterate the Context to convergence (using the iteration function now
     # provided by Lightweaver)
     lw.iterate_ctx_se(ctx)
@@ -103,9 +76,10 @@ def synth_halpha(atoms, atmos, conserve, useNe, wave):
     # compute the final intensity for mu=1 on the provided wavelength grid.
     eqPops.update_lte_atoms_Hmin_pops(atmos)
     Iwave = ctx.compute_rays(wave, [atmos.muz[-1]], stokes=False)
-    return ctx, Iwave
+    # return ctx, Iwave
+    q.put(Iwave)
 
-def cost_function(observation, synth1, synth2):
+def cost_function(observation, synth1, synth2, f_values):
 
     observation /= observation[0]
 
@@ -114,42 +88,46 @@ def cost_function(observation, synth1, synth2):
     synth2 /= synth2[0]
 
     chi1 = np.sqrt(
-        np.sum(
-            np.square(
-                np.subtract(
-                    observation,
-                    synth1
-                )
+        np.square(
+            np.subtract(
+                observation,
+                synth1
             )
         )
     )
 
     chi2 = np.sqrt(
-        np.sum(
-            np.square(
-                np.subtract(
-                    observation,
-                    synth2
-                )
+        np.square(
+            np.subtract(
+                observation,
+                synth2
             )
         )
     )
 
     chi3 = np.sqrt(
-        np.sum(
-            np.square(
-                np.subtract(
-                    synth2,
-                    synth1
-                )
+        np.square(
+            np.subtract(
+                synth2,
+                synth1
             )
         )
     )
 
-    return chi1 + chi2 + chi3
+    res = np.array(list(chi1) + list(chi2) + list(chi3))
+
+    for ff in f_values:
+        if ff < 0:
+            res = np.zeros(len(res))
+            res[:] = np.inf
+            break
+
+    return res
 
 
 def get_observation():
+    catalog = np.loadtxt('catalog_6563.txt')
+
     obs_wave, intensity = catalog[:, 0], catalog[:, 1]
 
     indices = list()
@@ -161,6 +139,73 @@ def get_observation():
 
     return intensity[indices]
 
-def minimization_func(f_values):
-    pass
+def prepare_minimization_func(waver):
 
+    observation = get_observation()
+    def minimization_func(f_values):
+
+        atoms_no_substructure = list()
+
+        atoms_with_substructure = list()
+
+        for at in atoms_no_substructure_list:
+            atoms_no_substructure.append(conv_atom(base_path / at))
+
+        for at in atoms_with_substructure_list:
+            atoms_with_substructure.append(conv_atom(base_path / at))
+
+        line_indices = [2, 3, 6, 7, 8, 9, 10]
+
+        total_gf = 0
+
+        h_with_substructure = atoms_with_substructure[0]
+        for index, line_indice in enumerate(line_indices):
+            h_with_substructure.lines[line_indice].f = f_values[index]
+            total_gf += f_values[index] * h_with_substructure.lines[line_indice].iLevel.g
+
+        h_with_substructure.recompute_radiative_broadening()
+        h_with_substructure.recompute_collisional_rates()
+
+        total_gf /= 8
+
+        h_without_substructure = atoms_no_substructure[0]
+
+        h_without_substructure.lines[4].f = total_gf
+        h_without_substructure.recompute_radiative_broadening()
+        h_without_substructure.recompute_collisional_rates()
+
+        h_with_substructure.__post_init__()
+        h_without_substructure.__post_init__()
+
+        q = multiprocessing.Queue()
+
+        fal = Falc82()
+
+        p1 = multiprocessing.Process(target=synthesize_line, args=(atoms_with_substructure, fal, False, True, waver, q))
+
+        fal = Falc82()
+
+        p2 = multiprocessing.Process(target=synthesize_line, args=(atoms_no_substructure, fal, False, True, waver, q))
+
+        p1.start()
+
+        p2.start()
+
+        p1.join()
+
+        p2.join()
+
+        i_obs_1 = q.get()
+
+        i_obs_2 = q.get()
+
+        return cost_function(observation, i_obs_1, i_obs_2, f_values)
+
+    return minimization_func
+
+
+if __name__ == '__main__':
+    f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
+    min_func = prepare_minimization_func(wave)
+    res_1 = scipy.optimize.least_squares(min_func, f_values, method='lm')
+    np.savetxt('solution.txt', res_1.x)
