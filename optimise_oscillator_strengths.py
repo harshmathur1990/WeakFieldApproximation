@@ -7,6 +7,7 @@ import numpy as np
 from pathlib import Path
 from lightweaver_extension import conv_atom
 import multiprocessing
+from lightweaver.utils import vac_to_air
 
 
 base_path = Path(
@@ -43,7 +44,7 @@ atoms_with_substructure_list = [
 ]
 
 
-wave = np.arange(6562.8-4, 6562.8 + 4, 0.01)
+wave = np.arange(6564.5-4, 6564.5 + 4, 0.01) / 10
 
 def synthesize_line(atoms, atmos, conserve, useNe, wave, q=None):
     # Configure the atmospheric angular quadrature
@@ -129,8 +130,8 @@ def get_observation():
 
     indices = list()
 
-    for w in wave:
-        indices.append(np.argmin(np.abs(obs_wave - w)))
+    for w in vac_to_air(wave):
+        indices.append(np.argmin(np.abs(obs_wave - w * 10)))
 
     indices = np.array(indices)
 
@@ -138,6 +139,7 @@ def get_observation():
 
 
 def synthesize(f_values, waver, parallel=True):
+
     line_indices = [
         (5, 1),
         (5, 3),
@@ -233,6 +235,13 @@ def prepare_minimization_func(waver):
 
         i_obs_1, i_obs_2 = synthesize(f_values, waver)
 
+        # fig, axs = plt.subplots(1, 1, figsize=(7, 7))
+        # axs.plot(waver, i_obs_1 / i_obs_1[0], color='blue')
+        # axs.plot(waver, i_obs_2 / i_obs_2[0], color='green')
+        # axs.plot(waver, observation / observation[0], color='orange')
+        # fig.tight_layout()
+        # fig.savefig('solution.pdf', format='pdf', dpi=300)
+
         return cost_function(observation, i_obs_1, i_obs_2)
 
     return minimization_func
@@ -242,10 +251,10 @@ if __name__ == '__main__':
     obs = get_observation()
     f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
     # f_values = np.ones(7) * 0.01
-    # min_func = prepare_minimization_func(wave)
-    # res_1 = scipy.optimize.least_squares(min_func, f_values, method='lm')
-    # np.savetxt('solution.txt', res_1.x)
-    obs_1, obs_2 = synthesize(f_values, wave, parallel=False)
+    min_func = prepare_minimization_func(wave)
+    res_1 = scipy.optimize.least_squares(min_func, f_values, method='lm')
+    np.savetxt('solution.txt', res_1.x)
+    obs_1, obs_2 = synthesize(res_1.x, wave, parallel=False)
     fig, axs = plt.subplots(1, 1, figsize=(7, 7))
     axs.plot(wave, obs_1 / obs_1[0], color='blue')
     axs.plot(wave, obs_2 / obs_2[0], color='green')
