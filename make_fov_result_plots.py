@@ -222,45 +222,45 @@ def get_fov_data():
 def make_fov_plots(points, colors_scatter):
     data, wing_ca, core_ca, wing_ha, core_ha, mask = get_fov_data()
 
-    fig, axs = plt.subplots(4, 2, figsize=(7, 4.4))
+    fig, axs = plt.subplots(2, 4, figsize=(5, 8))
 
-    extent = [0, 22.8, 0, 6.46]
+    extent = [0, 6.46, 0, 22.8]
 
     fontsize = 8
 
     colors = ["darkred", "darkgoldenrod", "white", "green", "blue"]
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
-    for i in range(4):
-        for j in range(2):
-            if i == 2:
-                maxval = np.abs(data[i][j]).max()
+    for i in range(2):
+        for j in range(4):
+            if j == 2:
+                maxval = np.abs(data[j][i]).max()
                 limval = (maxval // 100) * 100 + 100
                 vmin = -limval
                 vmax = limval
 
                 print(limval)
 
-                gh = axs[i][j].imshow(data[i][j], cmap=cmap1, origin='lower', vmin=vmin, vmax=vmax, aspect='equal')
-                if j == 0:
-                    im20 = gh
+                gh = axs[i][j].imshow(data[j][i].T, cmap=cmap1, origin='lower', vmin=vmin, vmax=vmax, aspect='equal')
+                if i == 0:
+                    im02 = gh
                 else:
-                    im21 = gh
-            elif i == 3:
+                    im12 = gh
+            elif j == 3:
                 vmin = 0
-                vmax = np.round(data[i][j].max() * 100, 2)
-                gh = axs[i][j].imshow(data[i][j] * 100, cmap='gray', origin='lower', vmin=vmin, vmax=vmax)
-                if j == 0:
-                    im30 = gh
+                vmax = np.round(data[j][i].max() * 100, 2)
+                gh = axs[i][j].imshow(data[j][i].T * 100, cmap='gray', origin='lower', vmin=vmin, vmax=vmax)
+                if i == 0:
+                    im03 = gh
                 else:
-                    im31 = gh
+                    im13 = gh
             else:
-                axs[i][j].imshow(data[i][j], cmap='gray', origin='lower')
-            axs[i][j].contour(mask[i][j], levels=0, origin='lower', colors='blue', linewidths=0.5)
-            axs[i][j].plot(np.ones(60) * 12, linestyle='--', color='brown', linewidth=0.5)
-            axs[i][j].plot(np.ones(60) * 8, linestyle='--', color='darkgreen', linewidth=0.5)
+                axs[i][j].imshow(data[j][i].T, cmap='gray', origin='lower')
+            axs[i][j].contour(mask[j][i].T, levels=0, origin='lower', colors='blue', linewidths=0.5)
+            axs[i][j].axvline(12, linestyle='--', color='brown', linewidth=0.5)
+            axs[i][j].axvline(8, linestyle='--', color='darkgreen', linewidth=0.5)
             for point, color in zip(points, colors_scatter):
-                axs[i][j].scatter(point[1], point[0], color=color, marker='x')
+                axs[i][j].scatter(point[0], point[1], color=color, marker='x')
 
     axs[0][0].text(
         0.02, 0.04,
@@ -271,19 +271,19 @@ def make_fov_plots(points, colors_scatter):
         color='white',
         fontsize=fontsize
     )
-    axs[0][1].text(
+    axs[1][0].text(
         0.02, 0.04,
         r'(b) H$\alpha$ +{} $\mathrm{{\AA}}$'.format(
             np.round(wing_ha - 6562.8), 2
         ),
-        transform=axs[0][1].transAxes,
+        transform=axs[1][0].transAxes,
         color='white',
         fontsize=fontsize
     )
-    axs[1][0].text(
+    axs[0][1].text(
         0.02, 0.04,
         r'(c) Ca II 8542 $\mathrm{{\AA}}$ core',
-        transform=axs[1][0].transAxes,
+        transform=axs[0][1].transAxes,
         color='white',
         fontsize=fontsize
     )
@@ -294,47 +294,47 @@ def make_fov_plots(points, colors_scatter):
         color='white',
         fontsize=fontsize
     )
-    axs[2][0].text(
+    axs[0][2].text(
         0.02, 0.04,
         r'(e) $B_{{\mathrm{LOS}}}$ (Fe I 6569 $\AA$) [G]',
-        transform=axs[2][0].transAxes,
+        transform=axs[0][2].transAxes,
         color='black',
         fontsize=fontsize
     )
 
-    axs[2][1].text(
+    axs[1][2].text(
         0.02, 0.04,
         r'(f) $B_{{\mathrm{LOS}}}$ (Ca II 8542 $\AA$) [G]',
-        transform=axs[2][1].transAxes,
+        transform=axs[1][2].transAxes,
         color='black',
         fontsize=fontsize
     )
 
-    axs[3][0].text(
+    axs[0][3].text(
         0.02, 0.04,
         r'(g) Linear Polarisation (Fe I 6569 $\AA$) [%]',
-        transform=axs[3][0].transAxes,
+        transform=axs[0][3].transAxes,
         color='white',
         fontsize=fontsize
     )
 
-    axs[3][1].text(
+    axs[1][3].text(
         0.02, 0.04,
         r'(h) Linear Polarisation (Ca II 8542 $\AA$) [%]',
-        transform=axs[3][1].transAxes,
+        transform=axs[1][3].transAxes,
         color='white',
         fontsize=fontsize
     )
 
     cbaxes = inset_axes(
-        axs[2][0],
+        axs[0][2],
         width="3%",
         height="80%",
         loc=4,
         borderpad=0.5
     )
     cbar = fig.colorbar(
-        im20,
+        im02,
         cax=cbaxes,
         ticks=[-700, 0, 700],
         orientation='vertical'
@@ -346,14 +346,14 @@ def make_fov_plots(points, colors_scatter):
     cbar.ax.yaxis.set_ticks_position('left')
 
     cbaxes = inset_axes(
-        axs[2][1],
+        axs[1][2],
         width="3%",
         height="80%",
         loc=4,
         borderpad=0.5
     )
     cbar = fig.colorbar(
-        im21,
+        im12,
         cax=cbaxes,
         ticks=[-500, 0, 500],
         orientation='vertical'
@@ -365,14 +365,14 @@ def make_fov_plots(points, colors_scatter):
     cbar.ax.yaxis.set_ticks_position('left')
 
     cbaxes = inset_axes(
-        axs[3][0],
+        axs[0][3],
         width="3%",
         height="80%",
         loc=4,
         borderpad=0.5
     )
     cbar = fig.colorbar(
-        im30,
+        im03,
         cax=cbaxes,
         ticks=[0, 0.5, 1],
         orientation='vertical'
@@ -384,14 +384,14 @@ def make_fov_plots(points, colors_scatter):
     cbar.ax.yaxis.set_ticks_position('left')
 
     cbaxes = inset_axes(
-        axs[3][1],
+        axs[1][3],
         width="3%",
         height="80%",
         loc=4,
         borderpad=0.5
     )
     cbar = fig.colorbar(
-        im31,
+        im13,
         cax=cbaxes,
         ticks=[0, 0.5, 1],
         orientation='vertical'
@@ -402,13 +402,13 @@ def make_fov_plots(points, colors_scatter):
 
     cbar.ax.yaxis.set_ticks_position('left')
 
-    axs[0][0].yaxis.set_minor_locator(MultipleLocator(17/6.46))
+    axs[0][0].xaxis.set_minor_locator(MultipleLocator(17/6.46))
     # axs[0][1].yaxis.set_minor_locator(MultipleLocator(17/6.46))
-    axs[1][0].yaxis.set_minor_locator(MultipleLocator(17/6.46))
+    axs[0][1].xaxis.set_minor_locator(MultipleLocator(17/6.46))
     # axs[1][1].yaxis.set_minor_locator(MultipleLocator(17/6.46))
-    axs[2][0].yaxis.set_minor_locator(MultipleLocator(17/6.46))
+    axs[0][2].xaxis.set_minor_locator(MultipleLocator(17/6.46))
     # axs[2][1].yaxis.set_minor_locator(MultipleLocator(17/6.46))
-    axs[3][0].yaxis.set_minor_locator(MultipleLocator(17/6.46))
+    axs[0][3].xaxis.set_minor_locator(MultipleLocator(17/6.46))
     # axs[3][1].yaxis.set_minor_locator(MultipleLocator(17/6.46))
     #
     # axs[0][0].xaxis.set_minor_locator(MultipleLocator(60/22.8))
@@ -417,50 +417,50 @@ def make_fov_plots(points, colors_scatter):
     # axs[1][1].xaxis.set_minor_locator(MultipleLocator(60/22.8))
     # axs[2][0].xaxis.set_minor_locator(MultipleLocator(60/22.8))
     # axs[2][1].xaxis.set_minor_locator(MultipleLocator(60/22.8))
-    axs[3][0].xaxis.set_minor_locator(MultipleLocator(60/22.8))
-    axs[3][1].xaxis.set_minor_locator(MultipleLocator(60/22.8))
+    axs[0][3].yaxis.set_minor_locator(MultipleLocator(60/22.8))
+    axs[1][3].yaxis.set_minor_locator(MultipleLocator(60/22.8))
 
     axs[0][0].tick_params(direction='out', which='both', color='black')
     # axs[0][1].tick_params(direction='out', which='both', color='black')
-    axs[1][0].tick_params(direction='out', which='both', color='black')
+    axs[0][1].tick_params(direction='out', which='both', color='black')
     # axs[1][1].tick_params(direction='out', which='both', color='black')
-    axs[2][0].tick_params(direction='out', which='both', color='black')
+    axs[0][2].tick_params(direction='out', which='both', color='black')
     # axs[2][1].tick_params(direction='out', which='both', color='black')
-    axs[3][0].tick_params(direction='out', which='both', color='black')
-    axs[3][1].tick_params(direction='out', which='both', color='black')
+    axs[0][3].tick_params(direction='out', which='both', color='black')
+    axs[1][3].tick_params(direction='out', which='both', color='black')
 
-    axs[0][0].set_xticklabels([])
-    axs[0][1].set_xticklabels([])
-    axs[1][0].set_xticklabels([])
-    axs[1][1].set_xticklabels([])
-    axs[2][0].set_xticklabels([])
-    axs[2][1].set_xticklabels([])
-    axs[3][0].set_xticks([0, 10 * 60/22.8, 20 * 60/22.8])
-    axs[3][0].set_xticklabels([0, 10, 20])
-    axs[3][1].set_xticks([0, 10 * 60/22.8, 20 * 60/22.8])
-    axs[3][1].set_xticklabels([0, 10, 20])
-    axs[0][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
-    axs[0][0].set_yticklabels([0, 2, 4])
-    axs[1][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
-    axs[1][0].set_yticklabels([0, 2, 4])
-    axs[2][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
-    axs[2][0].set_yticklabels([0, 2, 4])
-    axs[3][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
-    axs[3][0].set_yticklabels([0, 2, 4])
-    axs[0][1].set_yticklabels([])
-    axs[1][1].set_yticklabels([])
-    axs[2][1].set_yticklabels([])
-    axs[3][1].set_yticklabels([])
+    # axs[0][0].set_xticklabels([])
+    # axs[0][1].set_xticklabels([])
+    # axs[1][0].set_xticklabels([])
+    # axs[1][1].set_xticklabels([])
+    # axs[2][0].set_xticklabels([])
+    # axs[2][1].set_xticklabels([])
+    # axs[3][0].set_xticks([0, 10 * 60/22.8, 20 * 60/22.8])
+    # axs[3][0].set_xticklabels([0, 10, 20])
+    # axs[3][1].set_xticks([0, 10 * 60/22.8, 20 * 60/22.8])
+    # axs[3][1].set_xticklabels([0, 10, 20])
+    # axs[0][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
+    # axs[0][0].set_yticklabels([0, 2, 4])
+    # axs[1][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
+    # axs[1][0].set_yticklabels([0, 2, 4])
+    # axs[2][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
+    # axs[2][0].set_yticklabels([0, 2, 4])
+    # axs[3][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
+    # axs[3][0].set_yticklabels([0, 2, 4])
+    # axs[0][1].set_yticklabels([])
+    # axs[1][1].set_yticklabels([])
+    # axs[2][1].set_yticklabels([])
+    # axs[3][1].set_yticklabels([])
 
-    axs[0][0].set_ylabel('y [arcsec]')
-    axs[1][0].set_ylabel('y [arcsec]')
-    axs[2][0].set_ylabel('y [arcsec]')
-    axs[3][0].set_ylabel('y [arcsec]')
+    # axs[0][0].set_ylabel('y [arcsec]')
+    # axs[1][0].set_ylabel('y [arcsec]')
+    # axs[2][0].set_ylabel('y [arcsec]')
+    # axs[3][0].set_ylabel('y [arcsec]')
+    #
+    # axs[3][0].set_xlabel('x [arcsec]')
+    # axs[3][1].set_xlabel('x [arcsec]')
 
-    axs[3][0].set_xlabel('x [arcsec]')
-    axs[3][1].set_xlabel('x [arcsec]')
-
-    plt.subplots_adjust(left=0.08, bottom=0.16, right=1, top=1, hspace=0.0, wspace=0.0)
+    plt.subplots_adjust(left=0.1, bottom=0.08, right=1, top=1, hspace=0.0, wspace=0.0)
 
     write_path = Path('/home/harsh/Spinor Paper/')
     fig.savefig(write_path / 'FOV.pdf', format='pdf', dpi=300)
