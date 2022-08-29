@@ -500,18 +500,62 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
 
     fontsize = 7
 
-    fig, axs = plt.subplots(2, 2, figsize=(7, 4.5))
+    fig, axs = plt.subplots(2, 2, figsize=(3.5, 4.5), sharey=True,gridspec_kw={'width_ratios': [1, 1]})
 
     colors = ["red", "yellow", "white", "blue", "green"]
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
-    X, Y = np.meshgrid(fcaha['wav'][ind[0:306]], np.arange(0, 60 * 0.38, 0.38))
-    im00 = axs[0][0].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[0:306], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True)
-    im01 = axs[0][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[0:306], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
+    ind_ca_1 = np.where(fcaha['wav'][ind[0:306]] <= 8539)[0]
+    ind_ca_2 = np.where((fcaha['wav'][ind[0:306]] >= 8541) & (fcaha['wav'][ind[0:306]] <= 8543.5))[0]
 
-    X, Y = np.meshgrid(fcaha['wav'][ind[306:]], np.arange(0, 60 * 0.38, 0.38))
-    im10 = axs[1][0].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True)
-    im11 = axs[1][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-6, vmax=6)
+    axs[0][0].spines['right'].set_visible(False)
+    axs[0][1].spines['left'].set_visible(False)
+    axs[0][0].yaxis.tick_left()
+    axs[0][0].tick_params(labelright='off')
+    axs[0][1].tick_params(labelleft='off')
+    axs[0][0].tick_params(labelright=False)
+    axs[0][1].yaxis.tick_right()
+    axs[0][0].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_1[0]], fcaha['wav'][ind[0:306]][ind_ca_1[-1]])
+    axs[0][1].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_2[0]], fcaha['wav'][ind[0:306]][ind_ca_2[-1]])
+
+    axs[1][0].spines['right'].set_visible(False)
+    axs[1][1].spines['left'].set_visible(False)
+    axs[1][0].yaxis.tick_left()
+    axs[1][0].tick_params(labelright='off')
+    axs[1][1].tick_params(labelleft='off')
+    axs[1][0].tick_params(labelright=False)
+    axs[1][1].yaxis.tick_right()
+    axs[1][0].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_1[0]], fcaha['wav'][ind[0:306]][ind_ca_1[-1]])
+    axs[1][1].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_2[0]], fcaha['wav'][ind[0:306]][ind_ca_2[-1]])
+
+    d = .012  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass plot, just so we don't keep repeating them
+    kwargs = dict(transform=axs[0][0].transAxes, color='k', clip_on=False)
+    axs[0][0].plot((1 - d, 1 + d), (-d, +d), **kwargs)
+    axs[0][0].plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+    kwargs.update(transform=axs[0][1].transAxes)  # switch to the bottom axes
+    axs[0][1].plot((-d, +d), (1 - d, 1 + d), **kwargs)
+    axs[0][1].plot((-d, +d), (-d, +d), **kwargs)
+
+    d = .012  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass plot, just so we don't keep repeating them
+    kwargs = dict(transform=axs[1][0].transAxes, color='k', clip_on=False)
+    axs[1][0].plot((1 - d, 1 + d), (-d, +d), **kwargs)
+    axs[1][0].plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+    kwargs.update(transform=axs[1][1].transAxes)  # switch to the bottom axes
+    axs[1][1].plot((-d, +d), (1 - d, 1 + d), **kwargs)
+    axs[1][1].plot((-d, +d), (-d, +d), **kwargs)
+
+    X1, Y1 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_1], np.arange(0, 60 * 0.38, 0.38))
+    X2, Y2 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_2], np.arange(0, 60 * 0.38, 0.38))
+    im00 = axs[0][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True)
+    im01 = axs[0][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True)
+    im10 = axs[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
+    im11 = axs[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
+
+    # X, Y = np.meshgrid(fcaha['wav'][ind[306:]], np.arange(0, 60 * 0.38, 0.38))
+    # im10 = axs[0][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True)
+    # im11 = axs[1][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-6, vmax=6)
 
     im00.set_edgecolor('face')
     im01.set_edgecolor('face')
@@ -522,65 +566,60 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     for point, color in zip(points, colors):
         for i in range(1):
             for j in range(2):
-                axs[i][j].plot(fcaha['wav'][ind[0:306]], np.ones_like(fcaha['wav'][ind[0:306]]) * point * 0.38, color=color, linestyle='--', linewidth=0.5)
+                axs[j][i].plot(fcaha['wav'][ind[0:306]][ind_ca_1], np.ones_like(fcaha['wav'][ind[0:306]][ind_ca_1]) * point * 0.38, color=color, linestyle='--', linewidth=0.5)
 
     for point, color in zip(points, colors):
         i = 1
         for j in range(2):
-            axs[i][j].plot(fcaha['wav'][ind[306:]], np.ones_like(fcaha['wav'][ind[306:]]) * point * 0.38, color=color, linestyle='--', linewidth=0.5)
-    cbar00 = fig.colorbar(im00, ax=axs[0][0])
+            axs[j][i].plot(fcaha['wav'][ind[0:306]][ind_ca_2], np.ones_like(fcaha['wav'][ind[0:306]][ind_ca_2]) * point * 0.38, color=color, linestyle='--', linewidth=0.5)
+    # for point, color in zip(points, colors):
+    #     i = 1
+    #     for j in range(2):
+    #         axs[j][i].plot(fcaha['wav'][ind[306:]], np.ones_like(fcaha['wav'][ind[306:]]) * point * 0.38, color=color, linestyle='--', linewidth=0.5)
+    # cbar00 = fig.colorbar(im00, ax=axs[0][0])
     cbar01 = fig.colorbar(im01, ax=axs[0][1])
-    cbar10 = fig.colorbar(im10, ax=axs[1][0])
+    # cbar10 = fig.colorbar(im10, ax=axs[1][0])
     cbar11 = fig.colorbar(im11, ax=axs[1][1])
 
-    cbar00.ax.tick_params(labelsize=fontsize)
+    # cbar00.ax.tick_params(labelsize=fontsize)
     cbar01.ax.tick_params(labelsize=fontsize)
-    cbar10.ax.tick_params(labelsize=fontsize)
+    # cbar10.ax.tick_params(labelsize=fontsize)
     cbar11.ax.tick_params(labelsize=fontsize)
 
     axs[0][0].set_ylabel('Slit Position [arcsec]', fontsize=fontsize)
     axs[1][0].set_ylabel('Slit Position [arcsec]', fontsize=fontsize)
 
     axs[0][0].set_title('Intensity [Normalised]', fontsize=fontsize)
-    axs[0][1].set_title(r'$V/I$ [%]', fontsize=fontsize)
-    axs[1][0].set_title('Intensity [Normalised]', fontsize=fontsize)
-    axs[1][1].set_title(r'$V/I$ [%]', fontsize=fontsize)
+    axs[1][0].set_title(r'$V/I$ [%]', fontsize=fontsize)
+    # axs[0][1].set_title('Intensity [Normalised]', fontsize=fontsize)
+    # axs[1][1].set_title(r'$V/I$ [%]', fontsize=fontsize)
 
     # axs[1][0].set_title(r'$Q/I$ [%]')
     #
     # axs[1][1].set_title(r'$U/I$ [%]')
 
-    axs[0][1].set_yticklabels([])
-    axs[1][1].set_yticklabels([])
-
-    axs[0][0].set_xticks([8536, 8538, 8540, 8542, 8544])
-    axs[0][0].set_xticklabels([8536, 8538, 8540, 8542, 8544], fontsize=fontsize)
-
-    axs[0][1].set_xticks([8536, 8538, 8540, 8542, 8544])
-    axs[0][1].set_xticklabels([8536, 8538, 8540, 8542, 8544], fontsize=fontsize)
-
-    # axs[1][0].set_xticks([8536, 8538, 8540, 8542, 8544])
-    # axs[1][0].set_xticklabels([8536, 8538, 8540, 8542, 8544])
+    # axs[0][0].set_xticks([8536, 8538, 8540, 8542, 8544])
+    # axs[0][0].set_xticklabels([8536, 8538, 8540, 8542, 8544], fontsize=fontsize)
     #
-    # axs[1][1].set_xticks([8536, 8538, 8540, 8542, 8544])
-    # axs[1][1].set_xticklabels([8536, 8538, 8540, 8542, 8544])
-
-    axs[1][0].set_xticks([6560, 6562, 6564, 6566, 6568])
-    axs[1][0].set_xticklabels([6560, 6562, 6564, 6566, 6568], fontsize=fontsize)
-
-    axs[1][1].set_xticks([6560, 6562, 6564, 6566, 6568])
-    axs[1][1].set_xticklabels([6560, 6562, 6564, 6566, 6568], fontsize=fontsize)
-
+    # axs[1][0].set_xticks([8536, 8538, 8540, 8542, 8544])
+    # axs[1][0].set_xticklabels([8536, 8538, 8540, 8542, 8544], fontsize=fontsize)
+    #
+    # axs[0][1].set_xticks([6560, 6562, 6564, 6566, 6568])
+    # axs[0][1].set_xticklabels([6560, 6562, 6564, 6566, 6568], fontsize=fontsize)
+    #
+    # axs[1][1].set_xticks([6560, 6562, 6564, 6566, 6568])
+    # axs[1][1].set_xticklabels([6560, 6562, 6564, 6566, 6568], fontsize=fontsize)
+    #
     axs[0][0].set_yticks([0, 5, 10, 15, 20])
     axs[0][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
     axs[0][1].set_yticks([0, 5, 10, 15, 20])
-    axs[0][1].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+    axs[0][1].set_yticklabels([])
     axs[1][0].set_yticks([0, 5, 10, 15, 20])
     axs[1][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
     axs[1][1].set_yticks([0, 5, 10, 15, 20])
-    axs[1][1].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+    axs[1][1].set_yticklabels([])
 
-    axs[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
+    # axs[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
     axs[1][1].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
 
     # fig.suptitle(r'Ca II 8542 $\mathrm{\AA}$')
@@ -599,65 +638,6 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
 
     write_path = Path('/home/harsh/Spinor Paper/')
     fig.savefig(write_path / 'CaII_Stokes_{}.pdf'.format(cut_indice), format='pdf', dpi=300)
-
-    # fig, axs = plt.subplots(2, 2, figsize=(7, 4.5))
-    #
-    # colors = ["red", "yellow", "white", "blue", "green"]
-    #
-    # cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
-    #
-    # X, Y = np.meshgrid(fcaha['wav'][ind[306:]], np.arange(0, 60 * 0.38, 0.38))
-    # im00 = axs[0][0].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap='gray', shading='gouraud')
-    # im01 = axs[0][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap=cmap1, shading='gouraud', vmin=-6, vmax=6)
-    # im10 = axs[1][0].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 1] * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap=cmap1, shading='gouraud', vmin=-2, vmax=2)
-    # im11 = axs[1][1].pcolormesh(X, Y, fcaha['profiles'][0, cut_indice, :, ind[306:], 2] * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:], 0], cmap=cmap1, shading='gouraud', vmin=-3, vmax=3)
-    #
-    # colors = colors_p
-    #
-    # for point, color in zip(points, colors):
-    #     for i in range(1):
-    #         for j in range(2):
-    #             axs[i][j].plot(fcaha['wav'][ind[306:]], np.ones_like(fcaha['wav'][ind[306:]]) * point * 0.38, color=color, linestyle='--', linewidth=0.5)
-    #
-    # fig.colorbar(im00, ax=axs[0][0])
-    # fig.colorbar(im01, ax=axs[0][1])
-    # fig.colorbar(im10, ax=axs[1][0])
-    # fig.colorbar(im11, ax=axs[1][1])
-    #
-    # axs[0][0].set_ylabel('Slit Position [arcsec]')
-    # axs[1][0].set_ylabel('Slit Position [arcsec]')
-    # axs[0][0].set_title('Intensity [Normalised]')
-    #
-    # axs[0][1].set_title(r'$V/I$ [%]')
-    #
-    # axs[1][0].set_title(r'$Q/I$ [%]')
-    #
-    # axs[1][1].set_title(r'$U/I$ [%]')
-    #
-    # axs[0][1].set_yticklabels([])
-    # axs[1][1].set_yticklabels([])
-    #
-    # axs[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]')
-    # axs[1][1].set_xlabel(r'Wavelength [$\mathrm{\AA}$]')
-    #
-    # # fig.suptitle(r'H$\mathrm{\alpha}$')
-    #
-    # axs[0][0].yaxis.set_minor_locator(MultipleLocator(1))
-    # axs[0][1].yaxis.set_minor_locator(MultipleLocator(1))
-    # axs[1][0].yaxis.set_minor_locator(MultipleLocator(1))
-    # axs[1][1].yaxis.set_minor_locator(MultipleLocator(1))
-    #
-    # axs[0][0].xaxis.set_minor_locator(MultipleLocator(0.25))
-    # axs[0][1].xaxis.set_minor_locator(MultipleLocator(0.25))
-    # axs[1][0].xaxis.set_minor_locator(MultipleLocator(0.25))
-    # axs[1][1].xaxis.set_minor_locator(MultipleLocator(0.25))
-    #
-    # fig.tight_layout()
-    #
-    # # plt.show()
-    #
-    # write_path = Path('/home/harsh/Spinor Paper/')
-    # fig.savefig(write_path / 'Ha_Stokes_{}.pdf'.format(cut_indice), format='pdf', dpi=300)
 
     fcaha.close()
 
@@ -2852,42 +2832,42 @@ def make_mag_field_scatter_plots():
 
 
 if __name__ == '__main__':
+    # points = [
+    #     (12, 49),
+    #     (12, 40),
+    #     (12, 34),
+    #     (12, 31),
+    #     (12, 18),
+    #     (8, 53),
+    #     (8, 50),
+    #     (8, 37),
+    #     (8, 31),
+    #     (8, 9),
+    # ]
+    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    # make_fov_plots(points, colors)
     points = [
-        (12, 49),
-        (12, 40),
-        (12, 34),
-        (12, 31),
-        (12, 18),
-        (8, 53),
-        (8, 50),
-        (8, 37),
-        (8, 31),
-        (8, 9),
+        49,
+        40,
+        34,
+        31,
+        18
     ]
-    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    make_fov_plots(points, colors)
-    # points = [
-    #     49,
-    #     40,
-    #     34,
-    #     31,
-    #     18
-    # ]
-    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown']
-    # cut_indice = 12
-    # plot_stokes_parameters(cut_indice, points, colors)
-    # plot_spatial_variation_of_profiles(cut_indice, points, colors)
-    # cut_indice = 8
-    # points = [
-    #     53,
-    #     50,
-    #     37,
-    #     31,
-    #     9
-    # ]
-    # colors = ['green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # plot_stokes_parameters(8, points, colors)
-    # plot_spatial_variation_of_profiles(cut_indice, points, colors)
+    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown']
+    cut_indice = 12
+    plot_stokes_parameters(cut_indice, points, colors)
+    plot_spatial_variation_of_profiles(cut_indice, points, colors)
+    cut_indice = 8
+    points = [
+        53,
+        50,
+        37,
+        31,
+        9
+    ]
+    colors = ['green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    plot_stokes_parameters(cut_indice, points, colors)
+    plot_spatial_variation_of_profiles(cut_indice, points, colors)
     # plot_profiles()
     # points = [
     #     (12, 49),
