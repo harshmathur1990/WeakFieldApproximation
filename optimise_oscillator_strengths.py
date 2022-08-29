@@ -7,7 +7,7 @@ import numpy as np
 from pathlib import Path
 from lightweaver_extension import conv_atom
 import multiprocessing
-from lightweaver.utils import vac_to_air
+from lightweaver.utils import vac_to_air, air_to_vac
 
 
 base_path = Path(
@@ -89,38 +89,48 @@ def cost_function(observation, synth1, synth2):
 
     synth1 /= synth1[0]
 
-    synth2 /= synth2[0]
+    # synth2 /= synth2[0]
+
+    diff = np.square(
+            np.subtract(
+                observation,
+                synth1
+            )
+        )[300:500]
+
+    # diff [300:500] *= 4
+    # diff[350:450] *= 8
 
     chi1 = np.sqrt(
-        np.square(
-            np.subtract(
-                observation,
-                synth1
-            )
+        np.sum(
+            diff
         )
     )
 
-    chi2 = np.sqrt(
-        np.square(
-            np.subtract(
-                observation,
-                synth2
-            )
-        )
-    )
+    print('chisq: {}'.format(chi1))
 
-    chi3 = np.sqrt(
-        np.square(
-            np.subtract(
-                synth2,
-                synth1
-            )
-        )
-    )
+    return np.sqrt(diff)
+    # chi2 = np.sqrt(
+    #     np.square(
+    #         np.subtract(
+    #             observation,
+    #             synth2
+    #         )
+    #     )
+    # )
 
-    res = np.array(list(chi1) + list(chi2) + list(chi3))
+    # chi3 = np.sqrt(
+    #     np.square(
+    #         np.subtract(
+    #             synth2,
+    #             synth1
+    #         )
+    #     )
+    # )
 
-    return res
+    # res = np.array(list(chi1)) # + list(chi2) + list(chi3))
+
+    # return res
 
 
 def get_observation():
@@ -150,17 +160,17 @@ def synthesize(f_values, waver, parallel=True):
         (6, 3)
     ]
 
-    atoms_no_substructure = list()
+    # atoms_no_substructure = list()
 
     atoms_with_substructure = list()
 
-    for at in atoms_no_substructure_list:
-        atoms_no_substructure.append(conv_atom(base_path / at))
+    # for at in atoms_no_substructure_list:
+    #     atoms_no_substructure.append(conv_atom(base_path / at))
 
     for at in atoms_with_substructure_list:
         atoms_with_substructure.append(conv_atom(base_path / at))
 
-    total_gf = 0
+    # total_gf = 0
 
     h_with_substructure = atoms_with_substructure[0]
 
@@ -170,29 +180,29 @@ def synthesize(f_values, waver, parallel=True):
         for line in h_with_substructure.lines:
             if line.j == line_indice[0] and line.i == line_indice[1]:
                 line.f = f_values[index]
-                total_gf += f_values[index] * line.iLevel.g
+                # total_gf += f_values[index] * line.iLevel.g
                 index += 1
                 break
 
     h_with_substructure.recompute_radiative_broadening()
     h_with_substructure.recompute_collisional_rates()
 
-    total_gf /= 8
-
-    h_without_substructure = atoms_no_substructure[0]
-
-    h_without_substructure.lines[4].f = total_gf
-    h_without_substructure.recompute_radiative_broadening()
-    h_without_substructure.recompute_collisional_rates()
+    # total_gf /= 8
+    #
+    # h_without_substructure = atoms_no_substructure[0]
+    #
+    # h_without_substructure.lines[4].f = total_gf
+    # h_without_substructure.recompute_radiative_broadening()
+    # h_without_substructure.recompute_collisional_rates()
 
     h_with_substructure.__post_init__()
-    h_without_substructure.__post_init__()
+    # h_without_substructure.__post_init__()
 
     if not parallel:
         fal = Falc82()
         _, i_obs_1 = synthesize_line(atoms_with_substructure, fal, False, True, waver)
-        fal = Falc82()
-        _, i_obs_2 = synthesize_line(atoms_no_substructure, fal, False, True, waver)
+        # fal = Falc82()
+        _, i_obs_2 = None, None # synthesize_line(atoms_no_substructure, fal, False, True, waver)
 
     else:
         q = multiprocessing.Queue()
@@ -201,21 +211,21 @@ def synthesize(f_values, waver, parallel=True):
 
         p1 = multiprocessing.Process(target=synthesize_line, args=(atoms_with_substructure, fal, False, True, waver, q))
 
-        fal = Falc82()
-
-        p2 = multiprocessing.Process(target=synthesize_line, args=(atoms_no_substructure, fal, False, True, waver, q))
+        # fal = Falc82()
+        #
+        # p2 = multiprocessing.Process(target=synthesize_line, args=(atoms_no_substructure, fal, False, True, waver, q))
 
         p1.start()
 
-        p2.start()
+        # p2.start()
 
         p1.join()
 
-        p2.join()
+        # p2.join()
 
         i_obs_1 = q.get()
 
-        i_obs_2 = q.get()
+        i_obs_2 = None # q.get()
 
     return i_obs_1, i_obs_2
 
@@ -229,18 +239,19 @@ def prepare_minimization_func(waver):
 
         for ff in f_values:
             if ff <= 0:
-                res = np.zeros(waver.size * 3)
+                res = np.zeros(200)
                 res[:] = np.inf
                 return res
 
         i_obs_1, i_obs_2 = synthesize(f_values, waver)
 
-        # fig, axs = plt.subplots(1, 1, figsize=(7, 7))
-        # axs.plot(waver, i_obs_1 / i_obs_1[0], color='blue')
-        # axs.plot(waver, i_obs_2 / i_obs_2[0], color='green')
-        # axs.plot(waver, observation / observation[0], color='orange')
-        # fig.tight_layout()
-        # fig.savefig('solution.pdf', format='pdf', dpi=300)
+        wave_vac = vac_to_air(waver)
+        fig, axs = plt.subplots(1, 1, figsize=(7, 5))
+        axs.plot(wave_vac, i_obs_1 / i_obs_1[0], color='blue')
+        # axs.plot(wave_vac, i_obs_2 / i_obs_2[0], color='green')
+        axs.plot(wave_vac, observation / observation[0], color='orange')
+        fig.tight_layout()
+        fig.savefig('solution.pdf', format='pdf', dpi=300)
 
         return cost_function(observation, i_obs_1, i_obs_2)
 
@@ -250,14 +261,16 @@ def prepare_minimization_func(waver):
 if __name__ == '__main__':
     obs = get_observation()
     f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
-    # f_values = np.ones(7) * 0.01
+    # f_values = np.array([0.1, 0.1, 0.3, 0.15, 0.1, 0.1, 0.06])
     min_func = prepare_minimization_func(wave)
-    res_1 = scipy.optimize.least_squares(min_func, f_values, method='lm')
+    res_1 = scipy.optimize.least_squares(min_func, f_values, ftol=3e-16, xtol=3e-16, gtol=3e-16, max_nfev=1000000, diff_step=np.ones(7) * 0.2)
     np.savetxt('solution.txt', res_1.x)
     obs_1, obs_2 = synthesize(res_1.x, wave, parallel=False)
-    fig, axs = plt.subplots(1, 1, figsize=(7, 7))
-    axs.plot(wave, obs_1 / obs_1[0], color='blue')
-    axs.plot(wave, obs_2 / obs_2[0], color='green')
-    axs.plot(wave, obs / obs[0], color='orange')
+    # obs_1, obs_2 = synthesize(f_values, wave, parallel=False)
+    wave_vac = vac_to_air(wave)
+    fig, axs = plt.subplots(1, 1, figsize=(7, 5))
+    axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
+    # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
+    axs.plot(wave_vac, obs / obs[0], color='orange')
     fig.tight_layout()
-    fig.savefig('solution.pdf', format='pdf', dpi=300)
+    fig.savefig('original.pdf', format='pdf', dpi=300)

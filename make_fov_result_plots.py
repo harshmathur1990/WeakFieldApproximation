@@ -222,11 +222,11 @@ def get_fov_data():
 def make_fov_plots(points, colors_scatter):
     data, wing_ca, core_ca, wing_ha, core_ha, mask = get_fov_data()
 
-    fig, axs = plt.subplots(2, 4, figsize=(5, 8))
+    fig, axs = plt.subplots(2, 4, figsize=(4.15, 7))
 
     extent = [0, 6.46, 0, 22.8]
 
-    fontsize = 8
+    fontsize = 10
 
     colors = ["darkred", "darkgoldenrod", "white", "green", "blue"]
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
@@ -264,39 +264,44 @@ def make_fov_plots(points, colors_scatter):
 
     axs[0][0].text(
         0.02, 0.04,
-        r'(a) Ca II 8542 $\mathrm{{\AA}}$ {} $\mathrm{{\AA}}$'.format(
-            np.round(wing_ca - 8542.09), 2
-        ),
+        # r'(a) Ca II 8542 $\mathrm{{\AA}}$ {} $\mathrm{{\AA}}$'.format(
+        #     np.round(wing_ca - 8542.09), 2
+        # ),
+        r'(a)',
         transform=axs[0][0].transAxes,
         color='white',
         fontsize=fontsize
     )
     axs[1][0].text(
         0.02, 0.04,
-        r'(b) H$\alpha$ +{} $\mathrm{{\AA}}$'.format(
-            np.round(wing_ha - 6562.8), 2
-        ),
+        # r'(b) H$\alpha$ +{} $\mathrm{{\AA}}$'.format(
+        #     np.round(wing_ha - 6562.8), 2
+        # ),
+        r'(b)',
         transform=axs[1][0].transAxes,
         color='white',
         fontsize=fontsize
     )
     axs[0][1].text(
         0.02, 0.04,
-        r'(c) Ca II 8542 $\mathrm{{\AA}}$ core',
+        # r'(c) Ca II 8542 $\mathrm{{\AA}}$ core',
+        r'(c)',
         transform=axs[0][1].transAxes,
         color='white',
         fontsize=fontsize
     )
     axs[1][1].text(
         0.02, 0.04,
-        r'(d) H$\alpha$ core',
+        # r'(d) H$\alpha$ core',
+        r'(d)',
         transform=axs[1][1].transAxes,
         color='white',
         fontsize=fontsize
     )
     axs[0][2].text(
         0.02, 0.04,
-        r'(e) $B_{{\mathrm{LOS}}}$ (Fe I 6569 $\AA$) [G]',
+        # r'(e) $B_{{\mathrm{LOS}}}$ (Fe I 6569 $\AA$) [G]',
+        r'(e)',
         transform=axs[0][2].transAxes,
         color='black',
         fontsize=fontsize
@@ -304,7 +309,8 @@ def make_fov_plots(points, colors_scatter):
 
     axs[1][2].text(
         0.02, 0.04,
-        r'(f) $B_{{\mathrm{LOS}}}$ (Ca II 8542 $\AA$) [G]',
+        # r'(f) $B_{{\mathrm{LOS}}}$ (Ca II 8542 $\AA$) [G]',
+        r'(f)',
         transform=axs[1][2].transAxes,
         color='black',
         fontsize=fontsize
@@ -312,7 +318,8 @@ def make_fov_plots(points, colors_scatter):
 
     axs[0][3].text(
         0.02, 0.04,
-        r'(g) Linear Polarisation (Fe I 6569 $\AA$) [%]',
+        # r'(g) Linear Polarisation (Fe I 6569 $\AA$) [%]',
+        r'(g)',
         transform=axs[0][3].transAxes,
         color='white',
         fontsize=fontsize
@@ -320,7 +327,8 @@ def make_fov_plots(points, colors_scatter):
 
     axs[1][3].text(
         0.02, 0.04,
-        r'(h) Linear Polarisation (Ca II 8542 $\AA$) [%]',
+        # r'(h) Linear Polarisation (Ca II 8542 $\AA$) [%]',
+        r'(h)',
         transform=axs[1][3].transAxes,
         color='white',
         fontsize=fontsize
@@ -328,139 +336,155 @@ def make_fov_plots(points, colors_scatter):
 
     cbaxes = inset_axes(
         axs[0][2],
-        width="3%",
-        height="80%",
-        loc=4,
+        width="70%",
+        height="3%",
+        loc=1,
         borderpad=0.5
     )
     cbar = fig.colorbar(
         im02,
         cax=cbaxes,
         ticks=[-700, 0, 700],
-        orientation='vertical'
+        orientation='horizontal'
     )
 
     # cbar.ax.xaxis.set_ticks_position('top')
-    cbar.ax.tick_params(labelsize=8, colors='black')
+    cbar.ax.tick_params(labelsize=fontsize - 2, colors='black')
 
     cbar.ax.yaxis.set_ticks_position('left')
 
     cbaxes = inset_axes(
         axs[1][2],
-        width="3%",
-        height="80%",
-        loc=4,
+        width="70%",
+        height="3%",
+        loc=1,
         borderpad=0.5
     )
     cbar = fig.colorbar(
         im12,
         cax=cbaxes,
         ticks=[-500, 0, 500],
-        orientation='vertical'
+        orientation='horizontal'
     )
 
     # cbar.ax.xaxis.set_ticks_position('top')
-    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+    cbar.ax.tick_params(labelsize=fontsize - 2, colors='black')
 
     cbar.ax.yaxis.set_ticks_position('left')
 
     cbaxes = inset_axes(
         axs[0][3],
-        width="3%",
-        height="80%",
-        loc=4,
+        width="70%",
+        height="3%",
+        loc=1,
         borderpad=0.5
     )
     cbar = fig.colorbar(
         im03,
         cax=cbaxes,
         ticks=[0, 0.5, 1],
-        orientation='vertical'
+        orientation='horizontal'
     )
 
     # cbar.ax.xaxis.set_ticks_position('top')
-    cbar.ax.tick_params(labelsize=8, colors='white')
+    cbar.ax.tick_params(labelsize=fontsize - 2, colors='white')
 
     cbar.ax.yaxis.set_ticks_position('left')
 
     cbaxes = inset_axes(
         axs[1][3],
-        width="3%",
-        height="80%",
-        loc=4,
+        width="70%",
+        height="3%",
+        loc=1,
         borderpad=0.5
     )
     cbar = fig.colorbar(
         im13,
         cax=cbaxes,
-        ticks=[0, 0.5, 1],
-        orientation='vertical'
+        ticks=[0, 0.4, 0.8],
+        orientation='horizontal'
     )
 
     # cbar.ax.xaxis.set_ticks_position('top')
-    cbar.ax.tick_params(labelsize=fontsize, colors='white')
+    cbar.ax.tick_params(labelsize=fontsize - 2, colors='white')
 
     cbar.ax.yaxis.set_ticks_position('left')
 
     axs[0][0].xaxis.set_minor_locator(MultipleLocator(17/6.46))
-    # axs[0][1].yaxis.set_minor_locator(MultipleLocator(17/6.46))
     axs[0][1].xaxis.set_minor_locator(MultipleLocator(17/6.46))
-    # axs[1][1].yaxis.set_minor_locator(MultipleLocator(17/6.46))
-    axs[0][2].xaxis.set_minor_locator(MultipleLocator(17/6.46))
-    # axs[2][1].yaxis.set_minor_locator(MultipleLocator(17/6.46))
-    axs[0][3].xaxis.set_minor_locator(MultipleLocator(17/6.46))
-    # axs[3][1].yaxis.set_minor_locator(MultipleLocator(17/6.46))
-    #
-    # axs[0][0].xaxis.set_minor_locator(MultipleLocator(60/22.8))
-    # axs[0][1].xaxis.set_minor_locator(MultipleLocator(60/22.8))
-    # axs[1][0].xaxis.set_minor_locator(MultipleLocator(60/22.8))
-    # axs[1][1].xaxis.set_minor_locator(MultipleLocator(60/22.8))
-    # axs[2][0].xaxis.set_minor_locator(MultipleLocator(60/22.8))
-    # axs[2][1].xaxis.set_minor_locator(MultipleLocator(60/22.8))
+    axs[0][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[0][3].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[0][0].yaxis.set_minor_locator(MultipleLocator(60/22.8))
+    axs[0][1].yaxis.set_minor_locator(MultipleLocator(60/22.8))
+    axs[0][2].yaxis.set_minor_locator(MultipleLocator(60/22.8))
     axs[0][3].yaxis.set_minor_locator(MultipleLocator(60/22.8))
-    axs[1][3].yaxis.set_minor_locator(MultipleLocator(60/22.8))
 
-    axs[0][0].tick_params(direction='out', which='both', color='black')
-    # axs[0][1].tick_params(direction='out', which='both', color='black')
-    axs[0][1].tick_params(direction='out', which='both', color='black')
-    # axs[1][1].tick_params(direction='out', which='both', color='black')
-    axs[0][2].tick_params(direction='out', which='both', color='black')
-    # axs[2][1].tick_params(direction='out', which='both', color='black')
-    axs[0][3].tick_params(direction='out', which='both', color='black')
-    axs[1][3].tick_params(direction='out', which='both', color='black')
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][1].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][3].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][0].yaxis.set_minor_locator(MultipleLocator(60 / 22.8))
+    axs[1][1].yaxis.set_minor_locator(MultipleLocator(60 / 22.8))
+    axs[1][2].yaxis.set_minor_locator(MultipleLocator(60 / 22.8))
+    axs[1][3].yaxis.set_minor_locator(MultipleLocator(60 / 22.8))
 
-    # axs[0][0].set_xticklabels([])
-    # axs[0][1].set_xticklabels([])
-    # axs[1][0].set_xticklabels([])
-    # axs[1][1].set_xticklabels([])
-    # axs[2][0].set_xticklabels([])
-    # axs[2][1].set_xticklabels([])
-    # axs[3][0].set_xticks([0, 10 * 60/22.8, 20 * 60/22.8])
-    # axs[3][0].set_xticklabels([0, 10, 20])
-    # axs[3][1].set_xticks([0, 10 * 60/22.8, 20 * 60/22.8])
-    # axs[3][1].set_xticklabels([0, 10, 20])
-    # axs[0][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
-    # axs[0][0].set_yticklabels([0, 2, 4])
-    # axs[1][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
-    # axs[1][0].set_yticklabels([0, 2, 4])
-    # axs[2][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
-    # axs[2][0].set_yticklabels([0, 2, 4])
-    # axs[3][0].set_yticks([0, 2 * 17/6.46, 4 * 17/6.46])
-    # axs[3][0].set_yticklabels([0, 2, 4])
-    # axs[0][1].set_yticklabels([])
-    # axs[1][1].set_yticklabels([])
-    # axs[2][1].set_yticklabels([])
-    # axs[3][1].set_yticklabels([])
+    axs[0][0].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
+    axs[0][1].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
+    axs[0][2].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
+    axs[0][3].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
 
-    # axs[0][0].set_ylabel('y [arcsec]')
-    # axs[1][0].set_ylabel('y [arcsec]')
-    # axs[2][0].set_ylabel('y [arcsec]')
-    # axs[3][0].set_ylabel('y [arcsec]')
-    #
-    # axs[3][0].set_xlabel('x [arcsec]')
-    # axs[3][1].set_xlabel('x [arcsec]')
+    axs[1][0].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
+    axs[1][1].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
+    axs[1][2].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
+    axs[1][3].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
 
-    plt.subplots_adjust(left=0.1, bottom=0.08, right=1, top=1, hspace=0.0, wspace=0.0)
+    axs[0][0].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[0][0].set_xticklabels([])
+    axs[0][1].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[0][1].set_xticklabels([])
+    axs[0][2].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[0][2].set_xticklabels([])
+    axs[0][3].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[0][3].set_xticklabels([])
+    axs[1][0].set_xticks([0, 2 * 17/6.46, 4 * 17/6.46])
+    axs[1][0].set_xticklabels([0, 2, 4])
+    axs[1][1].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[1][1].set_xticklabels([0, 2, 4])
+    axs[1][2].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[1][2].set_xticklabels([0, 2, 4])
+    axs[1][3].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[1][3].set_xticklabels([0, 2, 4])
+
+    axs[0][0].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[0][0].set_yticklabels([0, 10, 20])
+    axs[0][1].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[0][1].set_yticklabels([])
+    axs[0][2].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[0][2].set_yticklabels([])
+    axs[0][3].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[0][3].set_yticklabels([])
+    axs[1][0].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[1][0].set_yticklabels([0, 10, 20])
+    axs[1][1].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[1][1].set_yticklabels([])
+    axs[1][2].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[1][2].set_yticklabels([])
+    axs[1][3].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[1][3].set_yticklabels([])
+
+    axs[1][2].text(
+        -0.9, -0.13,
+        'scan direction [arcsec]',
+        transform=axs[1][2].transAxes,
+        color='black',
+        fontsize=fontsize
+    )
+
+    axs[0][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
+
+    axs[1][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
+
+    plt.subplots_adjust(left=0.12, bottom=0.08, right=1, top=1, hspace=0.0, wspace=0.0)
 
     write_path = Path('/home/harsh/Spinor Paper/')
     fig.savefig(write_path / 'FOV.pdf', format='pdf', dpi=300)
