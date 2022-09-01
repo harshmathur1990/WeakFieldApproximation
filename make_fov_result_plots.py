@@ -830,7 +830,7 @@ def plot_profiles():
     fcaha.close()
 
 
-def plot_spatial_variation_of_profiles(cut_indice, points, colors):
+def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list):
 
     fcaha = h5py.File(ca_ha_data_file, 'r')
 
@@ -859,7 +859,24 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors):
     center_list = list()
     ylim = list()
 
-    for index, point in enumerate(points):
+    ind_ca_1 = np.where((fcaha['wav'][ind[0:306]] >= 8535.75) & (fcaha['wav'][ind[0:306]] <= 8536.75))[0]
+    ind_ca_2 = np.where((fcaha['wav'][ind[0:306]] >= 8537.5) & (fcaha['wav'][ind[0:306]] <= 8538.5))[0]
+    ind_ca_3 = np.where((fcaha['wav'][ind[0:306]] >= 8541) & (fcaha['wav'][ind[0:306]] <= 8543))[0]
+
+    ind_ha_1 = np.where((fcaha['wav'][ind[306:]] >= 6561.5) & (fcaha['wav'][ind[306:]] <= 6564.5))[0]
+    ind_ha_2 = np.where((fcaha['wav'][ind[306:]] >= 6568.5) & (fcaha['wav'][ind[306:]] <= 6570))[0]
+
+    for index, (point, factor_ca, factor_ha) in enumerate(zip(points, factor_ca_list, factor_ha_list)):
+        factor_ca_arr = np.ones_like(fcaha['wav'][ind[0:306]], dtype=np.float64)
+        factor_ha_arr = np.ones_like(fcaha['wav'][ind[306:]], dtype=np.float64)
+
+        factor_ca_arr[ind_ca_1] = factor_ca[0]
+        factor_ca_arr[ind_ca_2] = factor_ca[1]
+        factor_ca_arr[ind_ca_3] = factor_ca[2]
+
+        factor_ha_arr[ind_ha_1] = factor_ha[0]
+        factor_ha_arr[ind_ha_2] = factor_ha[1]
+
         center = 2 * index - ((len(points) // 2) * 2) + np.sign(2 * index - ((len(points) // 2) * 2)) * 0.2
         center *= -1
         center_list.append(center)
@@ -874,35 +891,28 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors):
             1
         )
         norm_profile_ca = (fcaha['profiles'][0, cut_indice, point, ind[0:306], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]) / amax
+        norm_profile_ca *= factor_ca_arr
         max_ca.append(amax)
         norm_profile_ca += center
         norm_profiles_ca.append(norm_profile_ca)
-        norm_stokes_I_ca = (2 * fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]) - 1
-        norm_stokes_I_ca += center
+        norm_stokes_I_ca = fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]
         norm_stokes_I_ca_list.append(norm_stokes_I_ca)
-        medprofca_list.append((2 * medprofca) - 1 + center)
+        medprofca_list.append(medprofca)
 
         amax = np.round(
             np.abs(fcaha['profiles'][0, cut_indice, point, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[306:], 0]).max(),
             1
         )
         norm_profile_ha = (fcaha['profiles'][0, cut_indice, point, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[306:], 0]) / amax
+        norm_profile_ha *= factor_ha_arr
         max_ha.append(amax)
         norm_profile_ha += center
         norm_profiles_ha.append(norm_profile_ha)
-        norm_stokes_I_ha = (2 * fcaha['profiles'][0, cut_indice, point, ind[306:], 0]) - 1
-        norm_stokes_I_ha += center
+        norm_stokes_I_ha = fcaha['profiles'][0, cut_indice, point, ind[306:], 0]
         norm_stokes_I_ha_list.append(norm_stokes_I_ha)
-        medprofha_list.append((2 * medprofha) - 1 + center)
+        medprofha_list.append(medprofha)
 
     linewidth = 0.5
-
-    ind_ca_1 = np.where((fcaha['wav'][ind[0:306]] >= 8535.75) & (fcaha['wav'][ind[0:306]] <= 8536.75))[0]
-    ind_ca_2 = np.where((fcaha['wav'][ind[0:306]] >= 8537.5) & (fcaha['wav'][ind[0:306]] <= 8538.5))[0]
-    ind_ca_3 = np.where((fcaha['wav'][ind[0:306]] >= 8541) & (fcaha['wav'][ind[0:306]] <= 8543))[0]
-
-    ind_ha_1 = np.where((fcaha['wav'][ind[306:]] >= 6561.5) & (fcaha['wav'][ind[306:]] <= 6564.5))[0]
-    ind_ha_2 = np.where((fcaha['wav'][ind[306:]] >= 6568.5) & (fcaha['wav'][ind[306:]] <= 6570))[0]
 
     fontsize = 8
 
@@ -1051,17 +1061,17 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors):
         axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], norm_profile_ca[ind_ca_1], color=color, linewidth=linewidth, linestyle='-')
         axs1[1][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], norm_profile_ca[ind_ca_2], color=color, linewidth=linewidth, linestyle='-')
         axs1[1][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], norm_profile_ca[ind_ca_3], color=color, linewidth=linewidth, linestyle='-')
-        axs1[0][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], amedprofca[ind_ca_1], color='grey', linewidth=linewidth, linestyle='--')
-        axs1[0][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], amedprofca[ind_ca_2], color='grey', linewidth=linewidth, linestyle='--')
-        axs1[0][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], amedprofca[ind_ca_3], color='grey', linewidth=linewidth, linestyle='--')
+    axs1[0][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], amedprofca[ind_ca_1], color='grey', linewidth=linewidth, linestyle='--')
+    axs1[0][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], amedprofca[ind_ca_2], color='grey', linewidth=linewidth, linestyle='--')
+    axs1[0][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], amedprofca[ind_ca_3], color='grey', linewidth=linewidth, linestyle='--')
 
     for point, color, norm_profile_ha, norm_stokes_I_ha, amedprofha in zip(points, colors, norm_profiles_ha, norm_stokes_I_ha_list, medprofha_list):
         axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], norm_stokes_I_ha[ind_ha_1], color=color, linewidth=linewidth, linestyle='-')
         axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], norm_stokes_I_ha[ind_ha_2], color=color, linewidth=linewidth, linestyle='-')
         axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], norm_profile_ha[ind_ha_1], color=color, linewidth=linewidth, linestyle='-')
         axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], norm_profile_ha[ind_ha_2], color=color, linewidth=linewidth, linestyle='-')
-        axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], amedprofha[ind_ha_1], color='grey', linewidth=linewidth, linestyle='--')
-        axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], amedprofha[ind_ha_2], color='grey', linewidth=linewidth, linestyle='--')
+    axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], amedprofha[ind_ha_1], color='grey', linewidth=linewidth, linestyle='--')
+    axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], amedprofha[ind_ha_2], color='grey', linewidth=linewidth, linestyle='--')
 
 
     yticks = list()
@@ -1073,22 +1083,21 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors):
         yticks.append(center - 0.5)
         yticks.append(center)
         yticks.append(center + 0.5)
-        yticklabels1.append(-a_max_ca / 2)
+        yticklabels1.append(np.round(-0.8 * a_max_ca, 1))
         yticklabels1.append(0)
-        yticklabels1.append(a_max_ca / 2)
-        yticklabels2.append(-a_max_ha / 2)
+        yticklabels1.append(np.round(0.8 * a_max_ca, 1))
+        yticklabels2.append(np.round(-0.8 * a_max_ha, 1))
         yticklabels2.append(0)
-        yticklabels2.append(a_max_ha / 2)
+        yticklabels2.append(np.round(0.8 * a_max_ha, 1))
         yticklabels01.append(0.25)
         yticklabels01.append(0.5)
         yticklabels01.append(0.75)
 
-    axs1[0][0].set_yticks(yticks)
+    axs1[1][1].set_yticks([])
+    axs1[1][2].set_yticks([])
+    axs2[1][1].set_yticks([])
     axs1[1][0].set_yticks(yticks)
-    axs2[0][0].set_yticks(yticks)
     axs2[1][0].set_yticks(yticks)
-    axs1[0][0].set_yticklabels(yticklabels01, fontsize=fontsize)
-    axs2[0][0].set_yticklabels(yticklabels01, fontsize=fontsize)
     axs1[1][0].set_yticklabels(yticklabels1, fontsize=fontsize)
     axs2[1][0].set_yticklabels(yticklabels2, fontsize=fontsize)
 
@@ -1096,8 +1105,8 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors):
     axs1[1][0].set_ylabel(r'$V/I$ [%]', fontsize=fontsize)
 
 
-    axs1[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
-    axs2[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
+    # axs1[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
+    # axs2[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
 
     axs1[0][0].xaxis.set_minor_locator(MultipleLocator(0.25))
     axs1[0][1].xaxis.set_minor_locator(MultipleLocator(0.25))
@@ -1105,19 +1114,63 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors):
     axs1[1][0].xaxis.set_minor_locator(MultipleLocator(0.25))
     axs1[1][1].xaxis.set_minor_locator(MultipleLocator(0.25))
     axs1[1][2].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs2[0][0].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs2[0][1].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs2[1][0].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs2[1][1].xaxis.set_minor_locator(MultipleLocator(0.25))
 
     ylim.reverse()
-    axs1[0][0].set_ylim(*ylim)
-    axs1[0][1].set_ylim(*ylim)
-    axs1[0][2].set_ylim(*ylim)
     axs1[1][0].set_ylim(*ylim)
     axs1[1][1].set_ylim(*ylim)
     axs1[1][2].set_ylim(*ylim)
 
-    axs2[0][0].set_ylim(*ylim)
-    axs2[0][1].set_ylim(*ylim)
     axs2[1][0].set_ylim(*ylim)
     axs2[1][1].set_ylim(*ylim)
+
+    axs1[0][0].set_ylim(0.15, 1)
+    axs1[0][1].set_ylim(0.15, 1)
+    axs1[0][2].set_ylim(0.15, 1)
+    axs2[0][0].set_ylim(0.15, 1)
+    axs2[0][1].set_ylim(0.15, 1)
+
+    axs1[0][1].set_yticks([])
+    axs1[0][2].set_yticks([])
+    axs2[0][1].set_yticks([])
+
+    axs1[0][0].tick_params(labelsize=fontsize)
+    axs1[0][1].tick_params(labelsize=fontsize)
+    axs1[0][2].tick_params(labelsize=fontsize)
+    axs2[0][0].tick_params(labelsize=fontsize)
+    axs2[0][1].tick_params(labelsize=fontsize)
+    axs1[1][0].tick_params(labelsize=fontsize)
+    axs1[1][1].tick_params(labelsize=fontsize)
+    axs1[1][2].tick_params(labelsize=fontsize)
+    axs2[1][0].tick_params(labelsize=fontsize)
+    axs2[1][1].tick_params(labelsize=fontsize)
+
+    axs1[0][0].set_xticks([8536])
+    axs1[0][0].set_xticklabels([8536], fontsize=fontsize)
+
+    axs1[1][0].set_xticks([8536])
+    axs1[1][0].set_xticklabels([8536], fontsize=fontsize)
+
+    axs1[0][1].set_xticks([8538])
+    axs1[0][1].set_xticklabels([8538], fontsize=fontsize)
+
+    axs1[1][1].set_xticks([8538])
+    axs1[1][1].set_xticklabels([8538], fontsize=fontsize)
+
+    axs1[0][2].set_xticks([8542])
+    axs1[0][2].set_xticklabels([8542], fontsize=fontsize)
+
+    axs1[1][2].set_xticks([8542])
+    axs1[1][2].set_xticklabels([8542], fontsize=fontsize)
+
+    axs2[0][1].set_xticks([6569])
+    axs2[0][1].set_xticklabels([6569], fontsize=fontsize)
+
+    axs2[1][1].set_xticks([6569])
+    axs2[1][1].set_xticklabels([6569], fontsize=fontsize)
 
     # plt.subplots_adjust(left=0.07, bottom=0.09, right=0.9, top=0.98, wspace=0.38, hspace=0.2)
 
@@ -3167,20 +3220,34 @@ if __name__ == '__main__':
         18
     ]
     colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown']
+    factor_ca_list = [
+        (2, 2, 1),
+        (2, 2, 1),
+        (2, 2, 1),
+        (2, 2, 1),
+        (2, 2, 1)
+    ]
+    factor_ha_list = [
+        (3, 1),
+        (1, 1),
+        (3, 1),
+        (2, 1),
+        (2, 1)
+    ]
     cut_indice = 12
     plot_stokes_parameters(cut_indice, points, colors)
-    plot_spatial_variation_of_profiles(cut_indice, points, colors)
-    cut_indice = 8
-    points = [
-        53,
-        50,
-        37,
-        31,
-        9
-    ]
-    colors = ['green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    plot_stokes_parameters(cut_indice, points, colors)
-    plot_spatial_variation_of_profiles(cut_indice, points, colors)
+    plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
+    # cut_indice = 8
+    # points = [
+    #     53,
+    #     50,
+    #     37,
+    #     31,
+    #     9
+    # ]
+    # colors = ['green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    # plot_stokes_parameters(cut_indice, points, colors)
+    # plot_spatial_variation_of_profiles(cut_indice, points, colors)
     # plot_profiles()
     # points = [
     #     (12, 49),
