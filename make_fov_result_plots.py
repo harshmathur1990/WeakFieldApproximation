@@ -836,10 +836,6 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors):
 
     ind = np.where(fcaha['profiles'][0, 0, 0, :, 0]!=0)[0]
 
-    fontsize = 7
-
-    fig, axs = plt.subplots(2, 2, figsize=(7, 4.5))
-
     medprofca = list()
     for ca_stray_file in ca_stray_files:
         fstrayca = h5py.File(ca_stray_file, 'r')
@@ -901,16 +897,171 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors):
 
     linewidth = 0.5
 
+    ind_ca_1 = np.where((fcaha['wav'][ind[0:306]] >= 8535.75) & (fcaha['wav'][ind[0:306]] <= 8536.75))[0]
+    ind_ca_2 = np.where((fcaha['wav'][ind[0:306]] >= 8537.5) & (fcaha['wav'][ind[0:306]] <= 8538.5))[0]
+    ind_ca_3 = np.where((fcaha['wav'][ind[0:306]] >= 8541) & (fcaha['wav'][ind[0:306]] <= 8543))[0]
+
+    ind_ha_1 = np.where((fcaha['wav'][ind[306:]] >= 6561.5) & (fcaha['wav'][ind[306:]] <= 6564.5))[0]
+    ind_ha_2 = np.where((fcaha['wav'][ind[306:]] >= 6568.5) & (fcaha['wav'][ind[306:]] <= 6570))[0]
+
+    fontsize = 8
+
+    fig = plt.figure(figsize=(7, 4.5))
+
+    gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.2, 0.2, 0.6])
+
+    gs1.update(left=0.06, bottom=0.07, right=0.45, top=0.93, wspace=0.03, hspace=0.3)
+
+    gs3 = gridspec.GridSpec(2, 2, width_ratios=[0.7, 0.3])
+
+    gs3.update(left=0.56, bottom=0.07, right=0.95, top=0.93, wspace=0.03, hspace=0.3)
+
+    axs1 = [[], []]
+    axs2 = [[], []]
+
+    k = 0
+    for i in range(2):
+        for j in range(3):
+            axs1[i].append(fig.add_subplot(gs1[k]))
+            k += 1
+
+    k = 0
+    for i in range(2):
+        for j in range(2):
+            axs2[i].append(fig.add_subplot(gs3[k]))
+            k += 1
+
+    axs1[0][0].spines['right'].set_visible(False)
+    axs1[0][1].spines['left'].set_visible(False)
+    axs1[0][0].yaxis.tick_left()
+    axs1[0][0].tick_params(labelright='off')
+    axs1[0][1].tick_params(labelleft='off')
+    axs1[0][0].tick_params(labelright=False)
+    axs1[0][1].yaxis.tick_right()
+    axs1[0][0].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_1[0]], fcaha['wav'][ind[0:306]][ind_ca_1[-1]])
+    axs1[0][1].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_2[0]], fcaha['wav'][ind[0:306]][ind_ca_2[-1]])
+
+    axs1[0][1].spines['right'].set_visible(False)
+    axs1[0][2].spines['left'].set_visible(False)
+    axs1[0][1].yaxis.tick_left()
+    axs1[0][1].tick_params(labelright='off')
+    axs1[0][2].tick_params(labelleft='off')
+    axs1[0][1].tick_params(labelright=False)
+    axs1[0][2].yaxis.tick_right()
+    axs1[0][1].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_2[0]], fcaha['wav'][ind[0:306]][ind_ca_2[-1]])
+    axs1[0][2].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_3[0]], fcaha['wav'][ind[0:306]][ind_ca_3[-1]])
+
+    axs1[1][0].spines['right'].set_visible(False)
+    axs1[1][1].spines['left'].set_visible(False)
+    axs1[1][0].yaxis.tick_left()
+    axs1[1][0].tick_params(labelright='off')
+    axs1[1][1].tick_params(labelleft='off')
+    axs1[1][0].tick_params(labelright=False)
+    axs1[1][1].yaxis.tick_right()
+    axs1[1][0].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_1[0]], fcaha['wav'][ind[0:306]][ind_ca_1[-1]])
+    axs1[1][1].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_2[0]], fcaha['wav'][ind[0:306]][ind_ca_2[-1]])
+
+    axs1[1][1].spines['right'].set_visible(False)
+    axs1[1][2].spines['left'].set_visible(False)
+    axs1[1][1].yaxis.tick_left()
+    axs1[1][1].tick_params(labelright='off')
+    axs1[1][2].tick_params(labelleft='off')
+    axs1[1][1].tick_params(labelright=False)
+    axs1[1][2].yaxis.tick_right()
+    axs1[1][1].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_2[0]], fcaha['wav'][ind[0:306]][ind_ca_2[-1]])
+    axs1[1][2].set_xlim(fcaha['wav'][ind[0:306]][ind_ca_3[0]], fcaha['wav'][ind[0:306]][ind_ca_3[-1]])
+
+    d = .012  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass plot, just so we don't keep repeating them
+    kwargs = dict(transform=axs1[0][0].transAxes, color='k', clip_on=False, linewidth=0.5)
+    axs1[0][0].plot((1 - d, 1 + d), (-d, +d), **kwargs)
+    axs1[0][0].plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+    kwargs.update(transform=axs1[0][1].transAxes, linewidth=0.5)  # switch to the bottom axes
+    axs1[0][1].plot((-d, +d), (1 - d, 1 + d), **kwargs)
+    axs1[0][1].plot((-d, +d), (-d, +d), **kwargs)
+
+    d = .012  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass plot, just so we don't keep repeating them
+    kwargs = dict(transform=axs1[0][1].transAxes, color='k', clip_on=False, linewidth=0.5)
+    axs1[0][1].plot((1 - d, 1 + d), (-d, +d), **kwargs)
+    axs1[0][1].plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+    kwargs.update(transform=axs1[0][2].transAxes, linewidth=0.5)  # switch to the bottom axes
+    axs1[0][2].plot((-d, +d), (1 - d, 1 + d), **kwargs)
+    axs1[0][2].plot((-d, +d), (-d, +d), **kwargs)
+
+    d = .012  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass plot, just so we don't keep repeating them
+    kwargs = dict(transform=axs1[1][0].transAxes, color='k', clip_on=False, linewidth=0.5)
+    axs1[1][0].plot((1 - d, 1 + d), (-d, +d), **kwargs)
+    axs1[1][0].plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+    kwargs.update(transform=axs1[1][1].transAxes, linewidth=0.5)  # switch to the bottom axes
+    axs1[1][1].plot((-d, +d), (1 - d, 1 + d), **kwargs)
+    axs1[1][1].plot((-d, +d), (-d, +d), **kwargs)
+
+    kwargs = dict(transform=axs1[1][1].transAxes, color='k', clip_on=False, linewidth=0.5)
+    axs1[1][1].plot((1 - d, 1 + d), (-d, +d), **kwargs)
+    axs1[1][1].plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+    kwargs.update(transform=axs1[1][2].transAxes, linewidth=0.5)  # switch to the bottom axes
+    axs1[1][2].plot((-d, +d), (1 - d, 1 + d), **kwargs)
+    axs1[1][2].plot((-d, +d), (-d, +d), **kwargs)
+
+    axs2[0][0].spines['right'].set_visible(False)
+    axs2[0][1].spines['left'].set_visible(False)
+    axs2[0][0].yaxis.tick_left()
+    axs2[0][0].tick_params(labelright='off')
+    axs2[0][1].tick_params(labelleft='off')
+    axs2[0][0].tick_params(labelright=False)
+    axs2[0][1].yaxis.tick_right()
+    axs2[0][0].set_xlim(fcaha['wav'][ind[306:]][ind_ha_1[0]], fcaha['wav'][ind[306:]][ind_ha_1[-1]])
+    axs2[0][1].set_xlim(fcaha['wav'][ind[306:]][ind_ha_2[0]], fcaha['wav'][ind[306:]][ind_ha_2[-1]])
+
+    axs2[1][0].spines['right'].set_visible(False)
+    axs2[1][1].spines['left'].set_visible(False)
+    axs2[1][0].yaxis.tick_left()
+    axs2[1][0].tick_params(labelright='off')
+    axs2[1][1].tick_params(labelleft='off')
+    axs2[1][0].tick_params(labelright=False)
+    axs2[1][1].yaxis.tick_right()
+    axs2[1][0].set_xlim(fcaha['wav'][ind[306:]][ind_ha_1[0]], fcaha['wav'][ind[306:]][ind_ha_1[-1]])
+    axs2[1][1].set_xlim(fcaha['wav'][ind[306:]][ind_ha_2[0]], fcaha['wav'][ind[306:]][ind_ha_2[-1]])
+
+    d = .012  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass plot, just so we don't keep repeating them
+    kwargs = dict(transform=axs2[0][0].transAxes, color='k', clip_on=False, linewidth=0.5)
+    axs2[0][0].plot((1 - d, 1 + d), (-d, +d), **kwargs)
+    axs2[0][0].plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+    kwargs.update(transform=axs2[0][1].transAxes, linewidth=0.5)  # switch to the bottom axes
+    axs2[0][1].plot((-d, +d), (1 - d, 1 + d), **kwargs)
+    axs2[0][1].plot((-d, +d), (-d, +d), **kwargs)
+
+    d = .012  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass plot, just so we don't keep repeating them
+    kwargs = dict(transform=axs2[1][0].transAxes, color='k', clip_on=False, linewidth=0.5)
+    axs2[1][0].plot((1 - d, 1 + d), (-d, +d), **kwargs)
+    axs2[1][0].plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+    kwargs.update(transform=axs2[1][1].transAxes, linewidth=0.5)  # switch to the bottom axes
+    axs2[1][1].plot((-d, +d), (1 - d, 1 + d), **kwargs)
+    axs2[1][1].plot((-d, +d), (-d, +d), **kwargs)
+
     for point, color, norm_profile_ca, norm_stokes_I_ca, amedprofca in zip(points, colors, norm_profiles_ca, norm_stokes_I_ca_list, medprofca_list):
         print ('{} - {}'.format(point, color))
-        axs[0][0].plot(fcaha['wav'][ind[0:306]], norm_stokes_I_ca, color=color, linewidth=linewidth, linestyle='-')
-        axs[0][1].plot(fcaha['wav'][ind[0:306]], norm_profile_ca, color=color, linewidth=linewidth, linestyle='-')
-        axs[0][0].plot(fcaha['wav'][ind[0:306]], amedprofca, color='grey', linewidth=linewidth, linestyle='--')
+        axs1[0][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], norm_stokes_I_ca[ind_ca_1], color=color, linewidth=linewidth, linestyle='-')
+        axs1[0][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], norm_stokes_I_ca[ind_ca_2], color=color, linewidth=linewidth, linestyle='-')
+        axs1[0][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], norm_stokes_I_ca[ind_ca_3], color=color, linewidth=linewidth, linestyle='-')
+        axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], norm_profile_ca[ind_ca_1], color=color, linewidth=linewidth, linestyle='-')
+        axs1[1][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], norm_profile_ca[ind_ca_2], color=color, linewidth=linewidth, linestyle='-')
+        axs1[1][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], norm_profile_ca[ind_ca_3], color=color, linewidth=linewidth, linestyle='-')
+        axs1[0][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], amedprofca[ind_ca_1], color='grey', linewidth=linewidth, linestyle='--')
+        axs1[0][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], amedprofca[ind_ca_2], color='grey', linewidth=linewidth, linestyle='--')
+        axs1[0][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], amedprofca[ind_ca_3], color='grey', linewidth=linewidth, linestyle='--')
 
     for point, color, norm_profile_ha, norm_stokes_I_ha, amedprofha in zip(points, colors, norm_profiles_ha, norm_stokes_I_ha_list, medprofha_list):
-        axs[1][0].plot(fcaha['wav'][ind[306:]], norm_stokes_I_ha, color=color, linewidth=linewidth, linestyle='-')
-        axs[1][1].plot(fcaha['wav'][ind[306:]], norm_profile_ha, color=color, linewidth=linewidth, linestyle='-')
-        axs[1][0].plot(fcaha['wav'][ind[306:]], amedprofha, color='grey', linewidth=linewidth, linestyle='--')
+        axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], norm_stokes_I_ha[ind_ha_1], color=color, linewidth=linewidth, linestyle='-')
+        axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], norm_stokes_I_ha[ind_ha_2], color=color, linewidth=linewidth, linestyle='-')
+        axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], norm_profile_ha[ind_ha_1], color=color, linewidth=linewidth, linestyle='-')
+        axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], norm_profile_ha[ind_ha_2], color=color, linewidth=linewidth, linestyle='-')
+        axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], amedprofha[ind_ha_1], color='grey', linewidth=linewidth, linestyle='--')
+        axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], amedprofha[ind_ha_2], color='grey', linewidth=linewidth, linestyle='--')
 
 
     yticks = list()
@@ -932,57 +1083,43 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors):
         yticklabels01.append(0.5)
         yticklabels01.append(0.75)
 
-    axs[0][1].set_yticks(yticks)
-    axs[1][1].set_yticks(yticks)
-    axs[0][0].set_yticks(yticks)
-    axs[1][0].set_yticks(yticks)
-    axs[0][1].set_yticklabels(yticklabels1, fontsize=fontsize)
-    axs[1][1].set_yticklabels(yticklabels2, fontsize=fontsize)
-    axs[0][0].set_yticklabels(yticklabels01, fontsize=fontsize)
-    axs[1][0].set_yticklabels(yticklabels01, fontsize=fontsize)
+    axs1[0][0].set_yticks(yticks)
+    axs1[1][0].set_yticks(yticks)
+    axs2[0][0].set_yticks(yticks)
+    axs2[1][0].set_yticks(yticks)
+    axs1[0][0].set_yticklabels(yticklabels01, fontsize=fontsize)
+    axs2[0][0].set_yticklabels(yticklabels01, fontsize=fontsize)
+    axs1[1][0].set_yticklabels(yticklabels1, fontsize=fontsize)
+    axs2[1][0].set_yticklabels(yticklabels2, fontsize=fontsize)
 
-    # axs[0][0].set_yticks([0.2, 0.4, 0.6, 0.8])
-    # axs[1][0].set_yticks([0.2, 0.4, 0.6, 0.8])
-    # axs[0][0].set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=fontsize)
-    # axs[1][0].set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=fontsize)
+    axs1[0][0].set_ylabel(r'$I/I_{c}$', fontsize=fontsize)
+    axs1[1][0].set_ylabel(r'$V/I$ [%]', fontsize=fontsize)
 
-    axs[0][0].set_ylabel(r'$I/I_{c}$', fontsize=fontsize)
-    axs[1][0].set_ylabel(r'$I/I_{c}$', fontsize=fontsize)
-    axs[0][1].set_ylabel(r'$V/I$ [%]', fontsize=fontsize)
-    axs[1][1].set_ylabel(r'$V/I$ [%]', fontsize=fontsize)
 
-    axs[0][0].set_xticks([8536, 8538, 8540, 8542, 8544, 8546])
-    axs[0][0].set_xticklabels([8536, 8538, 8540, 8542, 8544, 8546], fontsize=fontsize)
+    axs1[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
+    axs2[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
 
-    axs[0][1].set_xticks([8536, 8538, 8540, 8542, 8544, 8546])
-    axs[0][1].set_xticklabels([8536, 8538, 8540, 8542, 8544, 8546], fontsize=fontsize)
-
-    axs[1][0].set_xticks([6560, 6562, 6564, 6566, 6568, 6570])
-    axs[1][0].set_xticklabels([6560, 6562, 6564, 6566, 6568, 6570], fontsize=fontsize)
-
-    axs[1][1].set_xticks([6560, 6562, 6564, 6566, 6568, 6570])
-    axs[1][1].set_xticklabels([6560, 6562, 6564, 6566, 6568, 6570], fontsize=fontsize)
-
-    axs[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
-    axs[1][1].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
-
-    axs[0][0].xaxis.set_minor_locator(MultipleLocator(0.25))
-    axs[0][1].xaxis.set_minor_locator(MultipleLocator(0.25))
-    axs[1][0].xaxis.set_minor_locator(MultipleLocator(0.25))
-    axs[1][1].xaxis.set_minor_locator(MultipleLocator(0.25))
-
-    # axs[0][0].yaxis.set_minor_locator(MultipleLocator(0.1))
-    # axs[0][1].yaxis.set_minor_locator(MultipleLocator(1))
-    # axs[1][0].yaxis.set_minor_locator(MultipleLocator(0.1))
-    # axs[1][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs1[0][0].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs1[0][1].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs1[0][2].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs1[1][0].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs1[1][1].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs1[1][2].xaxis.set_minor_locator(MultipleLocator(0.25))
 
     ylim.reverse()
-    axs[0][1].set_ylim(*ylim)
-    axs[1][1].set_ylim(*ylim)
-    axs[0][0].set_ylim(*ylim)
-    axs[1][0].set_ylim(*ylim)
+    axs1[0][0].set_ylim(*ylim)
+    axs1[0][1].set_ylim(*ylim)
+    axs1[0][2].set_ylim(*ylim)
+    axs1[1][0].set_ylim(*ylim)
+    axs1[1][1].set_ylim(*ylim)
+    axs1[1][2].set_ylim(*ylim)
 
-    plt.subplots_adjust(left=0.07, bottom=0.09, right=0.9, top=0.98, wspace=0.38, hspace=0.2)
+    axs2[0][0].set_ylim(*ylim)
+    axs2[0][1].set_ylim(*ylim)
+    axs2[1][0].set_ylim(*ylim)
+    axs2[1][1].set_ylim(*ylim)
+
+    # plt.subplots_adjust(left=0.07, bottom=0.09, right=0.9, top=0.98, wspace=0.38, hspace=0.2)
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
