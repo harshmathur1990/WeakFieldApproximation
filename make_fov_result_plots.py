@@ -499,10 +499,6 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
 
     ind = np.where(fcaha['profiles'][0, 0, 0, :, 0]!=0)[0]
 
-    fontsize = 8
-
-    fig = plt.figure(figsize=(7, 4.5))
-
     colors = ["red", "yellow", "white", "blue", "green"]
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
@@ -513,13 +509,17 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     ind_ha_1 = np.where((fcaha['wav'][ind[306:]] >= 6561.5) & (fcaha['wav'][ind[306:]] <= 6564.5))[0]
     ind_ha_2 = np.where((fcaha['wav'][ind[306:]] >= 6568.5) & (fcaha['wav'][ind[306:]] <= 6570))[0]
 
+    fontsize = 8
+
+    fig = plt.figure(figsize=(7, 4.5))
+
     gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.2, 0.2, 0.6])
 
-    gs1.update(left=0.06, bottom=0.07, right=0.45, top=0.93, wspace=0.03, hspace=0.3)
+    gs1.update(left=0.07, bottom=0.09, right=0.48, top=0.95, wspace=0.03, hspace=0.15)
 
     gs3 = gridspec.GridSpec(2, 2, width_ratios=[0.7, 0.3])
 
-    gs3.update(left=0.56, bottom=0.07, right=0.95, top=0.93, wspace=0.03, hspace=0.3)
+    gs3.update(left=0.57, bottom=0.09, right=0.93, top=0.95, wspace=0.03, hspace=0.15)
 
     axs1 = [[], []]
     axs2 = [[], []]
@@ -667,7 +667,7 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     im12.set_edgecolor('face')
 
     cbar02 = fig.colorbar(im02, ax=axs1[0][2])
-    cbar12 = fig.colorbar(im12, ax=axs1[1][2])
+    cbar12 = fig.colorbar(im12, ax=axs1[1][2], ticks=[9, 6, 3, 0, -3, -6, -9])
     cbar02.ax.tick_params(labelsize=fontsize)
     cbar12.ax.tick_params(labelsize=fontsize)
 
@@ -685,7 +685,7 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     im11.set_edgecolor('face')
 
     cbar01 = fig.colorbar(im01, ax=axs2[0][1])
-    cbar11 = fig.colorbar(im11, ax=axs2[1][1])
+    cbar11 = fig.colorbar(im11, ax=axs2[1][1], ticks=[9, 6, 3, 0, -3, -6, -9])
     cbar01.ax.tick_params(labelsize=fontsize)
     cbar11.ax.tick_params(labelsize=fontsize)
 
@@ -719,19 +719,6 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     axs1[0][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
     axs1[1][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
 
-    axs1[0][2].text(
-        0.93, 1.1,
-        'Intensity [Normalised]',
-        transform=axs1[0][2].transAxes,
-        fontsize=fontsize
-    )
-    axs1[1][2].text(
-        1.3, 1.12,
-        r'$V/I$ [%]',
-        transform=axs1[1][2].transAxes,
-        fontsize=fontsize
-    )
-
     axs1[0][0].set_yticks([0, 5, 10, 15, 20])
     axs1[0][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
     axs1[0][1].set_yticks([])
@@ -755,30 +742,12 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     axs1[1][1].xaxis.set_minor_locator(MultipleLocator(0.25))
     axs1[1][2].xaxis.set_minor_locator(MultipleLocator(0.25))
 
-    axs1[0][0].set_xticks([8536])
-    axs1[0][0].set_xticklabels([8536], fontsize=fontsize)
-
-    axs1[1][0].set_xticks([8536])
-    axs1[1][0].set_xticklabels([8536], fontsize=fontsize)
-
-    axs1[0][1].set_xticks([8538])
-    axs1[0][1].set_xticklabels([8538], fontsize=fontsize)
-
-    axs1[1][1].set_xticks([8538])
-    axs1[1][1].set_xticklabels([8538], fontsize=fontsize)
-
-    axs1[0][2].set_xticks([8542])
-    axs1[0][2].set_xticklabels([8542], fontsize=fontsize)
-
-    axs1[1][2].set_xticks([8542])
-    axs1[1][2].set_xticklabels([8542], fontsize=fontsize)
-
     axs2[0][0].set_yticks([0, 5, 10, 15, 20])
-    axs2[0][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+    axs2[0][0].set_yticklabels([], fontsize=fontsize)
     axs2[0][1].set_yticks([])
     axs2[0][1].set_yticklabels([])
     axs2[1][0].set_yticks([0, 5, 10, 15, 20])
-    axs2[1][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+    axs2[1][0].set_yticklabels([], fontsize=fontsize)
     axs2[1][1].set_yticks([])
     axs2[1][1].set_yticklabels([])
 
@@ -795,12 +764,6 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     axs2[1][0].tick_params(labelsize=fontsize)
     axs2[1][1].tick_params(labelsize=fontsize)
 
-    axs2[0][1].set_xticks([6569])
-    axs2[0][1].set_xticklabels([6569], fontsize=fontsize)
-
-    axs2[1][1].set_xticks([6569])
-    axs2[1][1].set_xticklabels([6569], fontsize=fontsize)
-
     axs1[0][0].tick_params(labelsize=fontsize)
     axs1[0][1].tick_params(labelsize=fontsize)
     axs1[0][2].tick_params(labelsize=fontsize)
@@ -811,6 +774,49 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     axs1[1][2].tick_params(labelsize=fontsize)
     axs2[1][0].tick_params(labelsize=fontsize)
     axs2[1][1].tick_params(labelsize=fontsize)
+
+    axs1[0][0].set_xticks([8536])
+    axs1[0][0].set_xticklabels([], fontsize=fontsize)
+
+    axs1[1][0].set_xticks([8536])
+    axs1[1][0].set_xticklabels([], fontsize=fontsize)
+
+    axs1[0][1].set_xticks([8538])
+    axs1[0][1].set_xticklabels([], fontsize=fontsize)
+
+    axs1[1][1].set_xticks([8538])
+    axs1[1][1].set_xticklabels([], fontsize=fontsize)
+
+    axs1[0][2].set_xticks([8542])
+    axs1[0][2].set_xticklabels([], fontsize=fontsize)
+
+    axs1[1][2].set_xticks([8542])
+    axs1[1][2].set_xticklabels([], fontsize=fontsize)
+
+    axs2[0][0].set_xticks([6562, 6563, 6564])
+    axs2[0][0].set_xticklabels([], fontsize=fontsize)
+
+    axs2[1][0].set_xticks([6562, 6563, 6564])
+    axs2[1][0].set_xticklabels([], fontsize=fontsize)
+
+    axs2[0][1].set_xticks([6569])
+    axs2[0][1].set_xticklabels([], fontsize=fontsize)
+
+    axs2[1][1].set_xticks([6569])
+    axs2[1][1].set_xticklabels([], fontsize=fontsize)
+
+    axs1[0][2].text(
+        0.93, 1.07,
+        'Intensity [Normalised]',
+        transform=axs1[0][2].transAxes,
+        fontsize=fontsize
+    )
+    axs1[1][2].text(
+        1.3, 1.07,
+        r'$V/I$ [%]',
+        transform=axs1[1][2].transAxes,
+        fontsize=fontsize
+    )
 
     write_path = Path('/home/harsh/Spinor Paper/')
     fig.savefig(write_path / 'CaII_Stokes_{}.pdf'.format(cut_indice), format='pdf', dpi=300)
@@ -877,14 +883,14 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
         factor_ha_arr[ind_ha_1] = factor_ha[0]
         factor_ha_arr[ind_ha_2] = factor_ha[1]
 
-        center = 2 * index - ((len(points) // 2) * 2) + np.sign(2 * index - ((len(points) // 2) * 2)) * 0.2
+        center = 2 * index - ((len(points) // 2) * 2)
         center *= -1
         center_list.append(center)
         print(center)
         if index == 0:
-            ylim.append(center + 1.1)
+            ylim.append(center + 1)
         if index == len(points) - 1:
-            ylim.append(center - 1.1)
+            ylim.append(center - 1)
 
         amax = np.round(
             np.abs(fcaha['profiles'][0, cut_indice, point, ind[0:306], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]).max(),
@@ -918,13 +924,13 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
 
     fig = plt.figure(figsize=(7, 4.5))
 
-    gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.2, 0.2, 0.6])
+    gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.23, 0.23, 0.54])
 
-    gs1.update(left=0.06, bottom=0.07, right=0.45, top=0.93, wspace=0.03, hspace=0.3)
+    gs1.update(left=0.07, bottom=0.09, right=0.43, top=0.95, wspace=0.03, hspace=0.15)
 
-    gs3 = gridspec.GridSpec(2, 2, width_ratios=[0.7, 0.3])
+    gs3 = gridspec.GridSpec(2, 2, width_ratios=[0.74, 0.26])
 
-    gs3.update(left=0.56, bottom=0.07, right=0.95, top=0.93, wspace=0.03, hspace=0.3)
+    gs3.update(left=0.57, bottom=0.09, right=0.9105, top=0.95, wspace=0.03, hspace=0.15)
 
     axs1 = [[], []]
     axs2 = [[], []]
@@ -1073,6 +1079,12 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
     axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], amedprofha[ind_ha_1], color='grey', linewidth=linewidth, linestyle='--')
     axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], amedprofha[ind_ha_2], color='grey', linewidth=linewidth, linestyle='--')
 
+    for center in center_list:
+        axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], np.ones_like(ind_ca_1) * (center - 1), linewidth=0.5, linestyle='--', color='gray')
+        axs1[1][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], np.ones_like(ind_ca_2) * (center - 1), linewidth=0.5, linestyle='--', color='gray')
+        axs1[1][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], np.ones_like(ind_ca_3) * (center - 1), linewidth=0.5, linestyle='--', color='gray')
+        axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], np.ones_like(ind_ha_1) * (center - 1), linewidth=0.5, linestyle='--', color='gray')
+        axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], np.ones_like(ind_ha_2) * (center - 1), linewidth=0.5, linestyle='--', color='gray')
 
     yticks = list()
     yticklabels1 = list()
@@ -1081,14 +1093,11 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
 
     for a_max_ha, a_max_ca, center in zip(max_ha, max_ca, center_list):
         yticks.append(center - 0.5)
-        yticks.append(center)
         yticks.append(center + 0.5)
-        yticklabels1.append(np.round(-0.8 * a_max_ca, 1))
-        yticklabels1.append(0)
-        yticklabels1.append(np.round(0.8 * a_max_ca, 1))
-        yticklabels2.append(np.round(-0.8 * a_max_ha, 1))
-        yticklabels2.append(0)
-        yticklabels2.append(np.round(0.8 * a_max_ha, 1))
+        yticklabels1.append(np.round(-0.5 * a_max_ca, 1))
+        yticklabels1.append(np.round(0.5 * a_max_ca, 1))
+        yticklabels2.append(np.round(-0.5 * a_max_ha, 1))
+        yticklabels2.append(np.round(0.5 * a_max_ha, 1))
         yticklabels01.append(0.25)
         yticklabels01.append(0.5)
         yticklabels01.append(0.75)
@@ -1104,10 +1113,6 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
     axs1[0][0].set_ylabel(r'$I/I_{c}$', fontsize=fontsize)
     axs1[1][0].set_ylabel(r'$V/I$ [%]', fontsize=fontsize)
 
-
-    # axs1[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
-    # axs2[1][0].set_xlabel(r'Wavelength [$\mathrm{\AA}$]', fontsize=fontsize)
-
     axs1[0][0].xaxis.set_minor_locator(MultipleLocator(0.25))
     axs1[0][1].xaxis.set_minor_locator(MultipleLocator(0.25))
     axs1[0][2].xaxis.set_minor_locator(MultipleLocator(0.25))
@@ -1118,6 +1123,12 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
     axs2[0][1].xaxis.set_minor_locator(MultipleLocator(0.25))
     axs2[1][0].xaxis.set_minor_locator(MultipleLocator(0.25))
     axs2[1][1].xaxis.set_minor_locator(MultipleLocator(0.25))
+
+    axs1[1][0].yaxis.set_minor_locator(MultipleLocator(0.5))
+    axs2[1][0].yaxis.set_minor_locator(MultipleLocator(0.5))
+
+    axs1[0][0].yaxis.set_minor_locator(MultipleLocator(0.1))
+    axs2[0][0].yaxis.set_minor_locator(MultipleLocator(0.1))
 
     ylim.reverse()
     axs1[1][0].set_ylim(*ylim)
@@ -1135,6 +1146,7 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
 
     axs1[0][1].set_yticks([])
     axs1[0][2].set_yticks([])
+    axs2[0][0].set_yticklabels([])
     axs2[0][1].set_yticks([])
 
     axs1[0][0].tick_params(labelsize=fontsize)
@@ -1149,30 +1161,60 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
     axs2[1][1].tick_params(labelsize=fontsize)
 
     axs1[0][0].set_xticks([8536])
-    axs1[0][0].set_xticklabels([8536], fontsize=fontsize)
+    axs1[0][0].set_xticklabels([], fontsize=fontsize)
 
     axs1[1][0].set_xticks([8536])
     axs1[1][0].set_xticklabels([8536], fontsize=fontsize)
 
     axs1[0][1].set_xticks([8538])
-    axs1[0][1].set_xticklabels([8538], fontsize=fontsize)
+    axs1[0][1].set_xticklabels([], fontsize=fontsize)
 
     axs1[1][1].set_xticks([8538])
     axs1[1][1].set_xticklabels([8538], fontsize=fontsize)
 
     axs1[0][2].set_xticks([8542])
-    axs1[0][2].set_xticklabels([8542], fontsize=fontsize)
+    axs1[0][2].set_xticklabels([], fontsize=fontsize)
 
     axs1[1][2].set_xticks([8542])
     axs1[1][2].set_xticklabels([8542], fontsize=fontsize)
 
+    axs2[0][0].set_xticks([6562, 6563, 6564])
+    axs2[0][0].set_xticklabels([], fontsize=fontsize)
+
+    axs2[1][0].set_xticks([6562, 6563, 6564])
+    axs2[1][0].set_xticklabels([6562, 6563, 6564], fontsize=fontsize)
+
     axs2[0][1].set_xticks([6569])
-    axs2[0][1].set_xticklabels([6569], fontsize=fontsize)
+    axs2[0][1].set_xticklabels([], fontsize=fontsize)
 
     axs2[1][1].set_xticks([6569])
     axs2[1][1].set_xticklabels([6569], fontsize=fontsize)
 
-    # plt.subplots_adjust(left=0.07, bottom=0.09, right=0.9, top=0.98, wspace=0.38, hspace=0.2)
+    axs1[0][2].text(
+        0.93, 1.07,
+        'Intensity [Normalised]',
+        transform=axs1[0][2].transAxes,
+        fontsize=fontsize
+    )
+    axs1[1][2].text(
+        1.3, 1.07,
+        r'$V/I$ [%]',
+        transform=axs1[1][2].transAxes,
+        fontsize=fontsize
+    )
+
+    axs1[1][0].text(
+        1.55, -0.2,
+        r'Wavelength [$\mathrm{\AA}$]',
+        transform=axs1[1][0].transAxes,
+        fontsize=fontsize
+    )
+    axs2[1][0].text(
+        0.55, -0.2,
+        r'Wavelength [$\mathrm{\AA}$]',
+        transform=axs2[1][0].transAxes,
+        fontsize=fontsize
+    )
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
@@ -3212,31 +3254,31 @@ if __name__ == '__main__':
     # ]
     # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
     # make_fov_plots(points, colors)
-    points = [
-        49,
-        40,
-        34,
-        31,
-        18
-    ]
-    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown']
-    factor_ca_list = [
-        (2, 2, 1),
-        (2, 2, 1),
-        (2, 2, 1),
-        (2, 2, 1),
-        (2, 2, 1)
-    ]
-    factor_ha_list = [
-        (3, 1),
-        (1, 1),
-        (3, 1),
-        (2, 1),
-        (2, 1)
-    ]
-    cut_indice = 12
-    plot_stokes_parameters(cut_indice, points, colors)
-    plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
+    # points = [
+    #     49,
+    #     40,
+    #     34,
+    #     31,
+    #     18
+    # ]
+    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown']
+    # factor_ca_list = [
+    #     (2, 2, 1),
+    #     (2, 2, 1),
+    #     (2, 2, 1),
+    #     (2, 2, 1),
+    #     (2, 2, 1)
+    # ]
+    # factor_ha_list = [
+    #     (2, 1),
+    #     (2, 1),
+    #     (2, 1),
+    #     (2, 1),
+    #     (1.5, 1)
+    # ]
+    # cut_indice = 12
+    # plot_stokes_parameters(cut_indice, points, colors)
+    # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # cut_indice = 8
     # points = [
     #     53,
@@ -3245,9 +3287,23 @@ if __name__ == '__main__':
     #     31,
     #     9
     # ]
+    # factor_ca_list = [
+    #     (1, 1, 1),
+    #     (1, 1, 1),
+    #     (1, 1, 1),
+    #     (3, 3, 1),
+    #     (1, 1, 1)
+    # ]
+    # factor_ha_list = [
+    #     (3, 1),
+    #     (3, 1),
+    #     (3, 1),
+    #     (3, 1),
+    #     (3, 1)
+    # ]
     # colors = ['green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
     # plot_stokes_parameters(cut_indice, points, colors)
-    # plot_spatial_variation_of_profiles(cut_indice, points, colors)
+    # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # plot_profiles()
     # points = [
     #     (12, 49),
