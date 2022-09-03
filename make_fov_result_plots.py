@@ -1252,7 +1252,7 @@ def make_output_param_plots(points, colors_scatter):
 
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
-    fig, axs = plt.subplots(3, 3, figsize=(7, 3.5))
+    fig, axs = plt.subplots(3, 3, figsize=(3.5, 7))
 
     ind = np.where((ltau500 >= -1) & (ltau500 <= 0))[0]
 
@@ -1264,19 +1264,19 @@ def make_output_param_plots(points, colors_scatter):
 
     print(calib_vlos / 1e5)
 
-    X, Y = np.meshgrid(np.arange(0, 60 * 0.38, 0.38), np.arange(0, 17 * 0.38, 0.38))
+    X, Y = np.meshgrid(np.arange(0, 17 * 0.38, 0.38), np.arange(0, 60 * 0.38, 0.38))
 
-    im00 = axs[0][0].pcolormesh(X, Y, f['temp'][0, 0:17, :, ltau_indice[0]] / 1e3, cmap='hot', shading='nearest', linewidth=0, rasterized=True)
-    im01 = axs[0][1].pcolormesh(X, Y, f['temp'][0, 0:17, :, ltau_indice[1]] / 1e3, cmap='hot', shading='nearest', linewidth=0, rasterized=True)
-    im02 = axs[0][2].pcolormesh(X, Y, f['temp'][0, 0:17, :, ltau_indice[2]] / 1e3, cmap='hot', shading='nearest', linewidth=0, rasterized=True)
+    im00 = axs[0][0].pcolormesh(X, Y, f['temp'][0, 0:17, :, ltau_indice[0]].T / 1e3, cmap='hot', shading='nearest', linewidth=0, rasterized=True)
+    im01 = axs[0][1].pcolormesh(X, Y, f['temp'][0, 0:17, :, ltau_indice[1]].T / 1e3, cmap='hot', shading='nearest', linewidth=0, rasterized=True)
+    im02 = axs[0][2].pcolormesh(X, Y, f['temp'][0, 0:17, :, ltau_indice[2]].T / 1e3, cmap='hot', shading='nearest', linewidth=0, rasterized=True)
 
-    im10 = axs[1][0].pcolormesh(X, Y, (f['vlos'][0, 0:17, :, ltau_indice[0]] - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, shading='nearest', linewidth=0, rasterized=True)
-    im11 = axs[1][1].pcolormesh(X, Y, (f['vlos'][0, 0:17, :, ltau_indice[1]] - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, shading='nearest', linewidth=0, rasterized=True)
-    im12 = axs[1][2].pcolormesh(X, Y, (f['vlos'][0, 0:17, :, ltau_indice[2]] - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, shading='nearest', linewidth=0, rasterized=True)
+    im10 = axs[1][0].pcolormesh(X, Y, (f['vlos'][0, 0:17, :, ltau_indice[0]].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, shading='nearest', linewidth=0, rasterized=True)
+    im11 = axs[1][1].pcolormesh(X, Y, (f['vlos'][0, 0:17, :, ltau_indice[1]].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, shading='nearest', linewidth=0, rasterized=True)
+    im12 = axs[1][2].pcolormesh(X, Y, (f['vlos'][0, 0:17, :, ltau_indice[2]].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, shading='nearest', linewidth=0, rasterized=True)
 
-    im20 = axs[2][0].pcolormesh(X, Y, f['vturb'][0, 0:17, :, ltau_indice[0]] / 1e5, cmap='copper', vmin=0, vmax=5, shading='nearest', linewidth=0, rasterized=True)
-    im21 = axs[2][1].pcolormesh(X, Y, f['vturb'][0, 0:17, :, ltau_indice[1]] / 1e5, cmap='copper', vmin=0, vmax=5, shading='nearest', linewidth=0, rasterized=True)
-    im22 = axs[2][2].pcolormesh(X, Y, f['vturb'][0, 0:17, :, ltau_indice[2]] / 1e5, cmap='copper', vmin=0, vmax=5, shading='nearest', linewidth=0, rasterized=True)
+    im20 = axs[2][0].pcolormesh(X, Y, f['vturb'][0, 0:17, :, ltau_indice[0]].T / 1e5, cmap='copper', vmin=0, vmax=5, shading='nearest', linewidth=0, rasterized=True)
+    im21 = axs[2][1].pcolormesh(X, Y, f['vturb'][0, 0:17, :, ltau_indice[1]].T / 1e5, cmap='copper', vmin=0, vmax=5, shading='nearest', linewidth=0, rasterized=True)
+    im22 = axs[2][2].pcolormesh(X, Y, f['vturb'][0, 0:17, :, ltau_indice[2]].T / 1e5, cmap='copper', vmin=0, vmax=5, shading='nearest', linewidth=0, rasterized=True)
 
     im00.set_edgecolor('face')
     im01.set_edgecolor('face')
@@ -1293,7 +1293,7 @@ def make_output_param_plots(points, colors_scatter):
     cbaxes = inset_axes(
         axs[0][0],
         width="80%",
-        height="7%",
+        height="4%",
         loc='upper center',
         borderpad=-1.2
     )
@@ -1309,7 +1309,7 @@ def make_output_param_plots(points, colors_scatter):
     cbaxes = inset_axes(
         axs[0][1],
         width="80%",
-        height="7%",
+        height="4%",
         loc='upper center',
         borderpad=-1.2
     )
@@ -1325,7 +1325,7 @@ def make_output_param_plots(points, colors_scatter):
     cbaxes = inset_axes(
         axs[0][2],
         width="80%",
-        height="7%",
+        height="4%",
         loc='upper center',
         borderpad=-1.2
     )
@@ -1340,7 +1340,7 @@ def make_output_param_plots(points, colors_scatter):
 
     cbaxes = inset_axes(
         axs[1][2],
-        width="3%",
+        width="7%",
         height="80%",
         loc='right',
         borderpad=-1.2
@@ -1356,7 +1356,7 @@ def make_output_param_plots(points, colors_scatter):
 
     cbaxes = inset_axes(
         axs[2][2],
-        width="3%",
+        width="7%",
         height="80%",
         loc='right',
         borderpad=-1.2
@@ -1375,19 +1375,19 @@ def make_output_param_plots(points, colors_scatter):
             color = 'black'
             if i == 2:
                 color = 'white'
-            axs[i][j].contour(X, Y, mask[0, 0], levels=0, colors=color, linewidths=0.5)
-            axs[i][j].set_xticks([0, 5, 10, 15, 20])
-            axs[i][j].set_yticks([0, 5])
-            axs[i][j].set_xticklabels([])
+            axs[i][j].contour(X, Y, mask[0, 0].T, levels=0, colors=color, linewidths=0.5)
+            axs[i][j].set_yticks([0, 5, 10, 15, 20])
+            axs[i][j].set_xticks([0, 5])
             axs[i][j].set_yticklabels([])
-            axs[i][j].plot(np.arange(0, 60 * 0.38, 0.38), np.ones(60) * 12 * 0.38, linestyle='--', color='brown', linewidth=0.5)
-            axs[i][j].plot(np.arange(0, 60 * 0.38, 0.38), np.ones(60) * 8 * 0.38, linestyle='--', color='darkgreen', linewidth=0.5)
+            axs[i][j].set_xticklabels([])
+            axs[i][j].axvline(12 * 0.38, linestyle='--', color='brown', linewidth=0.5)
+            axs[i][j].axvline(8 * 0.38, linestyle='--', color='darkgreen', linewidth=0.5)
             for point, color in zip(points, colors_scatter):
-                axs[i][j].scatter(point[1] * 0.38, point[0] * 0.38, color=color, marker='x', s=size**2, linewidths=1)
+                axs[i][j].scatter(point[0] * 0.38, point[1] * 0.38, color=color, marker='x', s=size**2, linewidths=1)
 
     for i in range(3):
-        axs[i][0].set_yticklabels([0, 5], fontsize=fontsize)
-        axs[2][i].set_xticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+        axs[2][i].set_xticklabels([0, 5], fontsize=fontsize)
+        axs[i][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
 
     axs[0][0].xaxis.set_minor_locator(MultipleLocator(1))
     axs[0][1].xaxis.set_minor_locator(MultipleLocator(1))
@@ -1410,34 +1410,32 @@ def make_output_param_plots(points, colors_scatter):
     axs[2][1].yaxis.set_minor_locator(MultipleLocator(1))
     axs[2][2].yaxis.set_minor_locator(MultipleLocator(1))
 
-    axs[0][0].set_ylabel('y [arcsec]', fontsize=fontsize)
-    axs[1][0].set_ylabel('y [arcsec]', fontsize=fontsize)
-    axs[2][0].set_ylabel('y [arcsec]', fontsize=fontsize)
+    axs[0][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
+    axs[1][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
+    axs[2][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
 
-    axs[2][0].set_xlabel('x [arcsec]', fontsize=fontsize)
-    axs[2][1].set_xlabel('x [arcsec]', fontsize=fontsize)
-    axs[2][2].set_xlabel('x [arcsec]', fontsize=fontsize)
+    axs[2][1].set_xlabel('scan direction [arcsec]', fontsize=fontsize)
 
     axs[0][0].text(
-        0.35, 1.7,
+        -0.05, 1.25,
         r'$\log \tau_{\mathrm{500}}=-4.5$',
         transform=axs[0][0].transAxes,
         fontsize=fontsize
     )
     axs[0][1].text(
-        0.35, 1.7,
+        0.1, 1.25,
         r'$\log \tau_{\mathrm{500}}=-3$',
         transform=axs[0][1].transAxes,
         fontsize=fontsize
     )
     axs[0][2].text(
-        0.35, 1.7,
+        0.1, 1.25,
         r'$\log \tau_{\mathrm{500}}=-1$',
         transform=axs[0][2].transAxes,
         fontsize=fontsize
     )
 
-    plt.subplots_adjust(left=0.05, bottom=0.11, right=0.93, top=0.8, wspace=0.0, hspace=0.0)
+    plt.subplots_adjust(left=0.12, bottom=0.06, right=0.85, top=0.9, wspace=0.0, hspace=0.0)
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
@@ -3305,20 +3303,20 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # plot_profiles()
-    # points = [
-    #     (12, 49),
-    #     (12, 40),
-    #     (12, 34),
-    #     (12, 31),
-    #     (12, 18),
-    #     (8, 53),
-    #     (8, 50),
-    #     (8, 37),
-    #     (8, 31),
-    #     (8, 9),
-    # ]
-    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # make_output_param_plots(points, colors)
+    points = [
+        (12, 49),
+        (12, 40),
+        (12, 34),
+        (12, 31),
+        (12, 18),
+        (8, 53),
+        (8, 50),
+        (8, 37),
+        (8, 31),
+        (8, 9),
+    ]
+    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    make_output_param_plots(points, colors)
     # plot_mag_field_compare()
     # plot_mag_field_compare_new(points, colors)
     # make_mag_field_scatter_plots()
