@@ -2331,15 +2331,15 @@ def plot_mag_field_compare_new(points, colors_scatter):
     axs[1][4].yaxis.set_minor_locator(MultipleLocator(1))
     axs[1][5].yaxis.set_minor_locator(MultipleLocator(1))
 
-    axs[0][0].set_ylabel('x [arcsec]', fontsize=fontsize)
-    axs[1][0].set_ylabel('x [arcsec]', fontsize=fontsize)
+    axs[0][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
+    axs[1][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
 
-    axs[1][0].set_xlabel('y [arcsec]', fontsize=fontsize)
-    axs[1][1].set_xlabel('y [arcsec]', fontsize=fontsize)
-    axs[1][2].set_xlabel('y [arcsec]', fontsize=fontsize)
-    axs[1][3].set_xlabel('y [arcsec]', fontsize=fontsize)
-    axs[1][4].set_xlabel('y [arcsec]', fontsize=fontsize)
-    axs[1][5].set_xlabel('y [arcsec]', fontsize=fontsize)
+    axs[1][0].set_xlabel('scan direction [arcsec]', fontsize=fontsize)
+    # axs[1][1].set_xlabel('y [arcsec]', fontsize=fontsize)
+    # axs[1][2].set_xlabel('y [arcsec]', fontsize=fontsize)
+    # axs[1][3].set_xlabel('y [arcsec]', fontsize=fontsize)
+    # axs[1][4].set_xlabel('y [arcsec]', fontsize=fontsize)
+    # axs[1][5].set_xlabel('y [arcsec]', fontsize=fontsize)
 
 
     axs[0][0].text(
@@ -3316,9 +3316,9 @@ if __name__ == '__main__':
         (8, 9),
     ]
     colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    make_output_param_plots(points, colors)
+    # make_output_param_plots(points, colors)
     # plot_mag_field_compare()
-    # plot_mag_field_compare_new(points, colors)
+    plot_mag_field_compare_new(points, colors)
     # make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
