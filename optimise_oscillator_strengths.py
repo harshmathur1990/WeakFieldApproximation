@@ -51,53 +51,36 @@ wave = np.arange(6564.5-4, 6564.5 + 4, 0.01) / 10
 
 def synthesize_line(atoms, atmos, conserve, useNe, wave, q=None):
     # Configure the atmospheric angular quadrature
-    print("before quadrature")
     atmos.quadrature(5)
-    print("quadrature made")
     # Configure the set of atomic models to use.
     aSet = lw.RadiativeSet(atoms)
-    print("configured atomic model")
     # Set H and Ca to "active" i.e. NLTE, everything else participates as an
     # LTE background.
     aSet.set_active('H', 'Ca')
-    print("set active")
     # Compute the necessary wavelength dependent information (SpectrumConfiguration).
     spect = aSet.compute_wavelength_grid()
-    print("computed wave grid")
 
     # Either compute the equilibrium populations at the fixed electron density
     # provided in the model, or iterate an LTE electron density and compute the
     # corresponding equilibrium populations (SpeciesStateTable).
     if useNe:
         eqPops = aSet.compute_eq_pops(atmos)
-        print("after eq pops")
     else:
         eqPops = aSet.iterate_lte_ne_eq_pops(atmos)
-        print("after lte eq pops")
 
     # Configure the Context which holds the state of the simulation for the
     # backend, and provides the python interface to the backend.
     # Feel free to increase Nthreads to increase the number of threads the
     # program will use.
     ctx = lw.Context(atmos, spect, eqPops, conserveCharge=conserve, Nthreads=32)
-    print("contexted")
     # Iterate the Context to convergence (using the iteration function now
     # provided by Lightweaver)
     lw.iterate_ctx_se(ctx)
-    print("converged")
     # Update the background populations based on the converged solution and
     # compute the final intensity for mu=1 on the provided wavelength grid.
     eqPops.update_lte_atoms_Hmin_pops(atmos)
-    print("update background")
     Iwave = ctx.compute_rays(wave, [atmos.muz[-1]], stokes=False)
-    print("compute ray")
     # return ctx, Iwave
-    if q is not None:
-        print("before queue")
-        q.put(Iwave)
-        print("after queue")
-
-    print("before return")
     return ctx, Iwave
 
 
@@ -166,11 +149,9 @@ def synthesize(f_values, waver, parallel=True):
     h_with_substructure.__post_init__()
     # h_without_substructure.__post_init__()
 
-    print("before synth")
     # if not parallel:
     fal = Falc82()
     _, i_obs_1 = synthesize_line(atoms_with_substructure, fal, False, True, waver)
-    print("after synth")
     # fal = Falc82()
     _, i_obs_2 = None, None # synthesize_line(atoms_no_substructure, fal, False, True, waver)
 
@@ -253,49 +234,160 @@ def minimization_func(params, waver, observation=None, weights=None):
     return cost_function(synth1=i_obs_1, synth2=i_obs_2, observation=observation, weights=weights)
 
 
-if __name__ == '__main__':
+def synthesize_individual_lines():
+    line_indices = [
+        (5, 1),
+        (5, 3),
+        (7, 2),
+        (4, 2),
+        (6, 1),
+        (8, 3),
+        (6, 3)
+    ]
+
+    syn = list()
+
+    for line_indice in line_indices:
+
+        atoms_with_substructure = list()
+
+        for at in atoms_with_substructure_list:
+            atoms_with_substructure.append(conv_atom(base_path / at))
+
+        h_with_substructure = atoms_with_substructure[0]
+
+        new_lines = list()
+
+        for line in h_with_substructure.lines:
+            if line.j == line_indice[0] and line.i == line_indice[1]:
+                new_lines.append(line)
+            if line.i == 0:
+                new_lines.append(line)
+
+        h_with_substructure.lines = new_lines
+
+        h_with_substructure.__post_init__()
+
+        fal = Falc82()
+
+        _, i_obs_1 = synthesize_line(
+            atoms=atoms_with_substructure,
+            atmos=fal,
+            conserve=False,
+            useNe=True,
+            wave=wave
+        )
+
+        syn.append(i_obs_1)
+
+    atoms_with_substructure = list()
+
+    for at in atoms_with_substructure_list:
+        atoms_with_substructure.append(conv_atom(base_path / at))
+
+    h_with_substructure = atoms_with_substructure[0]
+
     obs = get_observation()
-    params = Parameters()
-    params.add('f0', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    params.add('f1', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    params.add('f2', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    params.add('f3', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    params.add('f4', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    params.add('f5', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    params.add('f6', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    weights = np.ones_like(wave) * 0.004
-    weights[300:500] = 0.002
-    weights[350:450] = 0.001
-    out = minimize(minimization_func, params, args=(wave, obs, weights), method='brute')
-    os.remove('solution.pdf')
-    f_this = np.zeros(7, dtype=np.float64)
-    f_this[0] = out.params['f0']
-    f_this[1] = out.params['f1']
-    f_this[2] = out.params['f2']
-    f_this[3] = out.params['f3']
-    f_this[4] = out.params['f4']
-    f_this[5] = out.params['f5']
-    f_this[6] = out.params['f6']
-    np.savetxt('solution.txt', f_this)
-    obs_1, obs_2 = synthesize(f_this, wave, parallel=False)
+
     wave_vac = vac_to_air(wave)
+
     plt.close('all')
     plt.clf()
     plt.cla()
+
     fig, axs = plt.subplots(1, 1, figsize=(7, 5))
-    axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
-    # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
-    axs.plot(wave_vac, obs / obs[0], color='orange')
-    fig.tight_layout()
-    fig.savefig('solution.pdf', format='pdf', dpi=300)
-    f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
-    obs_1, obs_2 = synthesize(f_values, wave, parallel=False)
-    plt.close('all')
-    plt.clf()
-    plt.cla()
-    fig, axs = plt.subplots(1, 1, figsize=(7, 5))
-    axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
-    # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
-    axs.plot(wave_vac, obs / obs[0], color='orange')
-    fig.tight_layout()
-    fig.savefig('original.pdf', format='pdf', dpi=300)
+
+    for indd, (ssyn, line_indice) in enumerate(zip(syn, line_indices)):
+
+        for line in h_with_substructure.lines:
+            if line.j == line_indice[0] and line.i == line_indice[1]:
+                gf = np.round(
+                    np.log10(
+                        line.iLevel.g * line.f
+                    ),
+                    3
+                )
+                break
+
+        filename = '{}->{}, log gf={}.txt'.format(
+            h_with_substructure.levels[line_indice[0]].label,
+            h_with_substructure.levels[line_indice[1]].label,
+            gf
+        )
+
+        np.savetxt(filename, ssyn)
+
+        ssyn /= ssyn[0]
+
+        axs.plot(
+            wave_vac * 10,
+            ssyn,
+            label='{}->{}, log gf={}'.format(
+                h_with_substructure.levels[line_indice[0]].label,
+                h_with_substructure.levels[line_indice[1]].label,
+                gf
+            )
+        )
+
+    np.savetxt('catalog.txt', obs)
+
+    obs /= obs[0]
+
+    np.savetxt('wave_grid.txt', wave_vac)
+
+    axs.plot(wave_vac * 10, obs, label='BASS 2000')
+
+    axs.legend(loc="lower left", prop={'size': 6})
+
+    axs.tick_params(labelsize=7)
+
+    fig.savefig('individual_lines.pdf', format='pdf', dpi=300)
+
+
+if __name__ == '__main__':
+    # obs = get_observation()
+    # params = Parameters()
+    # params.add('f0', value=0.5, min=0.001, max=0.99, brute_step=0.25)
+    # params.add('f1', value=0.5, min=0.001, max=0.99, brute_step=0.25)
+    # params.add('f2', value=0.5, min=0.001, max=0.99, brute_step=0.25)
+    # params.add('f3', value=0.5, min=0.001, max=0.99, brute_step=0.25)
+    # params.add('f4', value=0.5, min=0.001, max=0.99, brute_step=0.25)
+    # params.add('f5', value=0.5, min=0.001, max=0.99, brute_step=0.25)
+    # params.add('f6', value=0.5, min=0.001, max=0.99, brute_step=0.25)
+    # weights = np.ones_like(wave) * 0.004
+    # weights[300:500] = 0.002
+    # weights[350:450] = 0.001
+    # out = minimize(minimization_func, params, args=(wave, obs, weights), method='brute')
+    # os.remove('solution.pdf')
+    # f_this = np.zeros(7, dtype=np.float64)
+    # f_this[0] = out.params['f0']
+    # f_this[1] = out.params['f1']
+    # f_this[2] = out.params['f2']
+    # f_this[3] = out.params['f3']
+    # f_this[4] = out.params['f4']
+    # f_this[5] = out.params['f5']
+    # f_this[6] = out.params['f6']
+    # np.savetxt('solution.txt', f_this)
+    # obs_1, obs_2 = synthesize(f_this, wave, parallel=False)
+    # wave_vac = vac_to_air(wave)
+    # plt.close('all')
+    # plt.clf()
+    # plt.cla()
+    # fig, axs = plt.subplots(1, 1, figsize=(7, 5))
+    # axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
+    # # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
+    # axs.plot(wave_vac, obs / obs[0], color='orange')
+    # fig.tight_layout()
+    # fig.savefig('solution.pdf', format='pdf', dpi=300)
+    # f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
+    # obs_1, obs_2 = synthesize(f_values, wave, parallel=False)
+    # plt.close('all')
+    # plt.clf()
+    # plt.cla()
+    # fig, axs = plt.subplots(1, 1, figsize=(7, 5))
+    # axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
+    # # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
+    # axs.plot(wave_vac, obs / obs[0], color='orange')
+    # fig.tight_layout()
+    # fig.savefig('original.pdf', format='pdf', dpi=300)
+    synthesize_individual_lines()
