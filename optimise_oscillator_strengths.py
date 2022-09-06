@@ -14,7 +14,7 @@ from lmfit import Parameters, minimize
 
 
 base_path = Path(
-    '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/Atoms'
+    '/home/harsh/rh-uitenbroek/Atoms'
 )
 atoms_no_substructure_list = [
     'H_6.atom',
