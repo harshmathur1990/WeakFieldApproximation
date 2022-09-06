@@ -1,5 +1,7 @@
 import os
+import sys
 
+import h5py as h5py
 import scipy.optimize
 from lightweaver.fal import Falc82
 import lightweaver as lw
@@ -11,6 +13,7 @@ from lightweaver_extension import conv_atom
 import multiprocessing
 from lightweaver.utils import vac_to_air, air_to_vac
 from lmfit import Parameters, minimize
+from mpi4py import MPI
 
 
 base_path = Path(
@@ -45,6 +48,8 @@ atoms_with_substructure_list = [
     'Na.atom',
     'S.atom'
 ]
+
+out_file = 'f_values_out.h5'
 
 
 wave = np.arange(6564.5-4, 6564.5 + 4, 0.01) / 10
@@ -202,3 +207,174 @@ def minimization_func(params, waver, observation=None, weights=None, threads=1):
     i_obs_1, i_obs_2 = synthesize(f_this, waver, threads=threads)
 
     return cost_function(synth1=i_obs_1, synth2=i_obs_2, observation=observation, weights=weights)
+
+
+if __name__ == '__main__':
+
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+
+    stop_work = False
+
+    f_values_init = np.array([0.75, 0.75, 0.001, 0.001, 0.75, 0.001, 0.75])
+
+    range_val = 0.25
+
+    step = 0.1
+
+    if rank == 0:
+        status = MPI.Status()
+        waiting_queue = set()
+        running_queue = set()
+        finished_queue = set()
+        failure_queue = set()
+
+        sys.stdout.write('Making Output File.\n')
+
+        if not os.path.exists(out_file):
+            fo = h5py.File(out_file, 'w')
+            fo = np.zeros((7, ))
+            fo.close()
+
+        sys.stdout.write('Made Output File.\n')
+
+        job_matrix = np.zeros((nx, ny), dtype=np.int64)
+
+        fo = h5py.File(ltau_out_file, 'r')
+        a, b, c = np.where(fo['ltau500'][:, :, :, 0] != 0)
+        job_matrix[b, c] = 1
+        fo.close()
+
+        x, y = np.where(job_matrix == 0)
+
+        for i in range(x.size):
+            waiting_queue.add(i)
+
+        for worker in range(1, size):
+            if len(waiting_queue) == 0:
+                break
+            item = waiting_queue.pop()
+            work_type = {
+                'job': 'work',
+                'item': (item, x[item], y[item], height_len)
+            }
+            comm.send(work_type, dest=worker, tag=1)
+            running_queue.add(item)
+
+        sys.stdout.write('Finished First Phase\n')
+
+        while len(running_queue) != 0 or len(waiting_queue) != 0:
+
+            if stop_work == False and stop_file.exists():
+                stop_work = True
+                waiting_queue = set()
+                stop_file.unlink()
+
+            status_dict = comm.recv(
+                source=MPI.ANY_SOURCE,
+                tag=2,
+                status=status
+            )
+            sender = status.Get_source()
+            jobstatus = status_dict['status']
+            item, xx, yy, ltau500, adamp, cularr, populations, eta_c, eps_c = status_dict['item']
+            fo = h5py.File(ltau_out_file, 'r+')
+            fo['ltau500'][0, xx, yy] = ltau500
+            fo['a_voigt'][0, :, xx, yy] = adamp
+            fo['populations'][0, :, xx, yy] = populations.T
+            fo['Cul'][0, :, xx, yy] = cularr
+            fo['eta_c'][0, :, xx, yy] = eta_c
+            fo['eps_c'][0, :, xx, yy] = eps_c
+            fo.close()
+            sys.stdout.write(
+                'Sender: {} x: {} y: {} Status: {}\n'.format(
+                    sender, xx, yy, jobstatus.value
+                )
+            )
+            running_queue.discard(item)
+            if jobstatus == Status.Work_done:
+                finished_queue.add(item)
+            else:
+                failure_queue.add(item)
+
+            if len(waiting_queue) != 0:
+                new_item = waiting_queue.pop()
+                work_type = {
+                    'job': 'work',
+                    'item': (new_item, x[new_item], y[new_item], height_len)
+                }
+                comm.send(work_type, dest=sender, tag=1)
+                running_queue.add(new_item)
+
+        for worker in range(1, size):
+            work_type = {
+                'job': 'stopwork'
+            }
+            comm.send(work_type, dest=worker, tag=1)
+
+    if rank > 0:
+        sub_dir_path = rh_run_base_dirs / 'runs' / 'process_{}'.format(rank)
+        sub_dir_path.mkdir(parents=True, exist_ok=True)
+        for input_file in input_filelist:
+            shutil.copy(
+                rh_run_base_dirs / input_file,
+                sub_dir_path / input_file
+            )
+
+        while 1:
+            work_type = comm.recv(source=0, tag=1)
+
+            if work_type['job'] != 'work':
+                break
+
+            item, x, y, height_len = work_type['item']
+
+            sys.stdout.write(
+                'Rank: {} x: {} y: {} start\n'.format(
+                    rank, x, y
+                )
+            )
+
+            commands = [
+                'rm -rf *.dat',
+                'rm -rf *.out',
+                'rm -rf spectrum*',
+                'rm -rf background.ray',
+                'rm -rf Atmos1D.atmos',
+                'rm -rf MAG_FIELD.B'
+            ]
+
+            for cmd in commands:
+                process = subprocess.Popen(
+                    cmd,
+                    cwd=str(sub_dir_path),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    shell=True
+                )
+                process.communicate()
+
+            write_atmos_files(sub_dir_path, x, y, height_len)
+
+            cmdstr = '/home/harsh/rh-uitenbroek/rhf1d/rhf1d'
+
+            # cmdstr = '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/rhf1d/rhf1d'
+
+            command = '{} 2>&1 | tee output.txt'.format(
+                cmdstr
+            )
+
+            process = subprocess.Popen(
+                command,
+                cwd=str(sub_dir_path),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True
+            )
+
+            process.communicate()
+
+            ltau500, adamp, cularr, populations, eta_c, eps_c, status_work = do_work(sub_dir_path)
+
+            comm.send({'status': status_work, 'item': (item, x, y, ltau500, adamp, cularr, populations, eta_c, eps_c)}, dest=0, tag=2)

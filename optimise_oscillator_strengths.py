@@ -49,7 +49,7 @@ atoms_with_substructure_list = [
 
 wave = np.arange(6564.5-4, 6564.5 + 4, 0.01) / 10
 
-def synthesize_line(atoms, atmos, conserve, useNe, wave, q=None):
+def synthesize_line(atoms, atmos, conserve, useNe, wave):
     # Configure the atmospheric angular quadrature
     atmos.quadrature(5)
     # Configure the set of atomic models to use.
@@ -138,45 +138,11 @@ def synthesize(f_values, waver, parallel=True):
     h_with_substructure.recompute_radiative_broadening()
     h_with_substructure.recompute_collisional_rates()
 
-    # total_gf /= 8
-    #
-    # h_without_substructure = atoms_no_substructure[0]
-    #
-    # h_without_substructure.lines[4].f = total_gf
-    # h_without_substructure.recompute_radiative_broadening()
-    # h_without_substructure.recompute_collisional_rates()
-
     h_with_substructure.__post_init__()
-    # h_without_substructure.__post_init__()
 
-    # if not parallel:
     fal = Falc82()
     _, i_obs_1 = synthesize_line(atoms_with_substructure, fal, False, True, waver)
-    # fal = Falc82()
-    _, i_obs_2 = None, None # synthesize_line(atoms_no_substructure, fal, False, True, waver)
-
-    # else:
-    #     q = multiprocessing.Queue()
-    #
-    #     fal = Falc82()
-    #
-    #     p1 = multiprocessing.Process(target=synthesize_line, args=(atoms_with_substructure, fal, False, True, waver, q))
-    #
-    #     # fal = Falc82()
-    #     #
-    #     # p2 = multiprocessing.Process(target=synthesize_line, args=(atoms_no_substructure, fal, False, True, waver, q))
-    #
-    #     p1.start()
-    #
-    #     # p2.start()
-    #
-    #     p1.join()
-    #
-    #     # p2.join()
-    #
-    #     i_obs_1 = q.get()
-    #
-    #     i_obs_2 = None # q.get()
+    _, i_obs_2 = None, None
 
     return i_obs_1, i_obs_2
 
@@ -345,49 +311,49 @@ def synthesize_individual_lines():
 
 
 if __name__ == '__main__':
-    # obs = get_observation()
-    # params = Parameters()
-    # params.add('f0', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    # params.add('f1', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    # params.add('f2', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    # params.add('f3', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    # params.add('f4', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    # params.add('f5', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    # params.add('f6', value=0.5, min=0.001, max=0.99, brute_step=0.25)
-    # weights = np.ones_like(wave) * 0.004
-    # weights[300:500] = 0.002
-    # weights[350:450] = 0.001
-    # out = minimize(minimization_func, params, args=(wave, obs, weights), method='brute')
-    # os.remove('solution.pdf')
-    # f_this = np.zeros(7, dtype=np.float64)
-    # f_this[0] = out.params['f0']
-    # f_this[1] = out.params['f1']
-    # f_this[2] = out.params['f2']
-    # f_this[3] = out.params['f3']
-    # f_this[4] = out.params['f4']
-    # f_this[5] = out.params['f5']
-    # f_this[6] = out.params['f6']
-    # np.savetxt('solution.txt', f_this)
-    # obs_1, obs_2 = synthesize(f_this, wave, parallel=False)
-    # wave_vac = vac_to_air(wave)
-    # plt.close('all')
-    # plt.clf()
-    # plt.cla()
-    # fig, axs = plt.subplots(1, 1, figsize=(7, 5))
-    # axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
-    # # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
-    # axs.plot(wave_vac, obs / obs[0], color='orange')
-    # fig.tight_layout()
-    # fig.savefig('solution.pdf', format='pdf', dpi=300)
-    # f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
-    # obs_1, obs_2 = synthesize(f_values, wave, parallel=False)
-    # plt.close('all')
-    # plt.clf()
-    # plt.cla()
-    # fig, axs = plt.subplots(1, 1, figsize=(7, 5))
-    # axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
-    # # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
-    # axs.plot(wave_vac, obs / obs[0], color='orange')
-    # fig.tight_layout()
-    # fig.savefig('original.pdf', format='pdf', dpi=300)
-    synthesize_individual_lines()
+    obs = get_observation()
+    params = Parameters()
+    params.add('f0', value=0.75, min=0.55, max=0.95, brute_step=0.1)
+    params.add('f1', value=0.75, min=0.55, max=0.95, brute_step=0.1)
+    params.add('f2', value=0.001, min=0.001, max=0.201, brute_step=0.1)
+    params.add('f3', value=0.001, min=0.001, max=0.201, brute_step=0.1)
+    params.add('f4', value=0.75, min=0.55, max=0.95, brute_step=0.1)
+    params.add('f5', value=0.001, min=0.001, max=0.201, brute_step=0.1)
+    params.add('f6', value=0.75, min=0.55, max=0.95, brute_step=0.1)
+    weights = np.ones_like(wave) * 0.003
+    weights[300:500] = 0.002
+    weights[350:450] = 0.001
+    out = minimize(minimization_func, params, args=(wave, obs, weights), method='brute')
+    os.remove('solution.pdf')
+    f_this = np.zeros(7, dtype=np.float64)
+    f_this[0] = out.params['f0']
+    f_this[1] = out.params['f1']
+    f_this[2] = out.params['f2']
+    f_this[3] = out.params['f3']
+    f_this[4] = out.params['f4']
+    f_this[5] = out.params['f5']
+    f_this[6] = out.params['f6']
+    np.savetxt('solution.txt', f_this)
+    obs_1, obs_2 = synthesize(f_this, wave, parallel=False)
+    wave_vac = vac_to_air(wave)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    fig, axs = plt.subplots(1, 1, figsize=(7, 5))
+    axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
+    # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
+    axs.plot(wave_vac, obs / obs[0], color='orange')
+    fig.tight_layout()
+    fig.savefig('solution.pdf', format='pdf', dpi=300)
+    f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
+    obs_1, obs_2 = synthesize(f_values, wave, parallel=False)
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+    fig, axs = plt.subplots(1, 1, figsize=(7, 5))
+    axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
+    # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
+    axs.plot(wave_vac, obs / obs[0], color='orange')
+    fig.tight_layout()
+    fig.savefig('original.pdf', format='pdf', dpi=300)
+    # synthesize_individual_lines()
