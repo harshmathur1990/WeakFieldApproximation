@@ -313,13 +313,13 @@ def synthesize_individual_lines():
 if __name__ == '__main__':
     obs = get_observation()
     params = Parameters()
-    params.add('f0', value=0.75, min=0.55, max=0.95, brute_step=0.1)
-    params.add('f1', value=0.75, min=0.55, max=0.95, brute_step=0.1)
-    params.add('f2', value=0.001, min=0.001, max=0.201, brute_step=0.1)
-    params.add('f3', value=0.001, min=0.001, max=0.201, brute_step=0.1)
-    params.add('f4', value=0.75, min=0.55, max=0.95, brute_step=0.1)
-    params.add('f5', value=0.001, min=0.001, max=0.201, brute_step=0.1)
-    params.add('f6', value=0.75, min=0.55, max=0.95, brute_step=0.1)
+    params.add('f0', value=0.75, min=0.55, max=0.95, brute_step=0.05)
+    params.add('f1', value=0.75, min=0.55, max=0.95, brute_step=0.05)
+    params.add('f2', value=0.001, min=0.001, max=0.201, brute_step=0.05)
+    params.add('f3', value=0.001, min=0.001, max=0.201, brute_step=0.05)
+    params.add('f4', value=0.75, min=0.55, max=0.95, brute_step=0.05)
+    params.add('f5', value=0.001, min=0.001, max=0.201, brute_step=0.05)
+    params.add('f6', value=0.75, min=0.55, max=0.95, brute_step=0.05)
     weights = np.ones_like(wave) * 0.003
     weights[300:500] = 0.002
     weights[350:450] = 0.001
