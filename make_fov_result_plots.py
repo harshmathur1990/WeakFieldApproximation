@@ -3237,6 +3237,34 @@ def make_mag_field_scatter_plots():
     fig.savefig(write_path / 'MagScatter.pdf', format='pdf', dpi=300)
 
 
+def plot_ha_opp_polarity_profile():
+    fcaha = h5py.File(ca_ha_data_file, 'r')
+
+    ind = np.where(fcaha['profiles'][0, 0, 0, :, 0] != 0)[0]
+
+    fme = h5py.File(me_data_file, 'r')
+
+    pblos = fme['B_abs'][()] * np.cos(fme['inclination_rad'][()])
+
+    fme.close()
+
+    a, b = np.where(pblos > 0)
+
+    meanprofile = np.mean(fcaha['profiles'][()][0, a, b], 0)
+
+    fig, axs = plt.subplots(1, 2, figsize=(7, 5))
+
+    axs[0].plot(fcaha['wav'][ind[306:]], meanprofile[ind[306:], 0])
+
+    axs[1].plot(fcaha['wav'][ind[306:]], meanprofile[ind[306:], 3] / meanprofile[ind[306:], 0])
+
+    write_path = Path('/home/harsh/Spinor Paper')
+
+    fig.savefig(write_path / 'someplot.pdf', format='pdf', dpi=300)
+
+    fcaha.close()
+
+
 if __name__ == '__main__':
     # points = [
     #     (12, 49),
@@ -3303,22 +3331,22 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # plot_profiles()
-    points = [
-        (12, 49),
-        (12, 40),
-        (12, 34),
-        (12, 31),
-        (12, 18),
-        (8, 53),
-        (8, 50),
-        (8, 37),
-        (8, 31),
-        (8, 9),
-    ]
-    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    # points = [
+    #     (12, 49),
+    #     (12, 40),
+    #     (12, 34),
+    #     (12, 31),
+    #     (12, 18),
+    #     (8, 53),
+    #     (8, 50),
+    #     (8, 37),
+    #     (8, 31),
+    #     (8, 9),
+    # ]
+    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
     # make_output_param_plots(points, colors)
     # plot_mag_field_compare()
-    plot_mag_field_compare_new(points, colors)
+    # plot_mag_field_compare_new(points, colors)
     # make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
@@ -3355,3 +3383,4 @@ if __name__ == '__main__':
     # names = ['H_6_geff_1.048', 'H_substructure_4_lines', 'H_substructure_7_lines']
     # for filename, name in zip(filenames, names):
     #     make_forward_synthesis_plots(base_path / filename, points, colors, name)
+    plot_ha_opp_polarity_profile()
