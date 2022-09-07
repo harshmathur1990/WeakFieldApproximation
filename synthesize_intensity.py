@@ -1,5 +1,6 @@
 import enum
 import os
+import sys
 
 import h5py as h5py
 import lightweaver
@@ -190,6 +191,7 @@ if __name__ == '__main__':
 
 
         if not os.path.exists(out_file):
+            sys.stdout.write('Creating output file.\n')
             fo = h5py.File(out_file, 'w')
             fo['profiles_H'] = np.zeros((1, nx, ny, wave1.size, 4), dtype=np.float64)
             fo['profiles_CaIR'] = np.zeros((1, nx, ny, wave2.size, 4), dtype=np.float64)
@@ -198,6 +200,7 @@ if __name__ == '__main__':
             fo['wave_CaIR'] = wave_CaIR
             fo['wave_CaK'] = wave_CaK
             fo.close()
+            sys.stdout.write('Output file created.\n')
 
         job_matrix = np.zeros((nx, ny), dtype=np.int64)
 
