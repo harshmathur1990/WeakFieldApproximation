@@ -13,8 +13,12 @@ from lightweaver.utils import vac_to_air, air_to_vac
 from lmfit import Parameters, minimize
 
 
+# base_path = Path(
+#     '/home/harsh/rh-uitenbroek/Atoms'
+# )
+
 base_path = Path(
-    '/home/harsh/rh-uitenbroek/Atoms'
+    '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/Atoms'
 )
 atoms_no_substructure_list = [
     'H_6.atom',
@@ -99,7 +103,7 @@ def get_observation():
     return intensity[indices]
 
 
-def synthesize(f_values, waver, parallel=True):
+def synthesize(f_values, waver):
 
     line_indices = [
         (5, 1),
@@ -111,38 +115,47 @@ def synthesize(f_values, waver, parallel=True):
         (6, 3)
     ]
 
-    # atoms_no_substructure = list()
+    atoms_no_substructure = list()
 
     atoms_with_substructure = list()
 
-    # for at in atoms_no_substructure_list:
-    #     atoms_no_substructure.append(conv_atom(base_path / at))
+    for at in atoms_no_substructure_list:
+        atoms_no_substructure.append(conv_atom(base_path / at))
 
     for at in atoms_with_substructure_list:
         atoms_with_substructure.append(conv_atom(base_path / at))
 
-    # total_gf = 0
-
     h_with_substructure = atoms_with_substructure[0]
+    h_without_substructure = atoms_no_substructure[0]
 
     index = 0
+    total_gf = 0
 
     for line_indice in line_indices:
         for line in h_with_substructure.lines:
             if line.j == line_indice[0] and line.i == line_indice[1]:
                 line.f = f_values[index]
-                # total_gf += f_values[index] * line.iLevel.g
+                total_gf += f_values[index] * line.iLevel.g
                 index += 1
                 break
 
+    total_gf /= 8
+
+    for line in h_without_substructure.lines:
+        if line.j == 2 and line.i == 1:
+            line.f = total_gf
+
     h_with_substructure.recompute_radiative_broadening()
     h_with_substructure.recompute_collisional_rates()
+    h_without_substructure.recompute_radiative_broadening()
+    h_without_substructure.recompute_collisional_rates()
 
     h_with_substructure.__post_init__()
+    h_without_substructure.__post_init__()
 
     fal = Falc82()
     _, i_obs_1 = synthesize_line(atoms_with_substructure, fal, False, True, waver)
-    _, i_obs_2 = None, None
+    _, i_obs_2 = synthesize_line(atoms_no_substructure, fal, False, True, waver)
 
     return i_obs_1, i_obs_2
 
@@ -159,14 +172,26 @@ def cost_function(synth1, synth2=None, observation=None, weights=None):
 
     synth1 /= synth1[0]
 
-    diff = np.subtract(
+    diff1 = np.subtract(
         synth1,
         observation
     )
 
-    diff /= weights
+    diff2 = np.subtract(
+        synth2,
+        observation
+    )
 
-    return diff
+    # diff3 = np.subtract(
+    #     synth1,
+    #     synth2
+    # )
+
+    diff1 /= weights
+    diff2 /= weights
+    # diff3 /= weights
+
+    return np.concatenate([diff1, diff2])
 
 
 def minimization_func(params, waver, observation=None, weights=None):
@@ -184,16 +209,17 @@ def minimization_func(params, waver, observation=None, weights=None):
 
     f_this = f_values
 
-    i_obs_1, i_obs_2 = synthesize(f_this, waver, parallel=False)
+    i_obs_1, i_obs_2 = synthesize(f_this, waver)
 
     wave_vac = vac_to_air(waver)
     plt.close('all')
     plt.clf()
     plt.cla()
     fig, axs = plt.subplots(1, 1, figsize=(7, 5))
-    axs.plot(wave_vac, i_obs_1 / i_obs_1[0], color='blue')
-    # axs.plot(wave_vac, i_obs_2 / i_obs_2[0], color='green')
+    axs.plot(wave_vac, i_obs_1 / i_obs_1[0], color='blue', label='subs')
+    axs.plot(wave_vac, i_obs_2 / i_obs_2[0], color='green', label='no subs')
     axs.plot(wave_vac, observation / observation[0], color='orange')
+    axs.legend(loc='lower left')
     fig.tight_layout()
     fig.savefig('solution.pdf', format='pdf', dpi=300)
 
@@ -313,17 +339,23 @@ def synthesize_individual_lines():
 if __name__ == '__main__':
     obs = get_observation()
     params = Parameters()
-    params.add('f0', value=0.75, min=0.55, max=0.95, brute_step=0.05)
-    params.add('f1', value=0.75, min=0.55, max=0.95, brute_step=0.05)
-    params.add('f2', value=0.001, min=0.001, max=0.201, brute_step=0.05)
-    params.add('f3', value=0.001, min=0.001, max=0.201, brute_step=0.05)
-    params.add('f4', value=0.75, min=0.55, max=0.95, brute_step=0.05)
-    params.add('f5', value=0.001, min=0.001, max=0.201, brute_step=0.05)
-    params.add('f6', value=0.75, min=0.55, max=0.95, brute_step=0.05)
+    params.add('f0', value=2.68e-3, min=0.001, max=0.99, brute_step=0.05)
+    params.add('f1', value=1.65e-3, min=0.001, max=0.99, brute_step=0.05)
+    params.add('f2', value=3.6e-2, min=0.001, max=0.99, brute_step=0.05)
+    params.add('f3', value=2.72e-3, min=0.001, max=0.99, brute_step=0.05)
+    params.add('f4', value=6.01e-2, min=0.001, max=0.99, brute_step=0.05)
+    params.add('f5', value=9.88e-1, min=0.001, max=0.99, brute_step=0.05)
+    params.add('f6', value=2.75e-2, min=0.001, max=0.99, brute_step=0.05)
     weights = np.ones_like(wave) * 0.003
     weights[300:500] = 0.002
     weights[350:450] = 0.001
-    out = minimize(minimization_func, params, args=(wave, obs, weights), method='brute')
+    fit_kws = {
+        'ftol': 1e-16,
+        'gtol': 1e-16,
+        'xtol': 1e-16,
+        'epsfcn': 1e-2
+    }
+    out = minimize(minimization_func, params, args=(wave, obs, weights), **fit_kws)
     os.remove('solution.pdf')
     f_this = np.zeros(7, dtype=np.float64)
     f_this[0] = out.params['f0']
@@ -334,26 +366,28 @@ if __name__ == '__main__':
     f_this[5] = out.params['f5']
     f_this[6] = out.params['f6']
     np.savetxt('solution.txt', f_this)
-    obs_1, obs_2 = synthesize(f_this, wave, parallel=False)
+    obs_1, obs_2 = synthesize(f_this, wave)
     wave_vac = vac_to_air(wave)
     plt.close('all')
     plt.clf()
     plt.cla()
     fig, axs = plt.subplots(1, 1, figsize=(7, 5))
-    axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
-    # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
+    axs.plot(wave_vac, obs_1 / obs_1[0], color='blue', label='subs')
+    axs.plot(wave_vac, obs_2 / obs_2[0], color='green', label='no subs')
     axs.plot(wave_vac, obs / obs[0], color='orange')
+    axs.legend(loc='lower left')
     fig.tight_layout()
     fig.savefig('solution.pdf', format='pdf', dpi=300)
     f_values = np.array([1.3596e-2, 1.3599e-2, 2.9005e-1, 1.4503e-1, 6.9614E-1, 6.2654E-1, 6.9616E-2])
-    obs_1, obs_2 = synthesize(f_values, wave, parallel=False)
+    obs_1, obs_2 = synthesize(f_values, wave)
     plt.close('all')
     plt.clf()
     plt.cla()
     fig, axs = plt.subplots(1, 1, figsize=(7, 5))
-    axs.plot(wave_vac, obs_1 / obs_1[0], color='blue')
-    # axs.plot(wave_vac, obs_2 / obs_2[0], color='green')
+    axs.plot(wave_vac, obs_1 / obs_1[0], color='blue', label='subs')
+    axs.plot(wave_vac, obs_2 / obs_2[0], color='green', label='no subs')
     axs.plot(wave_vac, obs / obs[0], color='orange')
+    axs.legend(loc='lower left')
     fig.tight_layout()
     fig.savefig('original.pdf', format='pdf', dpi=300)
     # synthesize_individual_lines()
