@@ -52,9 +52,13 @@ out_file = write_path / 'intensity_out.h5'
 
 stop_file = write_path / 'stop'
 
-wave1 = air_to_vac(np.arange(6562.8 - 4, 6562.8 + 4, 0.01) / 10)
-wave2 = air_to_vac(np.arange(8542.09 - 4, 8542.09 + 4, 0.01) / 10)
-wave3 = air_to_vac(np.arange(3933.68 - 4, 3933.68 + 4, 0.01) / 10)
+wave_H = np.arange(6562.8 - 4, 6562.8 + 4, 0.01)
+wave_CaIR = np.arange(8542.09 - 4, 8542.09 + 4, 0.01)
+wave_CaK = np.arange(3933.68 - 4, 3933.68 + 4, 0.01)
+
+wave1 = air_to_vac(wave_H / 10)
+wave2 = air_to_vac(wave_CaIR / 10)
+wave3 = air_to_vac(wave_CaK / 10)
 
 
 class Status(enum.Enum):
@@ -190,6 +194,9 @@ if __name__ == '__main__':
             fo['profiles_H'] = np.zeros((1, nx, ny, wave1.size, 4), dtype=np.float64)
             fo['profiles_CaIR'] = np.zeros((1, nx, ny, wave2.size, 4), dtype=np.float64)
             fo['profiles_CaK'] = np.zeros((1, nx, ny, wave3.size, 4), dtype=np.float64)
+            fo['wave_H'] = wave_H
+            fo['wave_CaIR'] = wave_CaIR
+            fo['wave_CaK'] = wave_CaK
             fo.close()
 
         job_matrix = np.zeros((nx, ny), dtype=np.int64)
