@@ -169,7 +169,7 @@ def get_atomic_structure():
 
 if __name__ == '__main__':
 
-    lightweaver.benchmark()
+    # lightweaver.benchmark()
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
