@@ -1,6 +1,7 @@
 import enum
 import os
 import sys
+import traceback
 
 import h5py as h5py
 import lightweaver
@@ -16,11 +17,11 @@ from mpi4py import MPI
 from lightweaver.utils import air_to_vac
 
 
-# base_path = Path(
-#     '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/Atoms'
-# )
+base_path = Path(
+    '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/Atoms'
+)
 
-base_path = Path('/home/harsh/rh-uitenbroek/Atoms')
+# base_path = Path('/home/harsh/rh-uitenbroek/Atoms')
 
 atoms_with_substructure_list = [
     'H_6.atom',
@@ -37,17 +38,17 @@ atoms_with_substructure_list = [
     'S.atom'
 ]
 
-write_path = Path('/data/harsh/merge_bifrost_output')
+# write_path = Path('/data/harsh/merge_bifrost_output')
 
-# write_path = Path('/home/harsh/BifrostRun/')
-
-atmos_file = Path(
-    '/data/harsh/merge_bifrost_output/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0.nc'
-)
+write_path = Path('/home/harsh/BifrostRun/')
 
 # atmos_file = Path(
-#     '/home/harsh/BifrostRun/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0.nc'
+#     '/data/harsh/merge_bifrost_output/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0.nc'
 # )
+
+atmos_file = Path(
+    '/home/harsh/BifrostRun/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0.nc'
+)
 
 out_file = write_path / 'intensity_out.h5'
 
@@ -98,6 +99,8 @@ def synthesize_line(atoms, atmos, conserve, useNe, wave, threads=1):
     try:
         lw.iterate_ctx_se(ctx)
     except Exception as e:
+        sys.stdout.write('exception\n')
+        sys.stdout.write(traceback.format_exc())
         return None, [None, None, None]
     # Update the background populations based on the converged solution and
     # compute the final intensity for mu=1 on the provided wavelength grid.
