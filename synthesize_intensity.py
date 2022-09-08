@@ -95,7 +95,10 @@ def synthesize_line(atoms, atmos, conserve, useNe, wave, threads=1):
     ctx = lw.Context(atmos, spect, eqPops, conserveCharge=conserve, Nthreads=threads)
     # Iterate the Context to convergence (using the iteration function now
     # provided by Lightweaver)
-    lw.iterate_ctx_se(ctx)
+    try:
+        lw.iterate_ctx_se(ctx)
+    except Exception as e:
+        return None, [None, None, None]
     # Update the background populations based on the converged solution and
     # compute the final intensity for mu=1 on the provided wavelength grid.
     eqPops.update_lte_atoms_Hmin_pops(atmos)
@@ -242,11 +245,12 @@ if __name__ == '__main__':
             sender = status.Get_source()
             jobstatus = status_dict['status']
             item, xx, yy, intensity_1, intensity_2, intensity_3 = status_dict['item']
-            fo = h5py.File(out_file, 'r+')
-            fo['profiles_H'][0, xx, yy] = intensity_1
-            fo['profiles_CaIR'][0, xx, yy] = intensity_2
-            fo['profiles_CaK'][0, xx, yy] = intensity_3
-            fo.close()
+            if jobstatus is Status.Work_done:
+                fo = h5py.File(out_file, 'r+')
+                fo['profiles_H'][0, xx, yy] = intensity_1
+                fo['profiles_CaIR'][0, xx, yy] = intensity_2
+                fo['profiles_CaK'][0, xx, yy] = intensity_3
+                fo.close()
             running_queue.discard(item)
             t.update(1)
             if len(waiting_queue) != 0:
@@ -289,4 +293,7 @@ if __name__ == '__main__':
 
             intensity_1, intensity_2, intensity_3 = tuple(intensities)
 
-            comm.send({'status': Status.Work_done, 'item': (item, x, y, intensity_1, intensity_2, intensity_3)}, dest=0, tag=2)
+            if ctx is None:
+                comm.send({'status': Status.Work_failure, 'item': (item, x, y, intensity_1, intensity_2, intensity_3)}, dest=0, tag=2)
+            else:
+                comm.send({'status': Status.Work_done, 'item': (item, x, y, intensity_1, intensity_2, intensity_3)}, dest=0, tag=2)
