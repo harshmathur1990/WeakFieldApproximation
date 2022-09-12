@@ -201,8 +201,8 @@ def get_fov_data():
     data[0][1] = fcaha['profiles'][0, :, :, ind_6563_wing, 0]
     data[1][0] = fcaha['profiles'][0, :, :, ind_8542_core, 0]
     data[1][1] = fcaha['profiles'][0, :, :, ind_6563_core, 0]
-    data[2][0] = fme['B_abs'][()] * np.cos(fme['inclination_rad'][()])
-    data[2][1] = fwfa['blos_gauss'][()]
+    data[2][0] = fme['B_abs'][()] * np.cos(fme['inclination_rad'][()]) * -1
+    data[2][1] = fwfa['blos_gauss'][()] * -1
     data[3][0] = get_linear_polarisation(fcaha, ind_6569_wav)
     data[3][1] = get_linear_polarisation(fcaha, ind_8542_wav)
 
@@ -229,7 +229,7 @@ def make_fov_plots(points, colors_scatter):
 
     fontsize = 10
 
-    colors = ["darkred", "darkgoldenrod", "white", "green", "blue"]
+    colors = ["blue", "green", "white", "darkgoldenrod", "darkred"]
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
     for i in range(2):
@@ -499,7 +499,7 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
 
     ind = np.where(fcaha['profiles'][0, 0, 0, :, 0]!=0)[0]
 
-    colors = ["red", "yellow", "white", "blue", "green"]
+    colors = ["green", "blue", "white", "yellow", "red"]
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
     ind_ca_1 = np.where((fcaha['wav'][ind[0:306]] >= 8535.75) & (fcaha['wav'][ind[0:306]] <= 8536.75))[0]
@@ -648,7 +648,7 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     axs2[1][1].plot((-d, +d), (1 - d, 1 + d), **kwargs)
     axs2[1][1].plot((-d, +d), (-d, +d), **kwargs)
 
-    factor = 1
+    factor = -1
     X1, Y1 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_1], np.arange(0, 60 * 0.38, 0.38))
     X2, Y2 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_2], np.arange(0, 60 * 0.38, 0.38))
     X3, Y3 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_3], np.arange(0, 60 * 0.38, 0.38))
@@ -656,8 +656,8 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     im01 = axs1[0][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
     im02 = axs1[0][2].pcolormesh(X3, Y3, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
     im10 = axs1[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
-    im11 = axs1[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
-    im12 = axs1[1][2].pcolormesh(X3, Y3, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
+    im11 = axs1[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
+    im12 = axs1[1][2].pcolormesh(X3, Y3, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
 
     im00.set_edgecolor('face')
     im01.set_edgecolor('face')
@@ -671,13 +671,13 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     cbar02.ax.tick_params(labelsize=fontsize)
     cbar12.ax.tick_params(labelsize=fontsize)
 
-    factor = 1
+    factor = -1
     X1, Y1 = np.meshgrid(fcaha['wav'][ind[306:]][ind_ha_1], np.arange(0, 60 * 0.38, 0.38))
     X2, Y2 = np.meshgrid(fcaha['wav'][ind[306:]][ind_ha_2], np.arange(0, 60 * 0.38, 0.38))
     im00 = axs2[0][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
     im01 = axs2[0][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
     im10 = axs2[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
-    im11 = axs2[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 3] * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
+    im11 = axs2[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
 
     im00.set_edgecolor('face')
     im01.set_edgecolor('face')
@@ -1668,7 +1668,7 @@ def get_wfanew_alternate():
     # print (magha_p.min(), magha_p.max())
     # print (magha_full_line.min(), magha_full_line.max())
 
-    return magha, magha_p, magha_full_line
+    return -magha, -magha_p, -magha_full_line
 
 
 def plot_mag_field_compare():
@@ -1973,15 +1973,16 @@ def plot_mag_field_compare_new(points, colors_scatter):
 
     fig, axs = plt.subplots(2, 6, figsize=(7, 7))
 
-    a0 = f['blong'][0, 0:17, :, ltau_indice[0]].T
-    a1 = f['blong'][0, 0:17, :, ltau_indice[1]].T
-    a2 = f['blong'][0, 0:17, :, ltau_indice[2]].T
-    a3 = f['blong'][0, 0:17, :, ltau_indice[3]].T
+    a0 = -f['blong'][0, 0:17, :, ltau_indice[0]].T
+    a1 = -f['blong'][0, 0:17, :, ltau_indice[1]].T
+    a2 = -f['blong'][0, 0:17, :, ltau_indice[2]].T
+    a3 = -f['blong'][0, 0:17, :, ltau_indice[3]].T
 
-    colors = ["darkred", "darkgoldenrod", "white", "green", "blue"]
+    colors = ["blue", "green", "white", "darkgoldenrod", "darkred"]
+
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
-    cmap = cmap1  #RdGy
+    cmap = cmap1
 
     X, Y = np.meshgrid(np.arange(0, 17 * 0.38, 0.38), np.arange(0, 60 * 0.38, 0.38))
 
@@ -2831,7 +2832,7 @@ def get_data_for_mean_profile_inversion_plots():
     data_1[0].append(f['temp'][0, 0, 0] / 1e3)
     data_1[0].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_1[0].append(f['vturb'][0, 0, 0] / 1e5)
-    data_1[0].append(f['blong'][0, 0, 0] / 1e2)
+    data_1[0].append(-f['blong'][0, 0, 0] / 1e2)
     f.close()
 
     f = h5py.File(emission_observed_file, 'r')
@@ -2843,7 +2844,7 @@ def get_data_for_mean_profile_inversion_plots():
     data_1[1].append(f['temp'][0, 0, 0] / 1e3)
     data_1[1].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_1[1].append(f['vturb'][0, 0, 0] / 1e5)
-    data_1[1].append(f['blong'][0, 0, 0] / 1e2)
+    data_1[1].append(-f['blong'][0, 0, 0] / 1e2)
     f.close()
 
     f = h5py.File(opposite_polarity_observed_file, 'r')
@@ -2855,7 +2856,7 @@ def get_data_for_mean_profile_inversion_plots():
     data_1[2].append(f['temp'][0, 0, 0] / 1e3)
     data_1[2].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_1[2].append(f['vturb'][0, 0, 0] / 1e5)
-    data_1[2].append(f['blong'][0, 0, 0] / 1e2)
+    data_1[2].append(-f['blong'][0, 0, 0] / 1e2)
     f.close()
 
     f = h5py.File(pore_synth_file, 'r')
@@ -2867,7 +2868,7 @@ def get_data_for_mean_profile_inversion_plots():
     data_2[0].append(f['temp'][0, 0, 0] / 1e3)
     data_2[0].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_2[0].append(f['vturb'][0, 0, 0] / 1e5)
-    data_2[0].append(f['blong'][0, 0, 0] / 1e2)
+    data_2[0].append(-f['blong'][0, 0, 0] / 1e2)
     f.close()
 
     f = h5py.File(emission_synth_file, 'r')
@@ -2879,7 +2880,7 @@ def get_data_for_mean_profile_inversion_plots():
     data_2[1].append(f['temp'][0, 0, 0] / 1e3)
     data_2[1].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_2[1].append(f['vturb'][0, 0, 0] / 1e5)
-    data_2[1].append(f['blong'][0, 0, 0] / 1e2)
+    data_2[1].append(-f['blong'][0, 0, 0] / 1e2)
     f.close()
 
     f = h5py.File(opposite_polarity_synth_file, 'r')
@@ -2891,7 +2892,7 @@ def get_data_for_mean_profile_inversion_plots():
     data_2[2].append(f['temp'][0, 0, 0] / 1e3)
     data_2[2].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_2[2].append(f['vturb'][0, 0, 0] / 1e5)
-    data_2[2].append(f['blong'][0, 0, 0] / 1e2)
+    data_2[2].append(-f['blong'][0, 0, 0] / 1e2)
     f.close()
 
     return wave, ltau, data_1, data_2
@@ -3155,8 +3156,8 @@ def make_mag_field_scatter_plots():
 
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
-    a0 = f['blong'][0, 0:17, :, ltau_indice[0]].T
-    a1 = f['blong'][0, 0:17, :, ltau_indice[1]].T
+    a0 = -f['blong'][0, 0:17, :, ltau_indice[0]].T
+    a1 = -f['blong'][0, 0:17, :, ltau_indice[1]].T
 
     f.close()
 
@@ -3265,6 +3266,147 @@ def plot_ha_opp_polarity_profile():
     fcaha.close()
 
 
+
+def infer_uncertainties():
+
+    weights = np.zeros((306, 2), dtype=np.float64)
+
+    weights[:, 0] = np.array(
+        [
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.002, 0.002, 0.002, 0.002, 0.002,
+            0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002,
+            0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002,
+            0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002,
+            0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002,
+            0.002, 0.002, 0.002, 0.002, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.001, 0.001, 0.001, 0.001,
+            0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,
+            0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,
+            0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,
+            0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,
+            0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,
+            0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,
+            0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004,
+            0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004, 0.004
+        ]
+    )
+
+    weights[:, 1] = np.array(
+        [
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025,
+            0.00025, 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  , 0.002  ,
+            0.002  , 0.002  , 0.002  , 0.002  , 0.002
+        ]
+    )
+    node_positions = [-4.5, -1]
+
+    stokes_indice = np.array([0, 3])
+
+    response_functions = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/all_response_functions.nc')
+
+    f = h5py.File(response_functions, 'r')
+
+    fcaha = h5py.File(ca_ha_data_file, 'r')
+
+    ind = np.where(fcaha['profiles'][0, 0, 0, :, 0] != 0)[0]
+
+    ind = ind[0:306]
+
+    numerator = np.sum(
+        np.square(
+            np.subtract(
+                fcaha['profiles'][()][0, :, :, ind][:, :, :, stokes_indice],
+                f['profiles'][()][0, :, :, ind][:, :, :, stokes_indice]
+            )
+        ) * np.square(
+            weights[:, np.newaxis, np.newaxis, :]
+        ),
+        axis=(0, 3)
+    )
+
+    uncertainties = list()
+
+    for node_position in node_positions:
+        node_indice = np.argmin(np.abs(ltau500 - node_position))
+
+        deriv = f['derivatives'][0, :, :, 0, node_indice, ind][:, :, :, stokes_indice]
+
+        denominator = np.sum(
+            np.square(
+                deriv
+            ) * np.square(
+                weights[np.newaxis, np.newaxis, :, :]
+            ),
+            axis=(2, 3)
+        )
+
+        uncertainties.append(2 * numerator / denominator)
+
+    fcaha.close()
+
+    f.close()
+
+
 if __name__ == '__main__':
     # points = [
     #     (12, 49),
@@ -3289,18 +3431,18 @@ if __name__ == '__main__':
     # ]
     # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown']
     # factor_ca_list = [
-    #     (2, 2, 1),
-    #     (2, 2, 1),
-    #     (2, 2, 1),
-    #     (2, 2, 1),
-    #     (2, 2, 1)
+    #     (-2, -2, -1),
+    #     (-2, -2, -1),
+    #     (-3, -3, -1),
+    #     (-3, -3, -1),
+    #     (-2, -2, -1)
     # ]
     # factor_ha_list = [
-    #     (2, 1),
-    #     (2, 1),
-    #     (2, 1),
-    #     (2, 1),
-    #     (1.5, 1)
+    #     (-3, -1),
+    #     (-2, -1),
+    #     (-2, -1),
+    #     (-2, -1),
+    #     (-1.5, -1)
     # ]
     # cut_indice = 12
     # plot_stokes_parameters(cut_indice, points, colors)
@@ -3314,18 +3456,18 @@ if __name__ == '__main__':
     #     9
     # ]
     # factor_ca_list = [
-    #     (1, 1, 1),
-    #     (1, 1, 1),
-    #     (1, 1, 1),
-    #     (3, 3, 1),
-    #     (1, 1, 1)
+    #     (-1, -1, -1),
+    #     (-1, -1, -1),
+    #     (-1, -1, -1),
+    #     (-3, -3, -1),
+    #     (-1, -1, -1)
     # ]
     # factor_ha_list = [
-    #     (3, 1),
-    #     (3, 1),
-    #     (3, 1),
-    #     (3, 1),
-    #     (3, 1)
+    #     (-3, -1),
+    #     (-3, -1),
+    #     (-3, -1),
+    #     (-3, -1),
+    #     (-3, -1)
     # ]
     # colors = ['green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
     # plot_stokes_parameters(cut_indice, points, colors)
@@ -3384,3 +3526,4 @@ if __name__ == '__main__':
     # for filename, name in zip(filenames, names):
     #     make_forward_synthesis_plots(base_path / filename, points, colors, name)
     plot_ha_opp_polarity_profile()
+    # infer_uncertainties()
