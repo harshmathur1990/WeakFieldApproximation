@@ -1,14 +1,17 @@
+import sys
+# sys.path.insert(1, '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/python/')
+sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
+import xdrlib
 import enum
 import os
-import sys
+import shutil
 import traceback
-
+import rhanalyze
 import h5py as h5py
-import lightweaver
 from lightweaver import Atmosphere, ScaleType
-
+from helita.sim import multi
 import lightweaver as lw
-
+import subprocess
 import numpy as np
 from pathlib import Path
 from lightweaver_extension import conv_atom
@@ -54,13 +57,29 @@ out_file = write_path / 'intensity_out.h5'
 
 stop_file = write_path / 'stop'
 
+rh_run_base_dirs = Path('/data/harsh/run_bifrost_dirs')
+
+# rh_run_base_dirs = Path('/home/harsh/BifrostRun/run_bifrost_dirs/')
+
+rh_path = Path('/home/harsh/rh-uitenbroek')
+
+# rh_path = Path('/home/harsh/CourseworkRepo/rh/RH-uitenbroek/')
+
+input_filelist = [
+    'molecules.input',
+    'kurucz.input',
+    'atoms.input',
+    'keyword.input',
+    'ray.input',
+    'contribute.input',
+    'wavefile.wave'
+]
+
 wave_H = np.arange(6562.8 - 4, 6562.8 + 4, 0.01)
 wave_CaIR = np.arange(8542.09 - 4, 8542.09 + 4, 0.01)
-wave_CaK = np.arange(3933.68 - 4, 3933.68 + 4, 0.01)
 
 wave1 = air_to_vac(wave_H / 10)
 wave2 = air_to_vac(wave_CaIR / 10)
-wave3 = air_to_vac(wave_CaK / 10)
 
 
 class Status(enum.Enum):
@@ -174,6 +193,99 @@ def get_atomic_structure():
     return atoms_with_substructure
 
 
+def create_mag_file(
+    Bx, By, Bz,
+    write_path,
+    height_len
+):
+    b_filename = 'MAG_FIELD.B'
+    xdr = xdrlib.Packer()
+
+    Babs = np.sqrt(
+        np.add(
+            np.square(Bx),
+            np.add(
+                np.square(By),
+                np.square(Bz)
+            )
+        )
+    )
+
+    Binc = np.arccos(np.divide(Bz, Babs))
+
+    Bazi = np.arctan2(By, Bx)
+
+    shape = (height_len,)
+
+    xdr.pack_farray(
+        np.prod(shape),
+        Babs.flatten(),
+        xdr.pack_double
+    )
+    xdr.pack_farray(
+        np.prod(shape),
+        Binc,
+        xdr.pack_double
+    )
+    xdr.pack_farray(
+        np.prod(shape),
+        Bazi,
+        xdr.pack_double
+    )
+
+    with open(write_path / b_filename, 'wb') as f:
+        f.write(xdr.get_buffer())
+
+def write_atmos_files(write_path, x, y, height_len):
+    atmos_filename = 'Atmos1D.atmos'
+    f = h5py.File(atmos_file, 'r')
+    multi.watmos_multi(
+        str(write_path / atmos_filename),
+        f['temperature'][0, x, y],
+        f['electron_density'][0, x, y] / 1e6,
+        z=f['z'][0, x, y] / 1e3,
+        vz=f['velocity_z'][0, x, y] / 1e3,
+        # vturb=f['velocity_turbulent'][0, x, y] / 1e3,
+        nh=f['hydrogen_populations'][0, :, x, y] / 1e6,
+        id='BIFROST {} {}'.format(x, y),
+        scale='height'
+    )
+    create_mag_file(
+        Bx=f['B_x'][0, x, y],
+        By=f['B_y'][0, x, y],
+        Bz=f['B_z'][0, x, y],
+        write_path=write_path,
+        height_len=height_len
+    )
+    f.close()
+
+
+def do_work(read_path):
+    cwd = os.getcwd()
+
+    os.chdir(read_path)
+
+    out = rhanalyze.rhout()
+
+    intensity_list = list()
+
+    for w in [wave_H, wave_CaIR]:
+        indd = list()
+        for ww in w:
+            indd.append(np.argmin(np.abs(out.spectrum.waves - ww/10)))
+        indd = np.array(indd)
+        spect = np.zeros((indd.size, 4))
+        spect[:, 0] = out.rays[0].I[indd]
+        spect[:, 1] = out.rays[0].Q[indd]
+        spect[:, 2] = out.rays[0].U[indd]
+        spect[:, 3] = out.rays[0].V[indd]
+        intensity_list.append(spect)
+
+    os.chdir(cwd)
+
+    return intensity_list, Status.Work_done
+
+
 if __name__ == '__main__':
 
     # lightweaver.benchmark()
@@ -184,27 +296,29 @@ if __name__ == '__main__':
 
     stop_work = False
 
+    if len(sys.argv) >= 1:
+        mode = int(sys.argv[1])
+    else:
+        mode = 0
+
+    f = h5py.File(atmos_file, 'r')
+    nx = f['temperature'].shape[1]
+    ny = f['temperature'].shape[2]
+    height_len = f['temperature'].shape[3]
+    f.close()
+
     if rank == 0:
         status = MPI.Status()
         waiting_queue = set()
         running_queue = set()
-
-        f = h5py.File(atmos_file, 'r')
-        nx = f['temperature'].shape[1]
-        ny = f['temperature'].shape[2]
-        height_len = f['temperature'].shape[3]
-        f.close()
-
 
         if not os.path.exists(out_file):
             sys.stdout.write('Creating output file.\n')
             fo = h5py.File(out_file, 'w')
             fo['profiles_H'] = np.zeros((1, nx, ny, wave1.size, 4), dtype=np.float64)
             fo['profiles_CaIR'] = np.zeros((1, nx, ny, wave2.size, 4), dtype=np.float64)
-            fo['profiles_CaK'] = np.zeros((1, nx, ny, wave3.size, 4), dtype=np.float64)
             fo['wave_H'] = wave_H
             fo['wave_CaIR'] = wave_CaIR
-            fo['wave_CaK'] = wave_CaK
             fo.close()
             sys.stdout.write('Output file created.\n')
 
@@ -236,6 +350,7 @@ if __name__ == '__main__':
         while len(running_queue) != 0 or len(waiting_queue) != 0:
 
             if stop_work == False and stop_file.exists():
+                sys.stdout.write('\nStop Requested.\n')
                 stop_work = True
                 waiting_queue = set()
                 stop_file.unlink()
@@ -247,12 +362,11 @@ if __name__ == '__main__':
             )
             sender = status.Get_source()
             jobstatus = status_dict['status']
-            item, xx, yy, intensity_1, intensity_2, intensity_3 = status_dict['item']
+            item, xx, yy, intensity_1, intensity_2 = status_dict['item']
             if jobstatus is Status.Work_done:
                 fo = h5py.File(out_file, 'r+')
                 fo['profiles_H'][0, xx, yy] = intensity_1
                 fo['profiles_CaIR'][0, xx, yy] = intensity_2
-                fo['profiles_CaK'][0, xx, yy] = intensity_3
                 fo.close()
             running_queue.discard(item)
             t.update(1)
@@ -273,6 +387,15 @@ if __name__ == '__main__':
 
     if rank > 0:
 
+        if mode >= 1:
+            sub_dir_path = rh_run_base_dirs / 'runs' / 'process_{}'.format(rank)
+            sub_dir_path.mkdir(parents=True, exist_ok=True)
+            for input_file in input_filelist:
+                shutil.copy(
+                    rh_run_base_dirs / input_file,
+                    sub_dir_path / input_file
+                )
+
         while 1:
             work_type = comm.recv(source=0, tag=1)
 
@@ -281,22 +404,83 @@ if __name__ == '__main__':
 
             item, x, y = work_type['item']
 
-            atoms = get_atomic_structure()
+            sys.stdout.write('\nx: {} y:{}\n'.format(x, y))
 
-            atmos = make_atmos_structure(x, y)
+            if mode == 0:
+                atoms = get_atomic_structure()
 
-            ctx, intensities = synthesize_line(
-                atoms=atoms,
-                atmos=atmos,
-                conserve=False,
-                useNe=True,
-                wave=[wave1, wave2, wave3],
-                threads=1
-            )
+                atmos = make_atmos_structure(x, y)
 
-            intensity_1, intensity_2, intensity_3 = tuple(intensities)
+                ctx, intensities = synthesize_line(
+                    atoms=atoms,
+                    atmos=atmos,
+                    conserve=False,
+                    useNe=True,
+                    wave=[wave1, wave2],
+                    threads=1
+                )
 
-            if ctx is None:
-                comm.send({'status': Status.Work_failure, 'item': (item, x, y, intensity_1, intensity_2, intensity_3)}, dest=0, tag=2)
+                intensity_1, intensity_2 = tuple(intensities)
+
             else:
-                comm.send({'status': Status.Work_done, 'item': (item, x, y, intensity_1, intensity_2, intensity_3)}, dest=0, tag=2)
+                commands = [
+                    'rm -rf *.dat',
+                    'rm -rf *.out',
+                    'rm -rf spectrum*',
+                    'rm -rf background.ray',
+                    'rm -rf Atmos1D.atmos',
+                    'rm -rf MAG_FIELD.B',
+                ]
+
+                for cmd in commands:
+                    process = subprocess.Popen(
+                        cmd,
+                        cwd=str(sub_dir_path),
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        shell=True
+                    )
+                    process.communicate()
+
+                write_atmos_files(sub_dir_path, x, y, height_len)
+
+                cmdstr = rh_path / 'rhf1d/rhf1d'
+
+                command = '{} 2>&1 | tee output.txt'.format(
+                    cmdstr
+                )
+
+                process = subprocess.Popen(
+                    command,
+                    cwd=str(sub_dir_path),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    shell=True
+                )
+
+                process.communicate()
+
+                cmdstr = rh_path / 'rhf1d/solveray'
+
+                command = '{} 2>&1 | tee output.txt'.format(
+                    cmdstr
+                )
+
+                process = subprocess.Popen(
+                    command,
+                    cwd=str(sub_dir_path),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    shell=True
+                )
+
+                process.communicate()
+
+                intensities, _ = do_work(sub_dir_path)
+
+                intensity_1, intensity_2 = tuple(intensities)
+
+            if mode is 0 and ctx is None:
+                comm.send({'status': Status.Work_failure, 'item': (item, x, y, intensity_1, intensity_2)}, dest=0, tag=2)
+            else:
+                comm.send({'status': Status.Work_done, 'item': (item, x, y, intensity_1, intensity_2)}, dest=0, tag=2)
