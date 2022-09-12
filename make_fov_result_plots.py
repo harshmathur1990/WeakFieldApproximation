@@ -3249,7 +3249,7 @@ def plot_ha_opp_polarity_profile():
 
     fme.close()
 
-    a, b = np.where(pblos > 0)
+    a, b = np.where(pblos > 200)
 
     meanprofile = np.mean(fcaha['profiles'][()][0, a, b], 0)
 
