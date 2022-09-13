@@ -250,14 +250,14 @@ def make_fov_plots(points, colors_scatter):
             elif j == 3:
                 vmin = 0
                 vmax = np.round(data[j][i].max() * 100, 2)
-                gh = axs[i][j].imshow(data[j][i].T * 100, cmap='gray', origin='lower', vmin=vmin, vmax=vmax)
+                gh = axs[i][j].imshow(data[j][i].T * 100, cmap='gray', origin='lower', vmin=vmin, vmax=vmax, aspect='equal')
                 if i == 0:
                     im03 = gh
                 else:
                     im13 = gh
             else:
-                axs[i][j].imshow(data[j][i].T, cmap='gray', origin='lower')
-            axs[i][j].contour(mask[j][i].T, levels=0, origin='lower', colors='blue', linewidths=0.5)
+                axs[i][j].imshow(data[j][i].T, cmap='gray', origin='lower', aspect='equal')
+            axs[i][j].contour(mask[j][i].T, levels=0, origin='lower', colors='blue', linewidths=0.5, aspect='equal')
             axs[i][j].axvline(12, linestyle='--', color='brown', linewidth=0.5)
             axs[i][j].axvline(8, linestyle='--', color='darkgreen', linewidth=0.5)
             for point, color in zip(points, colors_scatter):
@@ -1252,7 +1252,7 @@ def make_output_param_plots(points, colors_scatter):
 
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
-    fig, axs = plt.subplots(3, 3, figsize=(3.5, 7))
+    fig, axs = plt.subplots(3, 3, figsize=(3.5, 10.4))
 
     ind = np.where((ltau500 >= -1) & (ltau500 <= 0))[0]
 
@@ -1264,31 +1264,19 @@ def make_output_param_plots(points, colors_scatter):
 
     print(calib_vlos / 1e5)
 
-    X, Y = np.meshgrid(np.arange(0, 17 * 0.38, 0.38), np.arange(0, 60 * 0.38, 0.38))
+    # X, Y = np.meshgrid(np.arange(0, 17 * 0.38, 0.38), np.arange(0, 60 * 0.38, 0.38))
 
-    im00 = axs[0][0].pcolormesh(X, Y, f['temp'][0, 0:17, :, ltau_indice[0]].T / 1e3, cmap='hot', shading='nearest', linewidth=0, rasterized=True)
-    im01 = axs[0][1].pcolormesh(X, Y, f['temp'][0, 0:17, :, ltau_indice[1]].T / 1e3, cmap='hot', shading='nearest', linewidth=0, rasterized=True)
-    im02 = axs[0][2].pcolormesh(X, Y, f['temp'][0, 0:17, :, ltau_indice[2]].T / 1e3, cmap='hot', shading='nearest', linewidth=0, rasterized=True)
+    im00 = axs[0][0].imshow(f['temp'][0, 0:17, :, ltau_indice[0]].T / 1e3, cmap='hot', aspect='equal', origin='lower')
+    im01 = axs[0][1].imshow(f['temp'][0, 0:17, :, ltau_indice[1]].T / 1e3, cmap='hot', aspect='equal', origin='lower')
+    im02 = axs[0][2].imshow(f['temp'][0, 0:17, :, ltau_indice[2]].T / 1e3, cmap='hot', aspect='equal', origin='lower')
 
-    im10 = axs[1][0].pcolormesh(X, Y, (f['vlos'][0, 0:17, :, ltau_indice[0]].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, shading='nearest', linewidth=0, rasterized=True)
-    im11 = axs[1][1].pcolormesh(X, Y, (f['vlos'][0, 0:17, :, ltau_indice[1]].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, shading='nearest', linewidth=0, rasterized=True)
-    im12 = axs[1][2].pcolormesh(X, Y, (f['vlos'][0, 0:17, :, ltau_indice[2]].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, shading='nearest', linewidth=0, rasterized=True)
+    im10 = axs[1][0].imshow((f['vlos'][0, 0:17, :, ltau_indice[0]].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, aspect='equal', origin='lower')
+    im11 = axs[1][1].imshow((f['vlos'][0, 0:17, :, ltau_indice[1]].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, aspect='equal', origin='lower')
+    im12 = axs[1][2].imshow((f['vlos'][0, 0:17, :, ltau_indice[2]].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, aspect='equal', origin='lower')
 
-    im20 = axs[2][0].pcolormesh(X, Y, f['vturb'][0, 0:17, :, ltau_indice[0]].T / 1e5, cmap='copper', vmin=0, vmax=5, shading='nearest', linewidth=0, rasterized=True)
-    im21 = axs[2][1].pcolormesh(X, Y, f['vturb'][0, 0:17, :, ltau_indice[1]].T / 1e5, cmap='copper', vmin=0, vmax=5, shading='nearest', linewidth=0, rasterized=True)
-    im22 = axs[2][2].pcolormesh(X, Y, f['vturb'][0, 0:17, :, ltau_indice[2]].T / 1e5, cmap='copper', vmin=0, vmax=5, shading='nearest', linewidth=0, rasterized=True)
-
-    im00.set_edgecolor('face')
-    im01.set_edgecolor('face')
-    im02.set_edgecolor('face')
-
-    im10.set_edgecolor('face')
-    im11.set_edgecolor('face')
-    im12.set_edgecolor('face')
-
-    im20.set_edgecolor('face')
-    im21.set_edgecolor('face')
-    im22.set_edgecolor('face')
+    im20 = axs[2][0].imshow(f['vturb'][0, 0:17, :, ltau_indice[0]].T / 1e5, cmap='copper', vmin=0, vmax=5, aspect='equal', origin='lower')
+    im21 = axs[2][1].imshow(f['vturb'][0, 0:17, :, ltau_indice[1]].T / 1e5, cmap='copper', vmin=0, vmax=5, aspect='equal', origin='lower')
+    im22 = axs[2][2].imshow(f['vturb'][0, 0:17, :, ltau_indice[2]].T / 1e5, cmap='copper', vmin=0, vmax=5, aspect='equal', origin='lower')
 
     cbaxes = inset_axes(
         axs[0][0],
@@ -1375,40 +1363,40 @@ def make_output_param_plots(points, colors_scatter):
             color = 'black'
             if i == 2:
                 color = 'white'
-            axs[i][j].contour(X, Y, mask[0, 0].T, levels=0, colors=color, linewidths=0.5)
-            axs[i][j].set_yticks([0, 5, 10, 15, 20])
-            axs[i][j].set_xticks([0, 5])
+            axs[i][j].contour(mask[0, 0].T, levels=0, colors=color, linewidths=0.5)
+            axs[i][j].set_yticks(np.array([0, 5, 10, 15, 20]) * 60 / 22.8)
+            axs[i][j].set_xticks(np.array([0, 5]) * 17 / 6.46)
             axs[i][j].set_yticklabels([])
             axs[i][j].set_xticklabels([])
-            axs[i][j].axvline(12 * 0.38, linestyle='--', color='brown', linewidth=0.5)
-            axs[i][j].axvline(8 * 0.38, linestyle='--', color='darkgreen', linewidth=0.5)
-            for point, color in zip(points, colors_scatter):
-                axs[i][j].scatter(point[0] * 0.38, point[1] * 0.38, color=color, marker='x', s=size**2, linewidths=1)
+            # axs[i][j].axvline(12 * 0.38, linestyle='--', color='brown', linewidth=0.5)
+            # axs[i][j].axvline(8 * 0.38, linestyle='--', color='darkgreen', linewidth=0.5)
+            # for point, color in zip(points, colors_scatter):
+            #     axs[i][j].scatter(point[0] * 0.38, point[1] * 0.38, color=color, marker='x', s=size**2, linewidths=1)
 
     for i in range(3):
         axs[2][i].set_xticklabels([0, 5], fontsize=fontsize)
         axs[i][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
 
-    axs[0][0].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[0][1].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[0][2].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[0][0].yaxis.set_minor_locator(MultipleLocator(1))
-    axs[0][1].yaxis.set_minor_locator(MultipleLocator(1))
-    axs[0][2].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][0].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[0][1].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[0][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[0][0].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[0][1].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[0][2].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
 
-    axs[1][0].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[1][1].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[1][2].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[1][0].yaxis.set_minor_locator(MultipleLocator(1))
-    axs[1][1].yaxis.set_minor_locator(MultipleLocator(1))
-    axs[1][2].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][1].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][0].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][1].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][2].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
 
-    axs[2][0].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[2][1].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[2][2].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[2][0].yaxis.set_minor_locator(MultipleLocator(1))
-    axs[2][1].yaxis.set_minor_locator(MultipleLocator(1))
-    axs[2][2].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][0].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[2][1].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[2][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[2][0].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[2][1].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[2][2].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
 
     axs[0][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
     axs[1][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
@@ -1417,25 +1405,25 @@ def make_output_param_plots(points, colors_scatter):
     axs[2][1].set_xlabel('scan direction [arcsec]', fontsize=fontsize)
 
     axs[0][0].text(
-        -0.05, 1.25,
+        -0.05, 1.18,
         r'$\log \tau_{\mathrm{500}}=-4.5$',
         transform=axs[0][0].transAxes,
         fontsize=fontsize
     )
     axs[0][1].text(
-        0.1, 1.25,
+        0.1, 1.18,
         r'$\log \tau_{\mathrm{500}}=-3$',
         transform=axs[0][1].transAxes,
         fontsize=fontsize
     )
     axs[0][2].text(
-        0.1, 1.25,
+        0.1, 1.18,
         r'$\log \tau_{\mathrm{500}}=-1$',
         transform=axs[0][2].transAxes,
         fontsize=fontsize
     )
 
-    plt.subplots_adjust(left=0.12, bottom=0.06, right=0.85, top=0.9, wspace=0.0, hspace=0.0)
+    plt.subplots_adjust(left=0.12, bottom=0.04, right=0.85, top=0.91, wspace=0.0, hspace=0.0)
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
@@ -3135,7 +3123,6 @@ def make_legend(fontsize=6):
 
 
 def make_mag_field_scatter_plots():
-    fontsize = 8
 
     a, b, c = get_wfanew_alternate()
 
@@ -3161,12 +3148,12 @@ def make_mag_field_scatter_plots():
 
     f.close()
 
-    fontsize = 8
+    fontsize = 12
 
-    fig, axs = plt.subplots(2, 2, figsize=(7, 3.5))
+    fig, axs = plt.subplots(2, 2, figsize=(7, 7))
 
-    a, b = np.where(a0 >= 0)
-    c, d = np.where(a0 < 0)
+    a, b = np.where(a0 <= 0)
+    c, d = np.where(a0 > 0)
 
     axs[0][0].scatter(np.abs(a0[c, d]), np.abs(a1[c, d]), s=1, color='royalblue')
     axs[0][0].scatter(np.abs(a0[a, b]), np.abs(a1[a, b]), s=1, color='red')
@@ -3232,7 +3219,7 @@ def make_mag_field_scatter_plots():
         transform=axs[1][1].transAxes,
         fontsize=fontsize
     )
-    plt.subplots_adjust(left=0.08, bottom=0.12, right=0.99, top=0.95, wspace=0.25, hspace=0.35)
+    plt.subplots_adjust(left=0.1, bottom=0.10, right=0.99, top=0.99, wspace=0.35, hspace=0.35)
 
     write_path = Path('/home/harsh/Spinor Paper/')
     fig.savefig(write_path / 'MagScatter.pdf', format='pdf', dpi=300)
@@ -3489,7 +3476,7 @@ if __name__ == '__main__':
     # make_output_param_plots(points, colors)
     # plot_mag_field_compare()
     # plot_mag_field_compare_new(points, colors)
-    # make_mag_field_scatter_plots()
+    make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),
@@ -3525,5 +3512,5 @@ if __name__ == '__main__':
     # names = ['H_6_geff_1.048', 'H_substructure_4_lines', 'H_substructure_7_lines']
     # for filename, name in zip(filenames, names):
     #     make_forward_synthesis_plots(base_path / filename, points, colors, name)
-    plot_ha_opp_polarity_profile()
+    # plot_ha_opp_polarity_profile()
     # infer_uncertainties()
