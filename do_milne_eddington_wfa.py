@@ -37,7 +37,8 @@ def findgrid(w, dw, extra=5):
 def do_me_inversion():
     dtype = 'float32'
 
-    processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
+    # processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
+    processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
 
     profile_file = processed_inputs / 'aligned_Ca_Ha_stic_profiles.nc'
 
@@ -119,7 +120,8 @@ def do_me_inversion():
 
 
 def do_wfa():
-    processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
+    # processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
+    processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
 
     profile_file = processed_inputs / 'aligned_Ca_Ha_stic_profiles.nc'
     center_wave = 8542.09
@@ -157,4 +159,5 @@ def do_wfa():
 
 
 if __name__ == "__main__":
+    do_me_inversion()
     do_wfa()

@@ -493,13 +493,21 @@ def make_fov_plots(points, colors_scatter):
     plt.show()
 
 
-def plot_stokes_parameters(cut_indice, points, colors_p):
+def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=None):
 
-    fcaha = h5py.File(ca_ha_data_file, 'r')
+    if data_file is None:
+        data_file = ca_ha_data_file
+
+    if isinstance(data_file, str):
+        data_file = Path(data_file)
+
+    fcaha = h5py.File(data_file, 'r')
 
     ind = np.where(fcaha['profiles'][0, 0, 0, :, 0]!=0)[0]
 
-    colors = ["green", "blue", "white", "yellow", "red"]
+    if colors is None:
+        colors = ["green", "blue", "white", "yellow", "red"]
+
     cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
 
     ind_ca_1 = np.where((fcaha['wav'][ind[0:306]] >= 8535.75) & (fcaha['wav'][ind[0:306]] <= 8536.75))[0]
@@ -649,15 +657,18 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     axs2[1][1].plot((-d, +d), (-d, +d), **kwargs)
 
     factor = -1
+    cmap1 = 'gray'
+    vmin = -0.005 * 100  # -10
+    vmax = 0.005 * 100  # 10
     X1, Y1 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_1], np.arange(0, 60 * 0.38, 0.38))
     X2, Y2 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_2], np.arange(0, 60 * 0.38, 0.38))
     X3, Y3 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_3], np.arange(0, 60 * 0.38, 0.38))
     im00 = axs1[0][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
     im01 = axs1[0][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
     im02 = axs1[0][2].pcolormesh(X3, Y3, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
-    im10 = axs1[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
-    im11 = axs1[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
-    im12 = axs1[1][2].pcolormesh(X3, Y3, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
+    im10 = axs1[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
+    im11 = axs1[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
+    im12 = axs1[1][2].pcolormesh(X3, Y3, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
 
     im00.set_edgecolor('face')
     im01.set_edgecolor('face')
@@ -667,17 +678,20 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     im12.set_edgecolor('face')
 
     cbar02 = fig.colorbar(im02, ax=axs1[0][2])
-    cbar12 = fig.colorbar(im12, ax=axs1[1][2], ticks=[9, 6, 3, 0, -3, -6, -9])
+    cbar12 = fig.colorbar(im12, ax=axs1[1][2], ticks=[-0.5, 0, 0.5])
     cbar02.ax.tick_params(labelsize=fontsize)
     cbar12.ax.tick_params(labelsize=fontsize)
 
     factor = -1
+    cmap1 = 'gray'
+    vmin = -0.005 * 100 # -10
+    vmax = 0.005 * 100 # 10
     X1, Y1 = np.meshgrid(fcaha['wav'][ind[306:]][ind_ha_1], np.arange(0, 60 * 0.38, 0.38))
     X2, Y2 = np.meshgrid(fcaha['wav'][ind[306:]][ind_ha_2], np.arange(0, 60 * 0.38, 0.38))
     im00 = axs2[0][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
     im01 = axs2[0][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
-    im10 = axs2[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
-    im11 = axs2[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=-10, vmax=10)
+    im10 = axs2[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
+    im11 = axs2[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
 
     im00.set_edgecolor('face')
     im01.set_edgecolor('face')
@@ -685,7 +699,7 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     im11.set_edgecolor('face')
 
     cbar01 = fig.colorbar(im01, ax=axs2[0][1])
-    cbar11 = fig.colorbar(im11, ax=axs2[1][1], ticks=[9, 6, 3, 0, -3, -6, -9])
+    cbar11 = fig.colorbar(im11, ax=axs2[1][1], ticks=[-0.5, 0, 0.5])
     cbar01.ax.tick_params(labelsize=fontsize)
     cbar11.ax.tick_params(labelsize=fontsize)
 
@@ -819,8 +833,9 @@ def plot_stokes_parameters(cut_indice, points, colors_p):
     )
 
     write_path = Path('/home/harsh/Spinor Paper/')
-    fig.savefig(write_path / 'CaII_Stokes_{}.pdf'.format(cut_indice), format='pdf', dpi=300)
+    fig.savefig(write_path / '{}_CaII_Stokes_{}.pdf'.format(data_file.name, cut_indice), format='pdf', dpi=300)
 
+    plt.show()
     fcaha.close()
 
 
@@ -836,20 +851,32 @@ def plot_profiles():
     fcaha.close()
 
 
-def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list):
+def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list, data_file=None, cs_files=None, hs_file=None):
 
-    fcaha = h5py.File(ca_ha_data_file, 'r')
+    if data_file is None:
+        data_file = ca_ha_data_file
+
+    if isinstance(data_file, str):
+        data_file = Path(data_file)
+
+    if cs_files is None:
+        cs_files = ca_stray_files
+
+    if hs_file is None:
+        hs_file = ha_stray_file
+
+    fcaha = h5py.File(data_file, 'r')
 
     ind = np.where(fcaha['profiles'][0, 0, 0, :, 0]!=0)[0]
 
     medprofca = list()
-    for ca_stray_file in ca_stray_files:
+    for ca_stray_file in cs_files:
         fstrayca = h5py.File(ca_stray_file, 'r')
         medprofca += list(fstrayca['stray_corrected_median'][()] / fstrayca['stic_cgs_calib_factor'][()])
         fstrayca.close()
     medprofca = np.array(medprofca)
 
-    fstrayha = h5py.File(ha_stray_file, 'r')
+    fstrayha = h5py.File(hs_file, 'r')
     medprofha = fstrayha['stray_corrected_median'][()] / fstrayha['stic_cgs_calib_factor'][()]
     fstrayha.close()
 
@@ -1218,9 +1245,9 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
-    fig.savefig(write_path / 'SpatialVariationProfiles_{}_{}.pdf'.format(cut_indice, '_'.join(colors)), format='pdf', dpi=300)
+    fig.savefig(write_path / '{}_SpatialVariationProfiles_{}_{}.pdf'.format(data_file.name, cut_indice, '_'.join(colors)), format='pdf', dpi=300)
 
-    fig.savefig(write_path / 'SpatialVariationProfiles_{}_{}.png'.format(cut_indice, '_'.join(colors)), format='png', dpi=300)
+    fig.savefig(write_path / '{}_SpatialVariationProfiles_{}_{}.png'.format(data_file.name, cut_indice, '_'.join(colors)), format='png', dpi=300)
 
     fcaha.close()
 
@@ -3225,35 +3252,6 @@ def make_mag_field_scatter_plots():
     fig.savefig(write_path / 'MagScatter.pdf', format='pdf', dpi=300)
 
 
-def plot_ha_opp_polarity_profile():
-    fcaha = h5py.File(ca_ha_data_file, 'r')
-
-    ind = np.where(fcaha['profiles'][0, 0, 0, :, 0] != 0)[0]
-
-    fme = h5py.File(me_data_file, 'r')
-
-    pblos = fme['B_abs'][()] * np.cos(fme['inclination_rad'][()])
-
-    fme.close()
-
-    a, b = np.where(pblos > 200)
-
-    meanprofile = np.mean(fcaha['profiles'][()][0, a, b], 0)
-
-    fig, axs = plt.subplots(1, 2, figsize=(7, 5))
-
-    axs[0].plot(fcaha['wav'][ind[306:]], meanprofile[ind[306:], 0])
-
-    axs[1].plot(fcaha['wav'][ind[306:]], meanprofile[ind[306:], 3] / meanprofile[ind[306:], 0])
-
-    write_path = Path('/home/harsh/Spinor Paper')
-
-    fig.savefig(write_path / 'someplot.pdf', format='pdf', dpi=300)
-
-    fcaha.close()
-
-
-
 def infer_uncertainties():
 
     weights = np.zeros((306, 2), dtype=np.float64)
@@ -3371,12 +3369,22 @@ def infer_uncertainties():
         axis=(0, 3)
     )
 
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
+    filein = base_path / 'output_for_response_functions.nc'
+    filein2 = base_path / 'all_response_functions.nc'
+
+    m = sp.model(filein)
+    s = sp.profile(filein2)
+
+    nodes = [-4.5, -1]
+
+    rf_integrated = integrate_RF(m, m.Bln, s.rf[:, :, :, 0], nodes=nodes, norm=1000.0)
+
     uncertainties = list()
 
-    for node_position in node_positions:
-        node_indice = np.argmin(np.abs(ltau500 - node_position))
+    for node_indice, node_position in enumerate(nodes):
 
-        deriv = f['derivatives'][0, :, :, 0, node_indice, ind][:, :, :, stokes_indice]
+        deriv = rf_integrated[0][:, :, node_indice][:, :, ind][:, :, :, stokes_indice]
 
         denominator = np.sum(
             np.square(
@@ -3387,14 +3395,60 @@ def infer_uncertainties():
             axis=(2, 3)
         )
 
-        uncertainties.append(2 * numerator / denominator)
+        uncertainties.append(np.sqrt(numerator / denominator))
 
     fcaha.close()
 
     f.close()
 
+    return uncertainties
 
-if __name__ == '__main__':
+
+def integrate_RF(m, var, rf, nodes=None, norm=1000.0, perturbation=0.01):
+    if (nodes is None):
+        print("You must provide the number of nodes (equidistant) or a list with their locations")
+        return None
+
+    # get the indexes where the nodes are placed in the array
+
+    if (isinstance(nodes, int)):
+        nodes_idx = m._equidist(m.ltau[0, 0, 0], nodes)
+        nodes = m.ltau[0, 0, 0, nodes_idx]
+    else:
+        nodes_idx = m._placenodes(m.ltau[0, 0, 0], nodes)
+
+    nnodes = len(nodes)
+    nt, ny, nx, ndep = m.ltau.shape
+    nw, ns = rf.shape[-2::]
+
+    # create cube to store RF at the location of the nodes
+    rf_integrated = np.zeros((nt, ny, nx, nnodes, nw, ns), dtype='float64')
+
+    dvar = norm * perturbation
+
+    for tt in range(nt):
+        for yy in range(ny):
+            for xx in range(nx):
+                values = var[tt, yy, xx, nodes_idx]
+
+                for ii in range(nnodes):
+
+                    # For each node, apply a perturbation, reinterpolate the model and subtract the difference
+                    values_pert = np.copy(values)
+                    values_pert[ii] += dvar
+                    area = np.interp(m.ltau[tt, yy, xx], nodes, values_pert) - var[tt, yy, xx]
+
+                    area /= area[nodes_idx[ii]]  # Normalize the perturbation by the value at the node location
+
+                    # make the weighted sum for each frequency
+                    for ss in range(ns):
+                        for ww in range(nw):
+                            rf_integrated[tt, yy, xx, ii, ww, ss] = (rf[tt, yy, xx, :, ww, ss] * area).sum()
+
+    return rf_integrated
+
+
+# if __name__ == '__main__':
     # points = [
     #     (12, 49),
     #     (12, 40),
@@ -3476,7 +3530,7 @@ if __name__ == '__main__':
     # make_output_param_plots(points, colors)
     # plot_mag_field_compare()
     # plot_mag_field_compare_new(points, colors)
-    make_mag_field_scatter_plots()
+    # make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),
@@ -3512,5 +3566,42 @@ if __name__ == '__main__':
     # names = ['H_6_geff_1.048', 'H_substructure_4_lines', 'H_substructure_7_lines']
     # for filename, name in zip(filenames, names):
     #     make_forward_synthesis_plots(base_path / filename, points, colors, name)
-    # plot_ha_opp_polarity_profile()
     # infer_uncertainties()
+
+    # pi = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
+    #
+    # data_file = pi / 'aligned_Ca_Ha_stic_profiles.nc'
+
+    # cs_files = [
+    #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_SiI_8536.h5',
+    #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_FeI_8538.h5',
+    #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_CaII_8542.h5'
+    # ]
+    #
+    # hs_file = pi / 'alignedspectra_scan2_map10_Ha.fits_stray_corrected.h5'
+    #
+    # cut_indice = 13
+    #
+    # points = [
+    #     52,
+    #     50,
+    #     48,
+    #     46
+    # ]
+    # factor_ca_list = [
+    #     (-1, -1, -1),
+    #     (-1, -1, -1),
+    #     (-1, -1, -1),
+    #     (-1, -1, -1)
+    # ]
+    # factor_ha_list = [
+    #     (-4, -1),
+    #     (-4, -1),
+    #     (-4, -1),
+    #     (-4, -1)
+    # ]
+    #
+    # colors_p = ['green', 'darkslateblue', 'purple', 'mediumvioletred']
+    # colors = ["green", "blue", "white", "darkmagenta", "red"]
+    # plot_stokes_parameters(cut_indice, points, colors_p, colors=colors, data_file=data_file)
+    # plot_spatial_variation_of_profiles(cut_indice, points, colors_p, factor_ca_list, factor_ha_list, data_file=data_file, cs_files=cs_files, hs_file=hs_file)

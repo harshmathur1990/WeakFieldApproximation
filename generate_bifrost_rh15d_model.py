@@ -1,6 +1,6 @@
 import sys
-# sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
-sys.path.insert(1, '/home/harsh/stic/example')
+sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
+# sys.path.insert(1, '/home/harsh/stic/example')
 import numpy as np
 import sunpy.io.fits
 from helita.sim import rh15d
@@ -82,6 +82,38 @@ def make_atmosphere(
     vz = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
 
     vz[0] = np.transpose(
+        data[ind, start_x:end_x, start_y:end_y],
+        axes=(1, 2, 0)
+    )
+
+    vx_file = '{}_{}_ux_{}.fits'.format(
+        simulation_code_name,
+        simulation_name, snap
+    )
+
+    data, header = sunpy.io.fits.read(
+        foldername / vx_file
+    )[0]
+
+    vx = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
+
+    vx[0] = np.transpose(
+        data[ind, start_x:end_x, start_y:end_y],
+        axes=(1, 2, 0)
+    )
+
+    vy_file = '{}_{}_uy_{}.fits'.format(
+        simulation_code_name,
+        simulation_name, snap
+    )
+
+    data, header = sunpy.io.fits.read(
+        foldername / vy_file
+    )[0]
+
+    vy = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
+
+    vy[0] = np.transpose(
         data[ind, start_x:end_x, start_y:end_y],
         axes=(1, 2, 0)
     )
@@ -204,6 +236,8 @@ def make_atmosphere(
 
     T = T[:, :, :, ::-1]
     vz = vz[:, :, :, ::-1]
+    vx = vx[:, :, :, ::-1]
+    vy = vy[:, :, :, ::-1]
     z = z[:, :, :, ::-1]
     nH = nH[:, :, :, :, ::-1]
     ne = ne[:, :, :, ::-1]
@@ -222,6 +256,7 @@ def make_atmosphere(
         outfile, T, vz, z,
         nH=nH, Bz=Bz, By=By,
         Bx=Bx, ne=ne,
+        vx=vx, vy=vy,
         desc='{} Simulation (simulation_name, start_x, end_x, start_y, end_y, height_min_in_m, height_max_in_m) - {} - {} - {} - {} - {} - {} - {}'.format(
             simulation_code_name,
             simulation_name, start_x, end_x, start_y, end_y, height_min_in_m, height_max_in_m
@@ -241,14 +276,26 @@ if __name__ == '__main__':
     #     2000 * 1e3
     # )
 
+    # make_atmosphere(
+    #     foldername='/data/harsh/ar098192/atmos',
+    #     simulation_name='ar098192',
+    #     snap=294000,
+    #     start_x=0, end_x=256,
+    #     start_y=0, end_y=512,
+    #     height_min_in_m=-500 * 1e3,
+    #     height_max_in_m=3000 * 1e3,
+    #     simulation_code_name='MURaM',
+    #     lte=True
+    # )
+
     make_atmosphere(
-        foldername='/data/harsh/ar098192/atmos',
-        simulation_name='ar098192',
-        snap=294000,
-        start_x=0, end_x=256,
-        start_y=0, end_y=512,
+        foldername='/home/harsh/en024048_hion/atmos/',
+        simulation_name='en024048_hion',
+        snap=385,
+        start_x=0, end_x=504,
+        start_y=0, end_y=504,
         height_min_in_m=-500 * 1e3,
         height_max_in_m=3000 * 1e3,
-        simulation_code_name='MURaM',
-        lte=True
+        simulation_code_name='BIFROST',
+        lte=False
     )

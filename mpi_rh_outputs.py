@@ -8,28 +8,26 @@ import h5py
 import xdrlib
 from mpi4py import MPI
 from pathlib import Path
-import tables as tb
 import shutil
 from helita.sim import multi
 import subprocess
 import rhanalyze
-import time
 
 
 atmos_file = Path(
-    '/data/harsh/merge_bifrost_output/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0.nc'
+    '/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0.nc'
 )
 
 # atmos_file = Path(
-#     '/home/harsh/BifrostRun/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0.nc'
+#     '/home/harsh/BifrostRun/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0.nc'
 # )
 
 ltau_out_file = Path(
-    '/data/harsh/merge_bifrost_output/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0_supplementary_outputs.nc'
+    '/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0_supplementary_outputs.nc'
 )
 
 # ltau_out_file = Path(
-#     '/home/harsh/BifrostRun/bifrost_en024048_hion_0_504_0_504_-500000.0_3000000.0_supplementary_outputs.nc'
+#     '/home/harsh/BifrostRun/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0_supplementary_outputs.nc'
 # )
 
 rh_run_base_dirs = Path('/data/harsh/run_bifrost_dirs')
@@ -37,6 +35,10 @@ rh_run_base_dirs = Path('/data/harsh/run_bifrost_dirs')
 # rh_run_base_dirs = Path('/home/harsh/BifrostRun/run_bifrost_dirs')
 
 stop_file = rh_run_base_dirs / 'stop'
+
+# rh_base_path = Path('/home/harsh/CourseworkRepo/rh/RH-uitenbroek/')
+
+rh_base_path = Path('/home/harsh/rh-uitenbroek/')
 
 sub_dir_format = 'process_{}'
 
@@ -46,9 +48,12 @@ input_filelist = [
     'atoms.input',
     'keyword.input',
     'ray.input',
-    'contribute.input'
+    'contribute.input',
+    'wavefile.wave'
 ]
 
+wave_H = np.arange(6562.8 - 4, 6562.8 + 4, 0.01)
+wave_CaIR = np.arange(8542.09 - 4, 8542.09 + 4, 0.01)
 
 def generate_radiative_transitions():
     transitions = [3, 0, 1, 0, 5, 1, 5, 3, 7, 0, 4, 0, 7, 2, 4, 2, 6, 1, 8, 3, 6, 3]
@@ -215,6 +220,20 @@ def do_work(read_path):
         eta_c[index3] = out.opacity.chi_c
         eps_c[index3] = out.opacity.eta_c
 
+    intensity_list = list()
+
+    for w in [wave_H, wave_CaIR]:
+        indd = list()
+        for ww in w:
+            indd.append(np.argmin(np.abs(out.spectrum.waves - ww / 10)))
+        indd = np.array(indd)
+        spect = np.zeros((indd.size, 4))
+        spect[:, 0] = out.rays[0].I[indd]
+        spect[:, 1] = out.rays[0].Q[indd]
+        spect[:, 2] = out.rays[0].U[indd]
+        spect[:, 3] = out.rays[0].V[indd]
+        intensity_list.append(spect)
+
     os.chdir(cwd)
 
     if np.array_equal(adamp, np.zeros_like(adamp)):
@@ -227,7 +246,7 @@ def do_work(read_path):
         comm.Abort(-4)
     if np.array_equal(eps_c, np.zeros_like(eps_c)):
         comm.Abort(-5)
-    return ltau500, adamp, cularr, populations, eta_c, eps_c, Status.Work_done
+    return ltau500, adamp, cularr, populations, eta_c, eps_c, intensity_list, Status.Work_done
 
 
 if __name__ == '__main__':
@@ -270,6 +289,10 @@ if __name__ == '__main__':
             fo['Cul'] = np.zeros((1, n_transitions, nx, ny, height_len), dtype=np.float64)
             fo['eta_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
             fo['eps_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
+            fo['profiles_H'] = np.zeros((1, nx, ny, wave_H.size, 4), dtype=np.float64)
+            fo['profiles_CaIR'] = np.zeros((1, nx, ny, wave_CaIR.size, 4), dtype=np.float64)
+            fo['wave_H'] = wave_H
+            fo['wave_CaIR'] = wave_CaIR
             fo.close()
 
         sys.stdout.write('Made Output File.\n')
@@ -305,6 +328,7 @@ if __name__ == '__main__':
                 stop_work = True
                 waiting_queue = set()
                 stop_file.unlink()
+                sys.stdout.write('\nStop requested.\n')
 
             status_dict = comm.recv(
                 source=MPI.ANY_SOURCE,
@@ -313,7 +337,7 @@ if __name__ == '__main__':
             )
             sender = status.Get_source()
             jobstatus = status_dict['status']
-            item, xx, yy, ltau500, adamp, cularr, populations, eta_c, eps_c = status_dict['item']
+            item, xx, yy, ltau500, adamp, cularr, populations, eta_c, eps_c, intensity_list = status_dict['item']
             fo = h5py.File(ltau_out_file, 'r+')
             fo['ltau500'][0, xx, yy] = ltau500
             fo['a_voigt'][0, :, xx, yy] = adamp
@@ -321,6 +345,8 @@ if __name__ == '__main__':
             fo['Cul'][0, :, xx, yy] = cularr
             fo['eta_c'][0, :, xx, yy] = eta_c
             fo['eps_c'][0, :, xx, yy] = eps_c
+            fo['profiles_H'][0, xx, yy] = intensity_list[0]
+            fo['profiles_CaIR'][0, xx, yy] = intensity_list[1]
             fo.close()
             sys.stdout.write(
                 'Sender: {} x: {} y: {} Status: {}\n'.format(
@@ -392,9 +418,7 @@ if __name__ == '__main__':
 
             write_atmos_files(sub_dir_path, x, y, height_len)
 
-            cmdstr = '/home/harsh/rh-uitenbroek/rhf1d/rhf1d'
-
-            # cmdstr = '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/rhf1d/rhf1d'
+            cmdstr = rh_base_path / 'rhf1d/rhf1d'
 
             command = '{} 2>&1 | tee output.txt'.format(
                 cmdstr
@@ -410,6 +434,22 @@ if __name__ == '__main__':
 
             process.communicate()
 
-            ltau500, adamp, cularr, populations, eta_c, eps_c, status_work = do_work(sub_dir_path)
+            cmdstr = rh_base_path / 'rhf1d/solveray'
 
-            comm.send({'status': status_work, 'item': (item, x, y, ltau500, adamp, cularr, populations, eta_c, eps_c)}, dest=0, tag=2)
+            command = '{} 2>&1 | tee output.txt'.format(
+                cmdstr
+            )
+
+            process = subprocess.Popen(
+                command,
+                cwd=str(sub_dir_path),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True
+            )
+
+            process.communicate()
+
+            ltau500, adamp, cularr, populations, eta_c, eps_c, intensity_list, status_work = do_work(sub_dir_path)
+
+            comm.send({'status': status_work, 'item': (item, x, y, ltau500, adamp, cularr, populations, eta_c, eps_c, intensity_list)}, dest=0, tag=2)

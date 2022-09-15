@@ -13,8 +13,12 @@ kmeans_output_dir = Path(
     '/home/harsh/SpinorNagaraju/maps_1/stic/kmeans_output'
 )
 
+# atmos_rp_write_path = Path(
+#     '/home/harsh/SpinorNagaraju/maps_1/stic/'
+# )
+
 atmos_rp_write_path = Path(
-    '/home/harsh/SpinorNagaraju/maps_1/stic/'
+    '/home/harsh/SpinorNagaraju/maps_2_scan10/stic/'
 )
 
 input_file = Path(
@@ -1104,6 +1108,11 @@ def generate_input_atmos_file(length=30, temp=None, vlos=None, blong=0, name='')
         vl = cs(f['ltau500'][0, 0, 0])
     else:
         vl = f['vlos'][0, 0, 0]
+    if isinstance(blong, tuple):
+        a, b = np.polyfit(blong[0], blong[1], 1)
+        bl = a * f['ltau500'][0, 0, 0] + b
+    else:
+        bl = blong
 
     m.temp[:, :, :] = tp
 
@@ -1111,7 +1120,7 @@ def generate_input_atmos_file(length=30, temp=None, vlos=None, blong=0, name='')
 
     m.vturb[:, :, :] = 0
 
-    m.Bln[:, :, :] = blong
+    m.Bln[:, :, :] = bl
 
     m.write(
         atmos_rp_write_path / 'atmos_{}_{}.nc'.format(length, name)
@@ -1162,19 +1171,19 @@ def make_rps_inversion_result_plots(nodes_temp=None, nodes_vlos=None, nodes_vtur
     # )
 
     rps_atmos_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_total_843_cycle_1_t_6_vl_2_vt_4_blong_2_atmos.nc'
+        '/home/harsh/SpinorNagaraju/maps_2_scan10/stic/run_nagaraju/alignedspectra_scan2_map10_Ca.fits_stic_profiles.nc_opposite_polarity_mean_13_51_1_total_1_cycle_1_t_6_vl_5_vt_4_blong_0_atmos.nc'
     )
 
     rps_profs_result = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_total_843_cycle_1_t_6_vl_2_vt_4_blong_2_profs.nc'
+        '/home/harsh/SpinorNagaraju/maps_2_scan10/stic/run_nagaraju/alignedspectra_scan2_map10_Ca.fits_stic_profiles.nc_opposite_polarity_mean_13_51_1_total_1_cycle_1_t_6_vl_5_vt_4_blong_0_profs.nc'
     )
 
     rps_input_profs = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_quiet_total_843.nc'
+        '/home/harsh/SpinorNagaraju/maps_2_scan10/stic/run_nagaraju/alignedspectra_scan2_map10_Ca.fits_stic_profiles.nc_opposite_polarity_mean_13_51_1_total_1.nc'
     )
     
     rps_plot_write_dir = Path(
-        '/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/quiet/'
+        '/home/harsh/SpinorNagaraju/maps_2_scan10/stic/run_nagaraju/'
     )
 
     finputprofs = h5py.File(rps_input_profs, 'r')
@@ -1185,7 +1194,7 @@ def make_rps_inversion_result_plots(nodes_temp=None, nodes_vlos=None, nodes_vtur
 
     ind = np.where(finputprofs['profiles'][0, 0, 0, :, 0] != 0)[0]
 
-    for i, k in enumerate(range(843)):
+    for i, k in enumerate(range(1)):
         print(i)
         plt.close('all')
 
@@ -2833,7 +2842,11 @@ def generate_mean_files_for_inversions_from_coordinates(x, y, radius, type):
 
     output_prof_file = base_path / 'combined_output_profs.nc'
 
-    input_file = stic / 'processed_inputs' / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc'
+    stic = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic')
+
+    base_path = stic / 'pca_kmeans_fulldata_inversions'
+
+    input_file = stic / 'processed_inputs' / 'alignedspectra_scan2_map10_Ca.fits_stic_profiles.nc'
 
     f = h5py.File(input_file, 'r')
 
@@ -2864,15 +2877,15 @@ def generate_mean_files_for_inversions_from_coordinates(x, y, radius, type):
 
         ca_8.weights[ic8[line_indices[2][0] + core_indices[2][0]:line_indices[2][0] + core_indices[2][1]], 0] /= 2
 
-        ca_8.weights[ic8, 3] = ca_8.weights[ic8, 0]
+        # ca_8.weights[ic8, 3] = ca_8.weights[ic8, 0]
 
-        ca_8.weights[ic8, 3] /= 2
+        # ca_8.weights[ic8, 3] /= 2
 
-        ca_8.weights[ic8[line_indices[0][0] + core_indices[0][0]:line_indices[0][0] + core_indices[0][1]], 3] /= 4
+        # ca_8.weights[ic8[line_indices[0][0] + core_indices[0][0]:line_indices[0][0] + core_indices[0][1]], 3] /= 4
 
-        ca_8.weights[ic8[line_indices[1][0] + core_indices[1][0]:line_indices[1][0] + core_indices[1][1]], 3] /= 4
+        # ca_8.weights[ic8[line_indices[1][0] + core_indices[1][0]:line_indices[1][0] + core_indices[1][1]], 3] /= 4
 
-        ca_8.weights[ic8[line_indices[2][0] + core_indices[2][0]:line_indices[2][0] + core_indices[2][1]], 3] /= 2
+        # ca_8.weights[ic8[line_indices[2][0] + core_indices[2][0]:line_indices[2][0] + core_indices[2][1]], 3] /= 2
 
     else:
         ca_8.weights[:, :] = 1.e16
@@ -2890,7 +2903,7 @@ def generate_mean_files_for_inversions_from_coordinates(x, y, radius, type):
         ca_8.weights[ic8[97 + 85:97 + 120], 3] /= 2
 
     ca_8.write(
-        base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_{}_mean_{}_{}_{}_total_1.nc'.format(type, x, y, radius)
+        base_path / 'alignedspectra_scan2_map10_Ca.fits_stic_profiles.nc_{}_mean_{}_{}_{}_total_1.nc'.format(type, x, y, radius)
     )
 
     f.close()
@@ -2913,7 +2926,7 @@ def generate_mean_files_for_inversions_from_coordinates(x, y, radius, type):
 
     f.close()
 
-    write_filename = base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_{}_mean_{}_{}_{}_total_1_initial_atmos.nc'.format(
+    write_filename = base_path / 'alignedspectra_scan2_map10_Ca.fits_stic_profiles.nc_{}_mean_{}_{}_{}_total_1_initial_atmos.nc'.format(
         type, x, y, radius)
 
     m.write(str(write_filename))
@@ -2936,10 +2949,11 @@ if __name__ == '__main__':
     # generate_input_atmos_file(length=5, temp=[[-8, -6, -4, -2, 0, 2], [7000, 5000, 4000, 5000, 7000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [2e5, 2e5, 2e5, 2e5, 2e5, 2e5]], blong=100, name='emission')
     # generate_input_atmos_file(length=21, temp=[[-8, -6, -4, -2, 0, 2], [9000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [2e5, 2e5, 2e5, 2e5, 2e5, 2e5]], blong=0, name='quiet')
     # generate_input_atmos_file(length=1, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [-10e5, -5e5, -3e3, 1e5, 0, 0]], blong=-450, name='red')
-    # generate_input_atmos_file(length=3, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [10e5, 5e5, 3e3, -1e5, 0, 0]], blong=-450, name='blue')
+    # generate_input_atmos_file(length=1, temp=[[-8, -6, -4, -2, 0, 2], [18000, 9000, 5000, 5500, 6200, 7000]], vlos=[[-8, -6, -4, -2, 0, 2], [-10e5, -5e5, -3e5, -3e5, 0, 0]], blong=([-4.5, -1], [80, -80]), name='map_2_opp_pol')
     # generate_input_atmos_file_from_previous_result(result_filename='/home/harsh/SpinorNagaraju/maps_1/stic/PCA_RPs_Plots/inversions/rps_stic_profiles_x_2_3_10_12_13_15_18_21_y_1_cycle_1_t_6_vl_4_vt_4_blong_0_atmos.nc', rps=[0, 1, 2, 4])
     # make_rps_inversion_result_plots(nodes_temp=[-4.8, -3.8, -2.9, -1.8, -0.9, 0], nodes_vlos=[-6, -4.5, -3, -1], nodes_vturb=[-5, -4, -3, -1], nodes_blos=[-4.5, -1])
     # make_rps_inversion_result_plots(nodes_temp=[-5.5, -4.5, -3.5, -2.5, -1.5, 0], nodes_vlos=[-4.5, -1], nodes_vturb=[-5, -4, -3, -1], nodes_blos=[-4.5, -1])
+    make_rps_inversion_result_plots(nodes_temp=[-5.5, -4.5, -3.5, -2.5, -1.5, 0], nodes_vlos=[-6, -4.5, -3.5, -1.5, 0], nodes_vturb=[-5, -4, -3, -1], nodes_blos=None)
     # make_ha_ca_rps_inversion_result_plots()
     # combine_rps_atmos()
     # full_map_generate_input_atmos_file_from_previous_result()
@@ -2967,11 +2981,12 @@ if __name__ == '__main__':
     # generate_actual_inversion_files_spot()
     # generate_actual_inversion_files_mean()
     # generate_mean_files_for_inversions_from_coordinates(8, 51, 1, 'opposite_polarity')
+    # generate_mean_files_for_inversions_from_coordinates(13, 51, 1, 'opposite_polarity')
     # generate_mean_files_for_inversions_from_coordinates(12, 40, 1, 'emission')
     # generate_mean_files_for_inversions_from_coordinates(13, 17, 1, 'quiet')
     # generate_mean_files_for_inversions_from_coordinates(10, 34, 1, 'spot')
-    merge_atmospheres()
-    merge_output_profiles()
+    # merge_atmospheres()
+    # merge_output_profiles()
     # generate_actual_inversion_pixels((np.array([12, 12]), np.array([49, 31])))
     # generate_actual_inversion_pixels((np.array([12]), np.array([40])))
     # generate_input_atmos_file(length=2, temp=[[-8, -6, -4, -2, 0, 2], [11000, 7000, 5000, 6000, 8000, 10000]], vlos=[[-8, -6, -4, -2, 0, 2], [-10e5, -5e5, -3e3, 1e5, 0, 0]], blong=-200, name='red')
