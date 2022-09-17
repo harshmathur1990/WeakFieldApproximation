@@ -3170,6 +3170,12 @@ def make_mag_field_scatter_plots():
 
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
+    fwfa = h5py.File(wfa_8542_data_file, 'r')
+
+    wfa_8542 = fwfa['blos_gauss'][()].T * -1
+
+    fwfa.close()
+
     a0 = -f['blong'][0, 0:17, :, ltau_indice[0]].T
     a1 = -f['blong'][0, 0:17, :, ltau_indice[1]].T
 
@@ -3182,10 +3188,10 @@ def make_mag_field_scatter_plots():
     a, b = np.where(a0 <= 0)
     c, d = np.where(a0 > 0)
 
-    axs[0][0].scatter(np.abs(a0[c, d]), np.abs(a1[c, d]), s=1, color='royalblue')
-    axs[0][0].scatter(np.abs(a0[a, b]), np.abs(a1[a, b]), s=1, color='red')
+    axs[0][0].scatter(np.abs(wfa_8542[c, d]), np.abs(magha[c, d]), s=1, color='royalblue')
+    axs[0][0].scatter(np.abs(wfa_8542[a, b]), np.abs(magha[a, b]), s=1, color='red')
 
-    maxval = np.abs(a0).max().astype(np.int64) + 1
+    maxval = np.abs(wfa_8542).max().astype(np.int64) + 1
     axs[0][0].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
 
     axs[0][1].scatter(np.abs(a1[c, d]), np.abs(magha[c, d]), s=1, color='royalblue')
@@ -3210,11 +3216,11 @@ def make_mag_field_scatter_plots():
             axs[i][j].xaxis.set_minor_locator(MultipleLocator(50))
             axs[i][j].yaxis.set_minor_locator(MultipleLocator(50))
 
-    axs[0][0].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$2) [G]', fontsize=fontsize)
+    axs[0][0].set_xlabel(r'$|B_{\mathrm{LOS}}|$ WFA (Ca II 8542 $\mathrm{\AA}$) [G]', fontsize=fontsize)
     axs[0][1].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$4.5) [G]', fontsize=fontsize)
     axs[1][0].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$2) [G]', fontsize=fontsize)
     axs[1][1].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$2) [G]', fontsize=fontsize)
-    axs[0][0].set_ylabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$4.5) [G]', fontsize=fontsize)
+    axs[0][0].set_ylabel(r'$|B_{\mathrm{LOS}}|$ WFA (H$\alpha$ core) [G]', fontsize=fontsize)
     axs[0][1].set_ylabel(r'$|B_{\mathrm{LOS}}|$ WFA (H$\alpha$ core) [G]', fontsize=fontsize)
     axs[1][0].set_ylabel(r'$|B_{\mathrm{LOS}}|$ WFA (H$\alpha$ wing) [G]', fontsize=fontsize)
     axs[1][1].set_ylabel(r'$|B_{\mathrm{LOS}}|$ WFA (H$\alpha\pm1.5\AA$) [G]', fontsize=fontsize)
@@ -3448,7 +3454,7 @@ def integrate_RF(m, var, rf, nodes=None, norm=1000.0, perturbation=0.01):
     return rf_integrated
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
     # points = [
     #     (12, 49),
     #     (12, 40),
@@ -3530,7 +3536,7 @@ def integrate_RF(m, var, rf, nodes=None, norm=1000.0, perturbation=0.01):
     # make_output_param_plots(points, colors)
     # plot_mag_field_compare()
     # plot_mag_field_compare_new(points, colors)
-    # make_mag_field_scatter_plots()
+    make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),
