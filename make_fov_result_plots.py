@@ -11,8 +11,9 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from collections import defaultdict
 import queue
 from matplotlib.colors import LinearSegmentedColormap
-from weak_field_approx import prepare_calculate_blos
+from weak_field_approx import prepare_calculate_blos, prepare_calculate_blos_rh15d
 from prepare_data import *
+from lightweaver.utils import vac_to_air
 
 
 processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
@@ -1685,6 +1686,98 @@ def get_wfanew_alternate():
 
     return -magha, -magha_p, -magha_full_line
 
+
+def get_wfa_rh15d():
+
+    base_path = Path('/home/harsh/BifrostRun/Multi-3D-H_6_level_populations/')
+
+    fcaha = h5py.File(base_path / 'output_ray.hdf5', 'r')
+
+    ha_center_wave = 6562.8 / 10
+    wave_range = 0.25 / 10
+
+    transition_skip_list = np.array(
+        [
+            [6560.57, 0.25],
+            [6561.09, 0.1],
+            [6562.44, 0.05],
+            [6563.51, 0.15],
+            [6564.15, 0.35]
+        ]
+    ) / 10
+
+    actual_calculate_blos = prepare_calculate_blos_rh15d(
+        fcaha,
+        vac_to_air(fcaha['wavelength']),
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha = np.fromfunction(vec_actual_calculate_blos, shape=(504, 504))
+
+    wave_range = 1.5 / 10
+
+    transition_skip_list = np.array(
+        [
+            [6560.57, 0.25],
+            [6561.09, 0.1],
+            [6562.44, 0.05],
+            [6563.51, 0.15],
+            [6564.15, 0.35],
+            [6562.8, 0.6]
+        ]
+    ) / 10
+
+    actual_calculate_blos = prepare_calculate_blos_rh15d(
+        fcaha,
+        fcaha['wavelength'],
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_p = np.fromfunction(vec_actual_calculate_blos, shape=(504, 504))
+
+    transition_skip_list = np.array(
+        [
+            [6560.57, 0.25],
+            [6561.09, 0.1],
+            [6562.44, 0.05],
+            [6563.51, 0.15],
+            [6564.15, 0.35]
+        ]
+    ) / 10
+
+    actual_calculate_blos = prepare_calculate_blos_rh15d(
+        fcaha,
+        fcaha['wavelength'],
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_full_line = np.fromfunction(vec_actual_calculate_blos, shape=(504, 504))
+
+    fcaha.close()
+
+    # print (magha.min(), magha.max())
+    # print (magha_p.min(), magha_p.max())
+    # print (magha_full_line.min(), magha_full_line.max())
+
+    return magha, magha_p, magha_full_line
 
 def plot_mag_field_compare():
 

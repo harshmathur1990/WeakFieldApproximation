@@ -86,6 +86,32 @@ def prepare_calculate_blos(
     return actual_calculate_blos
 
 
+def prepare_calculate_blos_rh15d(
+    f,
+    wavelength_arr,
+    lambda0,
+    lambda_range_min,
+    lambda_range_max,
+    g_eff,
+    transition_skip_list=None
+):
+    def actual_calculate_blos(i, j):
+        i = int(i)
+        j = int(j)
+        stokes_I, stokes_V = f['intensity'][i, j], f['stokes_V'][i, j]
+        return calculate_b_los(
+            stokes_I,
+            stokes_V,
+            wavelength_arr,
+            lambda0,
+            lambda_range_min,
+            lambda_range_max,
+            g_eff,
+            transition_skip_list=transition_skip_list
+        )
+    return actual_calculate_blos
+
+
 def calculate_b_transverse_wing(
     stokes_I,
     stokes_Q,
