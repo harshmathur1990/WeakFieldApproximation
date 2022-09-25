@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(1, '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/python/')
 # sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
-sys.path.insert(2, '/home/harsh/Documents/CourseworkRepo/rh/rhv2src/python/')
+sys.path.insert(2, '/home/harsh/CourseworkRepo/rh/rhv2src/python/')
 # sys.path.insert(2, '/home/harsh/RH-Old/python/')
 import enum
 import os
@@ -14,14 +14,25 @@ import shutil
 from helita.sim import multi
 import subprocess
 import rhanalyze
+from xdr_tools import XDR_Reader, XDR_Specs, XDR_Struct
 
+
+xdr_pops = XDR_Specs(
+    [
+        ['atmosID', 'cstr', None],
+        ['Nlevel', int, None],
+        ['Nspace', int, None],
+        ['n', float, '(Nspace,Nlevel)'],  # Stop if not n
+        ['nstar', float, '(Nspace,Nlevel)']
+    ]
+)
 
 # atmos_file = Path(
 #     '/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0.nc'
 # )
 
 atmos_file = Path(
-    '/home/harsh/BifrostRun/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0.nc'
+    '/home/harsh/BifrostRun/BIFROST_en024048_hion_0_504_0_504_-1020996.0_15000000.0.nc'
 )
 
 # ltau_out_file = Path(
@@ -29,8 +40,12 @@ atmos_file = Path(
 # )
 
 ltau_out_file = Path(
-    '/home/harsh/BifrostRun/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0_supplementary_outputs.nc'
+    '/home/harsh/BifrostRun/MULTI3D_BIFROST_en024048_hion_0_504_0_504_-1020996.0_15000000.0_supplementary_outputs.nc'
 )
+
+bifrost_out_file = Path('/home/harsh/BifrostRun/Multi-3D-H_6_level_populations/output_aux.hdf5')
+
+# bifrost_out_file = Path('/data/harsh/merge_bifrost_output/Multi-3D-H_6_level_populations/output_aux.hdf5')
 
 # rh_run_base_dirs = Path('/data/harsh/run_bifrost_dirs')
 
@@ -55,7 +70,27 @@ input_filelist = [
 ]
 
 wave_H = np.arange(6562.8 - 4, 6562.8 + 4, 0.01)
-# wave_CaIR = np.arange(8542.09 - 4, 8542.09 + 4, 0.01)
+
+
+bifrost_indice = np.array(
+    [
+        237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249,
+        250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262,
+        263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275,
+        276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288,
+        289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301,
+        302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314,
+        315, 316, 317, 318, 319, 320, 321, 322, 323, 324, 325, 326, 327,
+        328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340,
+        341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353,
+        354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366,
+        367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379,
+        380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392,
+        393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405,
+        406, 407, 408, 409, 410, 411, 412, 413
+    ]
+)
+
 
 def generate_radiative_transitions():
     transitions = [3, 0, 1, 0, 5, 1, 5, 3, 7, 0, 4, 0, 7, 2, 4, 2, 6, 1, 8, 3, 6, 3]
@@ -153,8 +188,85 @@ def write_atmos_files(write_path, x, y, height_len):
         write_path=write_path,
         height_len=height_len
     )
+
+    write_populations(
+        write_path=write_path,
+        x=x,
+        y=y,
+        height_len=height_len
+    )
+
     f.close()
 
+
+def write_populations(write_path, x, y, height_len):
+    reader = XDR_Reader(XDR_Specs(xdr_pops))
+
+    struct = XDR_Struct(XDR_Specs(xdr_pops))
+    struct['atmosID'] = 'BIFROST {} {}'.format(x, y).encode('utf-8')
+    struct['Nspace'] = height_len
+    struct['Nlevel'] = 10
+
+    bifrost_x = y
+    bifrost_y = 504 - x - 1
+
+    fb = h5py.File(bifrost_out_file, 'r')
+
+    pops = fb['atom_H']['populations'][:, bifrost_x, bifrost_y]
+
+    pops_sublevel = np.zeros((height_len, 10), dtype=np.float64)
+
+    pops_sublevel[:, 0] = pops[0]
+
+    pops_sublevel[:, 1] = pops[1] * 2 / 8
+
+    pops_sublevel[:, 2] = pops[1] * 2 / 8
+
+    pops_sublevel[:, 3] = pops[1] * 4 / 8
+
+    pops_sublevel[:, 4] = pops[2] * 2 / 18
+
+    pops_sublevel[:, 5] = pops[2] * 2 / 18
+
+    pops_sublevel[:, 6] = pops[2] * 4 / 18
+
+    pops_sublevel[:, 7] = pops[2] * 4 / 18
+
+    pops_sublevel[:, 8] = pops[2] * 6 / 18
+
+    pops_sublevel[:, 9] = pops[5]
+
+    pops_lte = fb['atom_H']['populations_LTE'][:, bifrost_x, bifrost_y]
+
+    pops_sublevel_LTE = np.zeros((height_len, 10), dtype=np.float64)
+
+    pops_sublevel_LTE[:, 0] = pops_lte[0]
+
+    pops_sublevel_LTE[:, 1] = pops_lte[1] * 2 / 8
+
+    pops_sublevel_LTE[:, 2] = pops_lte[1] * 2 / 8
+
+    pops_sublevel_LTE[:, 3] = pops_lte[1] * 4 / 8
+
+    pops_sublevel_LTE[:, 4] = pops_lte[2] * 2 / 18
+
+    pops_sublevel_LTE[:, 5] = pops_lte[2] * 2 / 18
+
+    pops_sublevel_LTE[:, 6] = pops_lte[2] * 4 / 18
+
+    pops_sublevel_LTE[:, 7] = pops_lte[2] * 4 / 18
+
+    pops_sublevel_LTE[:, 8] = pops_lte[2] * 6 / 18
+
+    pops_sublevel_LTE[:, 9] = pops_lte[5]
+
+    struct['n'] = pops_sublevel
+
+    struct['nstar'] = pops_sublevel_LTE
+
+    reader.write(write_path / 'pops.H.out', struct)
+
+    fb.close()
 
 class Status(enum.Enum):
     Requesting_work = 0
@@ -224,7 +336,7 @@ def do_work(read_path):
 
     intensity_list = list()
 
-    for w in [wave_H, wave_CaIR]:
+    for w in [wave_H]:
         indd = list()
         for ww in w:
             indd.append(np.argmin(np.abs(out.spectrum.waves - ww / 10)))
@@ -292,9 +404,7 @@ if __name__ == '__main__':
             fo['eta_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
             fo['eps_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
             fo['profiles_H'] = np.zeros((1, nx, ny, wave_H.size, 4), dtype=np.float64)
-            fo['profiles_CaIR'] = np.zeros((1, nx, ny, wave_CaIR.size, 4), dtype=np.float64)
             fo['wave_H'] = wave_H
-            fo['wave_CaIR'] = wave_CaIR
             fo.close()
 
         sys.stdout.write('Made Output File.\n')
@@ -348,7 +458,6 @@ if __name__ == '__main__':
             fo['eta_c'][0, :, xx, yy] = eta_c
             fo['eps_c'][0, :, xx, yy] = eps_c
             fo['profiles_H'][0, xx, yy] = intensity_list[0]
-            fo['profiles_CaIR'][0, xx, yy] = intensity_list[1]
             fo.close()
             sys.stdout.write(
                 'Sender: {} x: {} y: {} Status: {}\n'.format(

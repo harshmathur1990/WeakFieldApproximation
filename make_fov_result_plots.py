@@ -494,7 +494,7 @@ def make_fov_plots(points, colors_scatter):
     plt.show()
 
 
-def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=None):
+def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=None, vertical_cut=None, ca_v=None, ha_v=None):
 
     if data_file is None:
         data_file = ca_ha_data_file
@@ -513,22 +513,37 @@ def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=
 
     ind_ca_1 = np.where((fcaha['wav'][ind[0:306]] >= 8535.75) & (fcaha['wav'][ind[0:306]] <= 8536.75))[0]
     ind_ca_2 = np.where((fcaha['wav'][ind[0:306]] >= 8537.5) & (fcaha['wav'][ind[0:306]] <= 8538.5))[0]
-    ind_ca_3 = np.where((fcaha['wav'][ind[0:306]] >= 8541) & (fcaha['wav'][ind[0:306]] <= 8543))[0]
+    ind_ca_3 = np.where((fcaha['wav'][ind[0:306]] >= 8540) & (fcaha['wav'][ind[0:306]] <= 8544.5))[0]
 
-    ind_ha_1 = np.where((fcaha['wav'][ind[306:]] >= 6561.5) & (fcaha['wav'][ind[306:]] <= 6564.5))[0]
+    ind_ha_1 = np.where((fcaha['wav'][ind[306:]] >= 6561) & (fcaha['wav'][ind[306:]] <= 6565))[0]
     ind_ha_2 = np.where((fcaha['wav'][ind[306:]] >= 6568.5) & (fcaha['wav'][ind[306:]] <= 6570))[0]
 
     fontsize = 8
 
-    fig = plt.figure(figsize=(7, 4.5))
+    if vertical_cut is None:
+        fig = plt.figure(figsize=(7, 4.5))
+        y_r = [0, 60]
+        vertical_cut = [0, 60]
+    else:
+        fig = plt.figure(figsize=(7, 2.25))
+        y_r = [0, vertical_cut[1] - vertical_cut[0]]
 
-    gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.2, 0.2, 0.6])
+    if vertical_cut is None:
+        gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.11, 0.11, 0.78])
+    else:
+        gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.11, 0.11, 0.78])
 
-    gs1.update(left=0.07, bottom=0.09, right=0.48, top=0.95, wspace=0.03, hspace=0.15)
+    if vertical_cut is None:
+        gs1.update(left=0.07, bottom=0.05, right=0.48, top=0.95, wspace=0.03, hspace=0.15)
+    else:
+        gs1.update(left=0.07, bottom=0.05, right=0.48, top=0.91, wspace=0.03, hspace=0.15)
 
     gs3 = gridspec.GridSpec(2, 2, width_ratios=[0.7, 0.3])
 
-    gs3.update(left=0.57, bottom=0.09, right=0.93, top=0.95, wspace=0.03, hspace=0.15)
+    if vertical_cut is None:
+        gs3.update(left=0.57, bottom=0.05, right=0.93, top=0.95, wspace=0.03, hspace=0.15)
+    else:
+        gs3.update(left=0.57, bottom=0.05, right=0.93, top=0.91, wspace=0.03, hspace=0.15)
 
     axs1 = [[], []]
     axs2 = [[], []]
@@ -657,19 +672,28 @@ def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=
     axs2[1][1].plot((-d, +d), (1 - d, 1 + d), **kwargs)
     axs2[1][1].plot((-d, +d), (-d, +d), **kwargs)
 
+    if isinstance(cut_indice, list):
+        ci = cut_indice[0]
+    else:
+        ci = cut_indice
+
     factor = -1
-    cmap1 = 'gray'
-    vmin = -0.005 * 100  # -10
-    vmax = 0.005 * 100  # 10
-    X1, Y1 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_1], np.arange(0, 60 * 0.38, 0.38))
-    X2, Y2 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_2], np.arange(0, 60 * 0.38, 0.38))
-    X3, Y3 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_3], np.arange(0, 60 * 0.38, 0.38))
-    im00 = axs1[0][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
-    im01 = axs1[0][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
-    im02 = axs1[0][2].pcolormesh(X3, Y3, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
-    im10 = axs1[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
-    im11 = axs1[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
-    im12 = axs1[1][2].pcolormesh(X3, Y3, fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[0:306][ind_ca_3], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
+    # cmap1 = 'Greys'
+    if ca_v is None:
+        vmin = -10
+        vmax = 10
+    else:
+        vmin = ca_v[0] * 100
+        vmax = ca_v[1] * 100
+    X1, Y1 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_1], np.arange(y_r[0], y_r[1] * 0.38, 0.38))
+    X2, Y2 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_2], np.arange(y_r[0], y_r[1] * 0.38, 0.38))
+    X3, Y3 = np.meshgrid(fcaha['wav'][ind[0:306]][ind_ca_3], np.arange(y_r[0], y_r[1] * 0.38, 0.38))
+    im00 = axs1[0][0].pcolormesh(X1, Y1, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[0:306][ind_ca_1], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
+    im01 = axs1[0][1].pcolormesh(X2, Y2, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[0:306][ind_ca_2], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
+    im02 = axs1[0][2].pcolormesh(X3, Y3, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[0:306][ind_ca_3], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
+    im10 = axs1[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[0:306][ind_ca_1], 3] * factor * 100 / fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[0:306][ind_ca_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
+    im11 = axs1[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[0:306][ind_ca_2], 3] * factor * 100 / fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[0:306][ind_ca_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
+    im12 = axs1[1][2].pcolormesh(X3, Y3, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[0:306][ind_ca_3], 3] * factor * 100 / fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[0:306][ind_ca_3], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
 
     im00.set_edgecolor('face')
     im01.set_edgecolor('face')
@@ -679,20 +703,29 @@ def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=
     im12.set_edgecolor('face')
 
     cbar02 = fig.colorbar(im02, ax=axs1[0][2])
-    cbar12 = fig.colorbar(im12, ax=axs1[1][2], ticks=[-0.5, 0, 0.5])
+    cbar12 = fig.colorbar(im12, ax=axs1[1][2], ticks=[-9, -6, -3, 0, 3, 6, 9])
     cbar02.ax.tick_params(labelsize=fontsize)
     cbar12.ax.tick_params(labelsize=fontsize)
 
+    if isinstance(cut_indice, list):
+        ci = cut_indice[1]
+    else:
+        ci = cut_indice
     factor = -1
-    cmap1 = 'gray'
-    vmin = -0.005 * 100 # -10
-    vmax = 0.005 * 100 # 10
-    X1, Y1 = np.meshgrid(fcaha['wav'][ind[306:]][ind_ha_1], np.arange(0, 60 * 0.38, 0.38))
-    X2, Y2 = np.meshgrid(fcaha['wav'][ind[306:]][ind_ha_2], np.arange(0, 60 * 0.38, 0.38))
-    im00 = axs2[0][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
-    im01 = axs2[0][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
-    im10 = axs2[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
-    im11 = axs2[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 3] * factor * 100 / fcaha['profiles'][0, cut_indice, :, ind[306:][ind_ha_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
+    # cmap1 = 'Greys'
+    if ha_v is None:
+        vmin = -10
+        vmax = 10
+    else:
+        vmin = ha_v[0] * 100
+        vmax = ha_v[1] * 100
+
+    X1, Y1 = np.meshgrid(fcaha['wav'][ind[306:]][ind_ha_1], np.arange(y_r[0], y_r[1] * 0.38, 0.38))
+    X2, Y2 = np.meshgrid(fcaha['wav'][ind[306:]][ind_ha_2], np.arange(y_r[0], y_r[1] * 0.38, 0.38))
+    im00 = axs2[0][0].pcolormesh(X1, Y1, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[306:][ind_ha_1], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
+    im01 = axs2[0][1].pcolormesh(X2, Y2, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[306:][ind_ha_2], 0], cmap='gray', shading='nearest', linewidth=0, rasterized=True, vmin=0.1, vmax=1)
+    im10 = axs2[1][0].pcolormesh(X1, Y1, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[306:][ind_ha_1], 3] * factor * 100 / fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[306:][ind_ha_1], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
+    im11 = axs2[1][1].pcolormesh(X2, Y2, fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[306:][ind_ha_2], 3] * factor * 100 / fcaha['profiles'][0, ci, vertical_cut[0]:vertical_cut[1], ind[306:][ind_ha_2], 0], cmap=cmap1, shading='nearest', linewidth=0, rasterized=True, vmin=vmin, vmax=vmax)
 
     im00.set_edgecolor('face')
     im01.set_edgecolor('face')
@@ -700,7 +733,7 @@ def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=
     im11.set_edgecolor('face')
 
     cbar01 = fig.colorbar(im01, ax=axs2[0][1])
-    cbar11 = fig.colorbar(im11, ax=axs2[1][1], ticks=[-0.5, 0, 0.5])
+    cbar11 = fig.colorbar(im11, ax=axs2[1][1], ticks=[-9, -6, -3, 0, 3, 6, 9])
     cbar01.ax.tick_params(labelsize=fontsize)
     cbar11.ax.tick_params(labelsize=fontsize)
 
@@ -731,17 +764,28 @@ def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=
             axs2[j][i].plot(fcaha['wav'][ind[306:]][ind_ha_2], np.ones_like(fcaha['wav'][ind[306:]][ind_ha_2]) * point * 0.38, color=color, linestyle='--', linewidth=0.5)
 
 
-    axs1[0][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
-    axs1[1][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
+    if vertical_cut is None:
+        axs1[0][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
+        axs1[1][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
+    else:
+        axs1[0][0].text(
+            -0.65, -0.7,
+            'slit position [arcsec]',
+            transform=axs1[0][0].transAxes,
+            fontsize=fontsize,
+            rotation=90
+        )
 
-    axs1[0][0].set_yticks([0, 5, 10, 15, 20])
-    axs1[0][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+    yticks = [0, 5, 10, 15, 20]
+
+    axs1[0][0].set_yticks(yticks)
+    axs1[0][0].set_yticklabels(yticks, fontsize=fontsize)
     axs1[0][1].set_yticks([])
     axs1[0][1].set_yticklabels([])
     axs1[0][2].set_yticks([])
     axs1[0][2].set_yticklabels([])
-    axs1[1][0].set_yticks([0, 5, 10, 15, 20])
-    axs1[1][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+    axs1[1][0].set_yticks(yticks)
+    axs1[1][0].set_yticklabels(yticks, fontsize=fontsize)
     axs1[1][1].set_yticks([])
     axs1[1][1].set_yticklabels([])
     axs1[1][2].set_yticks([])
@@ -757,11 +801,11 @@ def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=
     axs1[1][1].xaxis.set_minor_locator(MultipleLocator(0.25))
     axs1[1][2].xaxis.set_minor_locator(MultipleLocator(0.25))
 
-    axs2[0][0].set_yticks([0, 5, 10, 15, 20])
+    axs2[0][0].set_yticks(yticks)
     axs2[0][0].set_yticklabels([], fontsize=fontsize)
     axs2[0][1].set_yticks([])
     axs2[0][1].set_yticklabels([])
-    axs2[1][0].set_yticks([0, 5, 10, 15, 20])
+    axs2[1][0].set_yticks(yticks)
     axs2[1][0].set_yticklabels([], fontsize=fontsize)
     axs2[1][1].set_yticks([])
     axs2[1][1].set_yticklabels([])
@@ -802,10 +846,10 @@ def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=
     axs1[1][1].set_xticks([8538])
     axs1[1][1].set_xticklabels([], fontsize=fontsize)
 
-    axs1[0][2].set_xticks([8542])
+    axs1[0][2].set_xticks([8541, 8542, 8543, 8544])
     axs1[0][2].set_xticklabels([], fontsize=fontsize)
 
-    axs1[1][2].set_xticks([8542])
+    axs1[1][2].set_xticks([8541, 8542, 8543, 8544])
     axs1[1][2].set_xticklabels([], fontsize=fontsize)
 
     axs2[0][0].set_xticks([6562, 6563, 6564])
@@ -820,12 +864,20 @@ def plot_stokes_parameters(cut_indice, points, colors_p, colors=None, data_file=
     axs2[1][1].set_xticks([6569])
     axs2[1][1].set_xticklabels([], fontsize=fontsize)
 
-    axs1[0][2].text(
-        0.93, 1.07,
-        'Intensity [Normalised]',
-        transform=axs1[0][2].transAxes,
-        fontsize=fontsize
-    )
+    if vertical_cut is None:
+        axs1[0][2].text(
+            0.93, 1.07,
+            'Intensity [Normalised]',
+            transform=axs1[0][2].transAxes,
+            fontsize=fontsize
+        )
+    else:
+        axs1[0][2].text(
+            0.93, 1.1,
+            'Intensity [Normalised]',
+            transform=axs1[0][2].transAxes,
+            fontsize=fontsize
+        )
     axs1[1][2].text(
         1.3, 1.07,
         r'$V/I$ [%]',
@@ -852,7 +904,7 @@ def plot_profiles():
     fcaha.close()
 
 
-def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list, data_file=None, cs_files=None, hs_file=None):
+def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list, data_file=None, cs_files=None, hs_file=None, mean_prof=False, points_ha=None):
 
     if data_file is None:
         data_file = ca_ha_data_file
@@ -895,12 +947,21 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
 
     ind_ca_1 = np.where((fcaha['wav'][ind[0:306]] >= 8535.75) & (fcaha['wav'][ind[0:306]] <= 8536.75))[0]
     ind_ca_2 = np.where((fcaha['wav'][ind[0:306]] >= 8537.5) & (fcaha['wav'][ind[0:306]] <= 8538.5))[0]
-    ind_ca_3 = np.where((fcaha['wav'][ind[0:306]] >= 8541) & (fcaha['wav'][ind[0:306]] <= 8543))[0]
+    ind_ca_3 = np.where((fcaha['wav'][ind[0:306]] >= 8540) & (fcaha['wav'][ind[0:306]] <= 8544.5))[0]
 
-    ind_ha_1 = np.where((fcaha['wav'][ind[306:]] >= 6561.5) & (fcaha['wav'][ind[306:]] <= 6564.5))[0]
+    ind_ha_1 = np.where((fcaha['wav'][ind[306:]] >= 6561) & (fcaha['wav'][ind[306:]] <= 6565))[0]
     ind_ha_2 = np.where((fcaha['wav'][ind[306:]] >= 6568.5) & (fcaha['wav'][ind[306:]] <= 6570))[0]
 
-    for index, (point, factor_ca, factor_ha) in enumerate(zip(points, factor_ca_list, factor_ha_list)):
+    if mean_prof is True:
+        iter_points = [-1]
+        iter_factor_ca_list = [factor_ca_list[0]]
+        iter_factor_ha_list = [factor_ha_list[0]]
+    else:
+        iter_points = points
+        iter_factor_ca_list = factor_ca_list
+        iter_factor_ha_list = factor_ha_list
+
+    for index, (point, factor_ca, factor_ha) in enumerate(zip(iter_points, iter_factor_ca_list, iter_factor_ha_list)):
         factor_ca_arr = np.ones_like(fcaha['wav'][ind[0:306]], dtype=np.float64)
         factor_ha_arr = np.ones_like(fcaha['wav'][ind[306:]], dtype=np.float64)
 
@@ -911,54 +972,124 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
         factor_ha_arr[ind_ha_1] = factor_ha[0]
         factor_ha_arr[ind_ha_2] = factor_ha[1]
 
-        center = 2 * index - ((len(points) // 2) * 2)
+        center = 2 * index - ((len(points) // 2) * 2) #- 2
         center *= -1
         center_list.append(center)
         print(center)
-        if index == 0:
-            ylim.append(center + 1)
-        if index == len(points) - 1:
-            ylim.append(center - 1)
+        if mean_prof is False:
+            if index == 0:
+                ylim.append(center + 1)
+            if index == len(iter_points) - 1:
+                ylim.append(center - 1)
+        else:
+            if index == 0:
+                ylim.append(center - 1)
+            if index == len(iter_points) - 1:
+                ylim.append(center + 1)
 
-        amax = np.round(
-            np.abs(fcaha['profiles'][0, cut_indice, point, ind[0:306], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]).max(),
-            1
-        )
-        norm_profile_ca = (fcaha['profiles'][0, cut_indice, point, ind[0:306], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]) / amax
-        norm_profile_ca *= factor_ca_arr
-        max_ca.append(amax)
-        norm_profile_ca += center
-        norm_profiles_ca.append(norm_profile_ca)
-        norm_stokes_I_ca = fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]
-        norm_stokes_I_ca_list.append(norm_stokes_I_ca)
-        medprofca_list.append(medprofca)
+        if mean_prof is False:
+            amax = np.round(
+                np.abs(fcaha['profiles'][0, cut_indice, point, ind[0:306], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]).max(),
+                1
+            )
+            norm_profile_ca = (fcaha['profiles'][0, cut_indice, point, ind[0:306], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]) / amax
+            norm_profile_ca *= factor_ca_arr
+            max_ca.append(amax)
+            norm_profile_ca += center
+            norm_profiles_ca.append(norm_profile_ca)
+            norm_stokes_I_ca = fcaha['profiles'][0, cut_indice, point, ind[0:306], 0]
+            norm_stokes_I_ca_list.append(norm_stokes_I_ca)
+            medprofca_list.append(medprofca)
 
-        amax = np.round(
-            np.abs(fcaha['profiles'][0, cut_indice, point, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[306:], 0]).max(),
-            1
-        )
-        norm_profile_ha = (fcaha['profiles'][0, cut_indice, point, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[306:], 0]) / amax
-        norm_profile_ha *= factor_ha_arr
-        max_ha.append(amax)
-        norm_profile_ha += center
-        norm_profiles_ha.append(norm_profile_ha)
-        norm_stokes_I_ha = fcaha['profiles'][0, cut_indice, point, ind[306:], 0]
-        norm_stokes_I_ha_list.append(norm_stokes_I_ha)
-        medprofha_list.append(medprofha)
+            amax = np.round(
+                np.abs(fcaha['profiles'][0, cut_indice, point, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[306:], 0]).max(),
+                1
+            )
+            norm_profile_ha = (fcaha['profiles'][0, cut_indice, point, ind[306:], 3] * 100 / fcaha['profiles'][0, cut_indice, point, ind[306:], 0]) / amax
+            norm_profile_ha *= factor_ha_arr
+            max_ha.append(amax)
+            norm_profile_ha += center
+            norm_profiles_ha.append(norm_profile_ha)
+            norm_stokes_I_ha = fcaha['profiles'][0, cut_indice, point, ind[306:], 0]
+            norm_stokes_I_ha_list.append(norm_stokes_I_ha)
+            medprofha_list.append(medprofha)
+        else:
+            if isinstance(cut_indice, list):
+                ci = cut_indice[0]
+            else:
+                ci = cut_indice
+
+            mnprof = np.mean(
+                fcaha['profiles'][0, ci][np.array(points)][:, ind[0:306]][:, :, 3] * 100 /
+                fcaha['profiles'][0, ci][np.array(points)][:, ind[0:306]][:, :, 0],
+                0
+            )
+            amax = np.round(
+                np.abs(mnprof).max(),
+                1
+            )
+            norm_profile_ca = mnprof / amax
+            norm_profile_ca *= factor_ca_arr
+            max_ca.append(amax)
+            norm_profile_ca += center
+            norm_profiles_ca.append(norm_profile_ca)
+            norm_stokes_I_ca = np.mean(fcaha['profiles'][0, ci][np.array(points)][:, ind[0:306]][:, :, 0], 0)
+            norm_stokes_I_ca_list.append(norm_stokes_I_ca)
+            medprofca_list.append(medprofca)
+
+            if isinstance(cut_indice, list):
+                ci = cut_indice[1]
+            else:
+                ci = cut_indice
+
+            if points_ha is None:
+                pts = points
+            else:
+                pts = points_ha
+
+            mnprof = np.mean(
+                fcaha['profiles'][0, ci][np.array(pts)][:, ind[306:]][:, :, 3] * 100 /
+                fcaha['profiles'][0, ci][np.array(pts)][:, ind[306:]][:, :, 0],
+                0
+            )
+            amax = np.round(
+                np.abs(mnprof).max(),
+                1
+            )
+            norm_profile_ha = mnprof / amax
+            norm_profile_ha *= factor_ha_arr
+            max_ha.append(amax)
+            norm_profile_ha += center
+            norm_profiles_ha.append(norm_profile_ha)
+            norm_stokes_I_ha = np.mean(fcaha['profiles'][0, ci][np.array(pts)][:, ind[306:]][:, :, 0], 0)
+            norm_stokes_I_ha_list.append(norm_stokes_I_ha)
+            medprofha_list.append(medprofha)
 
     linewidth = 0.5
 
     fontsize = 8
 
-    fig = plt.figure(figsize=(7, 4.5))
+    if mean_prof is False:
+        fig = plt.figure(figsize=(7, 4.5))
+    else:
+        fig = plt.figure(figsize=(7, 2.7))
 
-    gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.23, 0.23, 0.54])
+    if mean_prof is False:
+        gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.13, 0.13, 0.74])
+    else:
+        gs1 = gridspec.GridSpec(2, 3, width_ratios=[0.13, 0.13, 0.74])
 
-    gs1.update(left=0.07, bottom=0.09, right=0.43, top=0.95, wspace=0.03, hspace=0.15)
+    if mean_prof is False:
+        gs1.update(left=0.07, bottom=0.09, right=0.43, top=0.95, wspace=0.03, hspace=0.15)
+    else:
+        gs1.update(left=0.07, bottom=0.15, right=0.415, top=0.91, wspace=0.03, hspace=0.15)
 
     gs3 = gridspec.GridSpec(2, 2, width_ratios=[0.74, 0.26])
 
-    gs3.update(left=0.57, bottom=0.09, right=0.9105, top=0.95, wspace=0.03, hspace=0.15)
+    if mean_prof is False:
+        gs3.update(left=0.57, bottom=0.09, right=0.9105, top=0.95, wspace=0.03, hspace=0.15)
+    else:
+        gs3.update(left=0.57, bottom=0.15, right=0.9105, top=0.91, wspace=0.03, hspace=0.15)
 
     axs1 = [[], []]
     axs2 = [[], []]
@@ -1087,7 +1218,9 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
     axs2[1][1].plot((-d, +d), (1 - d, 1 + d), **kwargs)
     axs2[1][1].plot((-d, +d), (-d, +d), **kwargs)
 
-    for point, color, norm_profile_ca, norm_stokes_I_ca, amedprofca in zip(points, colors, norm_profiles_ca, norm_stokes_I_ca_list, medprofca_list):
+    if mean_prof is True:
+        colors = [colors[0]]
+    for point, color, norm_profile_ca, norm_stokes_I_ca, amedprofca in zip(iter_points, colors, norm_profiles_ca, norm_stokes_I_ca_list, medprofca_list):
         print ('{} - {}'.format(point, color))
         axs1[0][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], norm_stokes_I_ca[ind_ca_1], color=color, linewidth=linewidth, linestyle='-')
         axs1[0][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], norm_stokes_I_ca[ind_ca_2], color=color, linewidth=linewidth, linestyle='-')
@@ -1098,14 +1231,19 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
     axs1[0][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], amedprofca[ind_ca_1], color='grey', linewidth=linewidth, linestyle='--')
     axs1[0][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], amedprofca[ind_ca_2], color='grey', linewidth=linewidth, linestyle='--')
     axs1[0][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], amedprofca[ind_ca_3], color='grey', linewidth=linewidth, linestyle='--')
+    # axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], np.ones_like(ind_ca_1) * center, color='grey', linewidth=linewidth, linestyle='--')
+    # axs1[1][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], np.ones_like(ind_ca_2) * center, color='grey', linewidth=linewidth, linestyle='--')
+    # axs1[1][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], np.ones_like(ind_ca_3) * center, color='grey', linewidth=linewidth, linestyle='--')
 
-    for point, color, norm_profile_ha, norm_stokes_I_ha, amedprofha in zip(points, colors, norm_profiles_ha, norm_stokes_I_ha_list, medprofha_list):
+    for point, color, norm_profile_ha, norm_stokes_I_ha, amedprofha in zip(iter_points, colors, norm_profiles_ha, norm_stokes_I_ha_list, medprofha_list):
         axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], norm_stokes_I_ha[ind_ha_1], color=color, linewidth=linewidth, linestyle='-')
         axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], norm_stokes_I_ha[ind_ha_2], color=color, linewidth=linewidth, linestyle='-')
         axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], norm_profile_ha[ind_ha_1], color=color, linewidth=linewidth, linestyle='-')
         axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], norm_profile_ha[ind_ha_2], color=color, linewidth=linewidth, linestyle='-')
     axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], amedprofha[ind_ha_1], color='grey', linewidth=linewidth, linestyle='--')
     axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], amedprofha[ind_ha_2], color='grey', linewidth=linewidth, linestyle='--')
+    # axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], np.ones_like(ind_ha_1) * center, color='grey', linewidth=linewidth, linestyle='--')
+    # axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], np.ones_like(ind_ha_2) * center, color='grey', linewidth=linewidth, linestyle='--')
 
     for center in center_list:
         axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], np.ones_like(ind_ca_1) * (center - 1), linewidth=0.5, linestyle='--', color='gray')
@@ -1158,7 +1296,25 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
     axs1[0][0].yaxis.set_minor_locator(MultipleLocator(0.1))
     axs2[0][0].yaxis.set_minor_locator(MultipleLocator(0.1))
 
-    ylim.reverse()
+
+    yticks_0 = [0.2, 0.4, 0.6, 0.8, 1.0]
+
+    axs1[0][0].set_yticks(yticks_0)
+    axs1[0][1].set_yticks(yticks_0)
+    axs1[0][2].set_yticks(yticks_0)
+    axs2[0][0].set_yticks(yticks_0)
+    axs2[0][1].set_yticks(yticks_0)
+
+    axs1[0][0].set_yticklabels(yticks_0)
+    axs1[0][1].set_yticklabels(yticks_0)
+    axs1[0][2].set_yticklabels(yticks_0)
+    axs2[0][0].set_yticklabels(yticks_0)
+    axs2[0][1].set_yticklabels(yticks_0)
+
+
+    if mean_prof is False:
+        ylim.reverse()
+
     axs1[1][0].set_ylim(*ylim)
     axs1[1][1].set_ylim(*ylim)
     axs1[1][2].set_ylim(*ylim)
@@ -1200,11 +1356,11 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
     axs1[1][1].set_xticks([8538])
     axs1[1][1].set_xticklabels([8538], fontsize=fontsize)
 
-    axs1[0][2].set_xticks([8542])
+    axs1[0][2].set_xticks([8541, 8542, 8543, 8544])
     axs1[0][2].set_xticklabels([], fontsize=fontsize)
 
-    axs1[1][2].set_xticks([8542])
-    axs1[1][2].set_xticklabels([8542], fontsize=fontsize)
+    axs1[1][2].set_xticks([8541, 8542, 8543, 8544])
+    axs1[1][2].set_xticklabels([8541, 8542, 8543, 8544], fontsize=fontsize)
 
     axs2[0][0].set_xticks([6562, 6563, 6564])
     axs2[0][0].set_xticklabels([], fontsize=fontsize)
@@ -1232,13 +1388,13 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
     )
 
     axs1[1][0].text(
-        1.55, -0.2,
+        1.5, -0.35,
         r'Wavelength [$\mathrm{\AA}$]',
         transform=axs1[1][0].transAxes,
         fontsize=fontsize
     )
     axs2[1][0].text(
-        0.55, -0.2,
+        0.5, -0.35,
         r'Wavelength [$\mathrm{\AA}$]',
         transform=axs2[1][0].transAxes,
         fontsize=fontsize
@@ -2623,12 +2779,14 @@ def make_quality_of_fits(points, colors):
 
     k = 0
 
+    factor = -1
+
     for i in [0, 2]:
         for j in range(5):
             axs[i][j].plot(wave, observed[k + j, :, 0], linestyle='dotted', linewidth=0.5, color=colors[k + j]) # s=size/8
             axs[i][j].plot(wave, synthesized[k + j, :, 0], linewidth=0.25, linestyle='-', color=colors[k + j])
-            axs[i + 1][j].plot(wave, observed[k + j, :, 1] * 100, linestyle='dotted', linewidth=0.5, color=colors[k + j]) # s=size/8
-            axs[i + 1][j].plot(wave, synthesized[k + j, :, 1] * 100, linewidth=0.25, linestyle='-', color=colors[k + j])
+            axs[i + 1][j].plot(wave, observed[k + j, :, 1] * 100 * factor, linestyle='dotted', linewidth=0.5, color=colors[k + j]) # s=size/8
+            axs[i + 1][j].plot(wave, synthesized[k + j, :, 1] * 100 * factor, linewidth=0.25, linestyle='-', color=colors[k + j])
             axs[i][j].set_xticks([8536, 8538, 8540, 8542, 8544])
             axs[i + 1][j].set_xticks([8536, 8538, 8540, 8542, 8544])
             axs[i][j].set_xticklabels([])
@@ -2928,11 +3086,12 @@ def get_data_for_mean_profile_inversion_plots():
     data_1 = [[], [], []]
     data_2 = [[], [], []]
 
+    factor = -1
     f = h5py.File(pore_observed_file, 'r')
     ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
     wave = f['wav'][ind]
     data_1[0].append(f['profiles'][0, 0, 0, ind, 0])
-    data_1[0].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    data_1[0].append(f['profiles'][0, 0, 0, ind, 3] * 100 * factor / f['profiles'][0, 0, 0, ind, 0])
     f.close()
 
     f = h5py.File(pore_atmos_file, 'r')
@@ -2940,67 +3099,67 @@ def get_data_for_mean_profile_inversion_plots():
     data_1[0].append(f['temp'][0, 0, 0] / 1e3)
     data_1[0].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_1[0].append(f['vturb'][0, 0, 0] / 1e5)
-    data_1[0].append(-f['blong'][0, 0, 0] / 1e2)
+    data_1[0].append(f['blong'][0, 0, 0] * factor / 1e2)
     f.close()
 
     f = h5py.File(emission_observed_file, 'r')
     data_1[1].append(f['profiles'][0, 0, 0, ind, 0])
-    data_1[1].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    data_1[1].append(f['profiles'][0, 0, 0, ind, 3] * 100 * factor / f['profiles'][0, 0, 0, ind, 0])
     f.close()
 
     f = h5py.File(emission_atmos_file, 'r')
     data_1[1].append(f['temp'][0, 0, 0] / 1e3)
     data_1[1].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_1[1].append(f['vturb'][0, 0, 0] / 1e5)
-    data_1[1].append(-f['blong'][0, 0, 0] / 1e2)
+    data_1[1].append(f['blong'][0, 0, 0] * factor / 1e2)
     f.close()
 
     f = h5py.File(opposite_polarity_observed_file, 'r')
     data_1[2].append(f['profiles'][0, 0, 0, ind, 0])
-    data_1[2].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    data_1[2].append(f['profiles'][0, 0, 0, ind, 3] * 100 * factor / f['profiles'][0, 0, 0, ind, 0])
     f.close()
 
     f = h5py.File(opposite_polarity_atmos_file, 'r')
     data_1[2].append(f['temp'][0, 0, 0] / 1e3)
     data_1[2].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_1[2].append(f['vturb'][0, 0, 0] / 1e5)
-    data_1[2].append(-f['blong'][0, 0, 0] / 1e2)
+    data_1[2].append(f['blong'][0, 0, 0] * factor / 1e2)
     f.close()
 
     f = h5py.File(pore_synth_file, 'r')
     data_2[0].append(f['profiles'][0, 0, 0, ind, 0])
-    data_2[0].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    data_2[0].append(f['profiles'][0, 0, 0, ind, 3] * 100 * factor / f['profiles'][0, 0, 0, ind, 0])
     f.close()
 
     f = h5py.File(quiet_atmos_file, 'r')
     data_2[0].append(f['temp'][0, 0, 0] / 1e3)
     data_2[0].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_2[0].append(f['vturb'][0, 0, 0] / 1e5)
-    data_2[0].append(-f['blong'][0, 0, 0] / 1e2)
+    data_2[0].append(f['blong'][0, 0, 0] * factor / 1e2)
     f.close()
 
     f = h5py.File(emission_synth_file, 'r')
     data_2[1].append(f['profiles'][0, 0, 0, ind, 0])
-    data_2[1].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    data_2[1].append(f['profiles'][0, 0, 0, ind, 3] * 100 * factor / f['profiles'][0, 0, 0, ind, 0])
     f.close()
 
     f = h5py.File(quiet_atmos_file, 'r')
     data_2[1].append(f['temp'][0, 0, 0] / 1e3)
     data_2[1].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_2[1].append(f['vturb'][0, 0, 0] / 1e5)
-    data_2[1].append(-f['blong'][0, 0, 0] / 1e2)
+    data_2[1].append(f['blong'][0, 0, 0] * factor / 1e2)
     f.close()
 
     f = h5py.File(opposite_polarity_synth_file, 'r')
     data_2[2].append(f['profiles'][0, 0, 0, ind, 0])
-    data_2[2].append(f['profiles'][0, 0, 0, ind, 3] * 100 / f['profiles'][0, 0, 0, ind, 0])
+    data_2[2].append(f['profiles'][0, 0, 0, ind, 3] * 100 * factor / f['profiles'][0, 0, 0, ind, 0])
     f.close()
 
     f = h5py.File(quiet_atmos_file, 'r')
     data_2[2].append(f['temp'][0, 0, 0] / 1e3)
     data_2[2].append((f['vlos'][0, 0, 0] - calib_velocity) / 1e5)
     data_2[2].append(f['vturb'][0, 0, 0] / 1e5)
-    data_2[2].append(-f['blong'][0, 0, 0] / 1e2)
+    data_2[2].append(f['blong'][0, 0, 0] * factor / 1e2)
     f.close()
 
     return wave, ltau, data_1, data_2
@@ -3547,6 +3706,47 @@ def integrate_RF(m, var, rf, nodes=None, norm=1000.0, perturbation=0.01):
     return rf_integrated
 
 
+def make_response_function_opp_polarity_plot():
+
+    base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
+
+    fr = h5py.File(base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_mean_8_51_1_total_1_cycle_1_t_6_vl_2_vt_4_blong_2_nw_atmos_response.nc', 'r')
+
+    f = h5py.File(base_path / 'alignedspectra_scan1_map01_Ca.fits_stic_profiles.nc_opposite_polarity_mean_8_51_1_total_1.nc', 'r')
+
+    ind = np.where(f['profiles'][0, 0, 0, :, 0] != 0)[0]
+
+    f.close()
+
+    response = fr['derivatives'][0, 0, 0, 0, :, ind[171], 3]
+
+    response = np.abs(response) / np.abs(response).sum()
+
+    fontsize = 10
+
+    plt.close('all')
+
+    plt.clf()
+
+    plt.cla()
+
+    fig, axs = plt.subplots(1, 1, figsize=(3.5, 3.5))
+
+    axs.plot(ltau500, response)
+
+    axs.set_xlabel(r'$\log \tau_{500}$', fontsize=fontsize)
+
+    axs.set_ylabel(r'Normalized $\mathrm{RF_{B_{LOS}}}$ at $\Delta \lambda$ = $-$1.03 $\mathrm{\AA}$', fontsize=fontsize)
+
+    axs.tick_params(labelsize=fontsize)
+
+    plt.subplots_adjust(left=0.2, right=0.99, bottom=0.15, top=0.99, wspace=0.0, hspace=0.0)
+
+    write_path = Path('/home/harsh/Spinor Paper')
+
+    fig.savefig(write_path / 'opp_polarity_response.pdf', format='pdf', dpi=300)
+
+
 if __name__ == '__main__':
     # points = [
     #     (12, 49),
@@ -3587,31 +3787,31 @@ if __name__ == '__main__':
     # cut_indice = 12
     # plot_stokes_parameters(cut_indice, points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
-    # cut_indice = 8
-    # points = [
-    #     53,
-    #     50,
-    #     37,
-    #     31,
-    #     9
-    # ]
-    # factor_ca_list = [
-    #     (-1, -1, -1),
-    #     (-1, -1, -1),
-    #     (-1, -1, -1),
-    #     (-3, -3, -1),
-    #     (-1, -1, -1)
-    # ]
-    # factor_ha_list = [
-    #     (-3, -1),
-    #     (-3, -1),
-    #     (-3, -1),
-    #     (-3, -1),
-    #     (-3, -1)
-    # ]
-    # colors = ['green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # plot_stokes_parameters(cut_indice, points, colors)
-    # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
+    cut_indice = 8
+    points = [
+        53,
+        50,
+        37,
+        31,
+        9
+    ]
+    factor_ca_list = [
+        (-1, -1, -1),
+        (-1, -1, -1),
+        (-1, -1, -1),
+        (-3, -3, -1),
+        (-1, -1, -1)
+    ]
+    factor_ha_list = [
+        (-3, -1),
+        (-3, -1),
+        (-3, -1),
+        (-3, -1),
+        (-3, -1)
+    ]
+    colors = ['green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    plot_stokes_parameters(cut_indice, points, colors)
+    plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # plot_profiles()
     # points = [
     #     (12, 49),
@@ -3629,7 +3829,7 @@ if __name__ == '__main__':
     # make_output_param_plots(points, colors)
     # plot_mag_field_compare()
     # plot_mag_field_compare_new(points, colors)
-    make_mag_field_scatter_plots()
+    # make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),
@@ -3670,7 +3870,7 @@ if __name__ == '__main__':
     # pi = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
     #
     # data_file = pi / 'aligned_Ca_Ha_stic_profiles.nc'
-
+    #
     # cs_files = [
     #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_SiI_8536.h5',
     #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_FeI_8538.h5',
@@ -3679,28 +3879,28 @@ if __name__ == '__main__':
     #
     # hs_file = pi / 'alignedspectra_scan2_map10_Ha.fits_stray_corrected.h5'
     #
-    # cut_indice = 13
+    # cut_indice = 14
     #
     # points = [
-    #     52,
+    #     51,
     #     50,
-    #     48,
-    #     46
     # ]
     # factor_ca_list = [
     #     (-1, -1, -1),
     #     (-1, -1, -1),
-    #     (-1, -1, -1),
-    #     (-1, -1, -1)
     # ]
     # factor_ha_list = [
-    #     (-4, -1),
-    #     (-4, -1),
-    #     (-4, -1),
-    #     (-4, -1)
+    #     (-10, -1),
+    #     (-10, -1),
+    # ]
+    # points_ha = [
+    #     50,
+    #     51
     # ]
     #
     # colors_p = ['green', 'darkslateblue', 'purple', 'mediumvioletred']
     # colors = ["green", "blue", "white", "darkmagenta", "red"]
-    # plot_stokes_parameters(cut_indice, points, colors_p, colors=colors, data_file=data_file)
-    # plot_spatial_variation_of_profiles(cut_indice, points, colors_p, factor_ca_list, factor_ha_list, data_file=data_file, cs_files=cs_files, hs_file=hs_file)
+    # plot_stokes_parameters(cut_indice, [], [], colors=colors, data_file=data_file, vertical_cut=[40, 60], ca_v=[-0.003, 0.003], ha_v=[-0.002, 0.002])
+    # plot_spatial_variation_of_profiles(cut_indice, points, colors_p, factor_ca_list, factor_ha_list, data_file=data_file, cs_files=cs_files, hs_file=hs_file, mean_prof=True, points_ha=points_ha)
+
+    # make_response_function_opp_polarity_plot()

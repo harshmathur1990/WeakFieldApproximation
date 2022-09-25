@@ -60,6 +60,8 @@ def make_atmosphere(
 
     ind = np.where((height >= height_min_in_m) & (height <= height_max_in_m))[0]
 
+    print(ind.size)
+
     T = np.zeros((1, end_x - start_x, end_y - start_y, ind.size))
 
     T[0] = np.power(
@@ -294,8 +296,8 @@ if __name__ == '__main__':
         snap=385,
         start_x=0, end_x=504,
         start_y=0, end_y=504,
-        height_min_in_m=-500 * 1e3,
-        height_max_in_m=3000 * 1e3,
+        height_min_in_m=-1020.996 * 1e3,
+        height_max_in_m=15000 * 1e3,
         simulation_code_name='BIFROST',
         lte=False
     )
