@@ -1,8 +1,8 @@
 import sys
-sys.path.insert(1, '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/python/')
-# sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
-sys.path.insert(2, '/home/harsh/CourseworkRepo/rh/rhv2src/python/')
-# sys.path.insert(2, '/home/harsh/RH-Old/python/')
+# sys.path.insert(1, '/home/harsh/CourseworkRepo/rh/RH-uitenbroek/python/')
+sys.path.insert(1, '/home/harsh/rh-uitenbroek/python/')
+# sys.path.insert(2, '/home/harsh/CourseworkRepo/rh/rhv2src/python/')
+sys.path.insert(2, '/home/harsh/RH-Old/python/')
 import enum
 import os
 import numpy as np
@@ -27,35 +27,35 @@ xdr_pops = XDR_Specs(
     ]
 )
 
-# atmos_file = Path(
-#     '/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0.nc'
-# )
-
 atmos_file = Path(
-    '/home/harsh/BifrostRun/BIFROST_en024048_hion_0_504_0_504_-1020996.0_15000000.0.nc'
+    '/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc'
 )
 
-# ltau_out_file = Path(
-#     '/data/harsh/merge_bifrost_output/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0_supplementary_outputs.nc'
+# atmos_file = Path(
+#     '/home/harsh/BifrostRun/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc'
 # )
 
 ltau_out_file = Path(
-    '/home/harsh/BifrostRun/MULTI3D_BIFROST_en024048_hion_0_504_0_504_-1020996.0_15000000.0_supplementary_outputs.nc'
+    '/data/harsh/merge_bifrost_output/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_supplementary_outputs.nc'
 )
 
-bifrost_out_file = Path('/home/harsh/BifrostRun/Multi-3D-H_6_level_populations/output_aux.hdf5')
+# ltau_out_file = Path(
+#     '/home/harsh/BifrostRun/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_supplementary_outputs.nc'
+# )
 
-# bifrost_out_file = Path('/data/harsh/merge_bifrost_output/Multi-3D-H_6_level_populations/output_aux.hdf5')
+# bifrost_out_file = Path('/home/harsh/BifrostRun/Multi-3D-H_6_level_populations/output_aux.hdf5')
 
-# rh_run_base_dirs = Path('/data/harsh/run_bifrost_dirs')
+bifrost_out_file = Path('/data/harsh/merge_bifrost_output/Multi-3D-H_6_level_populations/output_aux.hdf5')
 
-rh_run_base_dirs = Path('/home/harsh/BifrostRun/run_bifrost_dirs')
+rh_run_base_dirs = Path('/data/harsh/run_bifrost_dirs')
+
+# rh_run_base_dirs = Path('/home/harsh/BifrostRun/run_bifrost_dirs')
 
 stop_file = rh_run_base_dirs / 'stop'
 
-rh_base_path = Path('/home/harsh/CourseworkRepo/rh/RH-uitenbroek/')
+# rh_base_path = Path('/home/harsh/CourseworkRepo/rh/RH-uitenbroek/')
 
-# rh_base_path = Path('/home/harsh/rh-uitenbroek/')
+rh_base_path = Path('/home/harsh/rh-uitenbroek/')
 
 sub_dir_format = 'process_{}'
 
