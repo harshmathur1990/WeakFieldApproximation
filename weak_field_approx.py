@@ -112,6 +112,34 @@ def prepare_calculate_blos_rh15d(
     return actual_calculate_blos
 
 
+def prepare_calculate_blos_vlos_gradient(
+    obs,
+    wavelength_arr,
+    lambda0,
+    lambda_range,
+    g_eff,
+    transition_skip_list=None
+):
+    def actual_calculate_blos(i, j):
+        i = int(i)
+        j = int(j)
+        stokes_I, stokes_V = obs[0, i, j, :, 0], obs[0, i, j, :, 3]
+        min_wave_position = np.argmin(stokes_I)
+        lambda_range_min = wavelength_arr[min_wave_position] - lambda_range
+        lambda_range_max = wavelength_arr[min_wave_position] + lambda_range
+        return calculate_b_los(
+            stokes_I,
+            stokes_V,
+            wavelength_arr,
+            lambda0,
+            lambda_range_min,
+            lambda_range_max,
+            g_eff,
+            transition_skip_list=transition_skip_list
+        )
+    return actual_calculate_blos
+
+
 def calculate_b_transverse_wing(
     stokes_I,
     stokes_Q,

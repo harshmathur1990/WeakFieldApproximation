@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
     gong_image_path = '/home/harsh/SpinorNagaraju/mdi.fd_M_96m_lev182.20081204_160000_TAI.data.fits'
 
-    data, header = sunpy.io.fits.read(gong_image_path)[1]
+    data, header = sunpy.io.read_file(gong_image_path, filetype='fits')[1]
 
     gong_map = sunpy.map.Map(data, header)
 
@@ -116,15 +116,15 @@ if __name__ == '__main__':
 
     # rotated_map = gong_map.rotate(recenter=True, scale=gong_map.meta['cdelt1'] / 0.38, order=3)
 
-    bottom_left = SkyCoord(10 * u.deg, 25 * u.deg,
+    bottom_left = SkyCoord(13 * u.deg, 26 * u.deg,
                            frame=HeliographicStonyhurst, obstime=rotated_map.date)
 
     fig = plt.figure()
     ax = fig.add_subplot(projection=rotated_map)
     rotated_map.plot(axes=ax)
     rotated_map.draw_grid(axes=ax)
-    rotated_map.draw_quadrangle(bottom_left, axes=ax, width=10 * u.deg, height=10 * u.deg,
+    rotated_map.draw_quadrangle(bottom_left, axes=ax, width=5 * u.deg, height=5 * u.deg,
                         edgecolor='blue', linewidth=2)
-    ax.plot_coord(bottom_left, 'x', color='red')
+    # ax.plot_coord(bottom_left, 'x', color='red')
 
     plt.show()

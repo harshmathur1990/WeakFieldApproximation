@@ -15,6 +15,23 @@ from helita.sim import multi
 import subprocess
 import rhanalyze
 from xdr_tools import XDR_Reader, XDR_Specs, XDR_Struct
+from scipy.interpolate import CubicSpline
+
+
+bifrost_indice = np.array([  0,   3,   5,   8,  11,  13,  16,  18,  21,  24,  26,  29,  32,
+        34,  37,  39,  42,  45,  47,  50,  53,  55,  58,  60,  63,  66,
+        68,  71,  74,  76,  79,  82,  84,  87,  89,  92,  95,  97, 100,
+       103, 105, 108, 110, 113, 116, 118, 121, 124, 126, 129, 132, 134,
+       137, 139, 142, 145, 147, 150, 153, 155, 158, 160, 163, 166, 168,
+       171, 174, 176, 179, 181, 184, 187, 189, 192, 195, 197, 200, 203,
+       205, 208, 210, 213, 216, 218, 221, 224, 226, 229, 231, 234, 237,
+       239, 242, 245, 247, 250, 252, 255, 258, 260, 263, 266, 268, 271,
+       274, 276, 279, 281, 284, 287, 289, 292, 295, 297, 300, 302, 305,
+       308, 310, 313, 316, 318, 321, 323, 326, 329, 331, 334, 337, 339,
+       342, 345, 347, 350, 352, 355, 358, 360, 363, 366, 368, 371, 373,
+       376, 379, 381, 384, 387, 389, 392, 394, 397, 400, 402, 405, 408,
+       410, 413, 418, 421, 423, 426, 429, 431, 434, 436, 439, 442, 444,
+       447, 449, 452, 455, 457, 460, 462, 465])
 
 
 xdr_pops = XDR_Specs(
@@ -27,35 +44,51 @@ xdr_pops = XDR_Specs(
     ]
 )
 
-atmos_file = Path(
-    '/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc'
-)
-
 # atmos_file = Path(
-#     '/home/harsh/BifrostRun/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc'
+#     '/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0.nc'
 # )
 
-ltau_out_file = Path(
-    '/data/harsh/merge_bifrost_output/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_supplementary_outputs.nc'
+atmos_file = Path(
+    '/home/harsh/BifrostRun_fast_Access/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc'
 )
 
 # ltau_out_file = Path(
-#     '/home/harsh/BifrostRun/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_supplementary_outputs.nc'
+#     '/data/harsh/merge_bifrost_output/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0_supplementary_outputs_alt.nc'
 # )
 
-# bifrost_out_file = Path('/home/harsh/BifrostRun/Multi-3D-H_6_level_populations/output_aux.hdf5')
+ltau_out_file = Path(
+    '/home/harsh/BifrostRun/MULTI3D_BBIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0_supplementary_outputs_alt.nc'
+)
 
-bifrost_out_file = Path('/data/harsh/merge_bifrost_output/Multi-3D-H_6_level_populations/output_aux.hdf5')
+# previous_ltau_out_file_177 = Path(
+#     '/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0_supplementary_outputs.nc'
+# )
 
-rh_run_base_dirs = Path('/data/harsh/run_bifrost_dirs')
+previous_ltau_out_file_177 = Path(
+    '/home/harsh/BifrostRun/BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0_supplementary_outputs.nc'
+)
 
-# rh_run_base_dirs = Path('/home/harsh/BifrostRun/run_bifrost_dirs')
+# previous_ltau_out_file_467 = Path(
+#     '/data/harsh/merge_bifrost_output/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_supplementary_outputs.nc'
+# )
+
+previous_ltau_out_file_467 = Path(
+    '/home/harsh/BifrostRun/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_supplementary_outputs.nc'
+)
+
+# bifrost_out_file = Path('/data/harsh/merge_bifrost_output/Multi-3D-H_6_level_populations/output_aux.hdf5')
+
+bifrost_out_file = Path('/home/harsh/BifrostRun/Multi-3D-H_6_level_populations/output_aux.hdf5')
+
+# rh_run_base_dirs = Path('/data/harsh/run_bifrost_dirs')
+
+rh_run_base_dirs = Path('/home/harsh/BifrostRun/run_bifrost_dirs')
 
 stop_file = rh_run_base_dirs / 'stop'
 
-# rh_base_path = Path('/home/harsh/CourseworkRepo/rh/RH-uitenbroek/')
+# rh_base_path = Path('/home/harsh/rh-uitenbroek/')
 
-rh_base_path = Path('/home/harsh/rh-uitenbroek/')
+rh_base_path = Path('/home/harsh/CourseworkRepo/rh/RH-uitenbroek/')
 
 sub_dir_format = 'process_{}'
 
@@ -167,54 +200,69 @@ def create_mag_file(
         f.write(xdr.get_buffer())
 
 
-def write_atmos_files(write_path, x, y, height_len):
+def write_atmos_files(write_path, x, y, height_len, height_arr, item):
+    if item == 6:
+        indices = bifrost_indice
+    else:
+        indices = np.arange(0, height_len, item+1)
     atmos_filename = 'Atmos1D.atmos'
     f = h5py.File(atmos_file, 'r')
     multi.watmos_multi(
         str(write_path / atmos_filename),
-        f['temperature'][0, x, y],
-        f['electron_density'][0, x, y] / 1e6,
-        z=f['z'][0, x, y] / 1e3,
-        vz=f['velocity_z'][0, x, y] / 1e3,
+        f['temperature'][0, x, y, indices],
+        f['electron_density'][0, x, y, indices] / 1e6,
+        z=f['z'][0, x, y, indices] / 1e3,
+        vz=f['velocity_z'][0, x, y, indices] / 1e3,
         # vturb=f['velocity_turbulent'][0, x, y] / 1e3,
-        nh=f['hydrogen_populations'][0, :, x, y] / 1e6,
-        id='BIFROST {} {}'.format(x, y),
+        nh=f['hydrogen_populations'][0, :, x, y, indices] / 1e6,
+        id='BIFROST {} {}'.format(x, item),
         scale='height'
     )
     create_mag_file(
-        Bx=f['B_x'][0, x, y],
-        By=f['B_y'][0, x, y],
-        Bz=f['B_z'][0, x, y],
+        Bx=f['B_x'][0, x, y, indices],
+        By=f['B_y'][0, x, y, indices],
+        Bz=f['B_z'][0, x, y, indices],
         write_path=write_path,
-        height_len=height_len
+        height_len=indices.size
     )
 
     write_populations(
         write_path=write_path,
         x=x,
         y=y,
-        height_len=height_len
+        height_len=height_len,
+        height_arr=height_arr,
+        indices=indices
     )
 
     f.close()
 
 
-def write_populations(write_path, x, y, height_len):
+def write_populations(write_path, x, y, height_len, height_arr, indices):
     reader = XDR_Reader(XDR_Specs(xdr_pops))
 
     struct = XDR_Struct(XDR_Specs(xdr_pops))
     struct['atmosID'] = 'BIFROST {} {}'.format(x, y).encode('utf-8')
-    struct['Nspace'] = height_len
+    struct['Nspace'] = indices.size
     struct['Nlevel'] = 10
 
     bifrost_x = y
+
     bifrost_y = 504 - x - 1
 
     fb = h5py.File(bifrost_out_file, 'r')
 
-    pops = fb['atom_H']['populations'][:, bifrost_x, bifrost_y]
+    # fold_177 = h5py.File(previous_ltau_out_file_177, 'r')
+    #
+    # fold_467 = h5py.File(previous_ltau_out_file_467, 'r')
 
-    pops_sublevel = np.zeros((height_len, 10), dtype=np.float64)
+    # ltau500_old_177 = fold_177['ltau500'][0, bifrost_x, bifrost_y, indices]
+    #
+    # ltau500_old_467 = fold_467['ltau500'][0, bifrost_x, bifrost_y, indices]
+
+    pops = fb['atom_H']['populations'][:, bifrost_x, bifrost_y, indices]
+
+    pops_sublevel = np.zeros((indices.size, 10), dtype=np.float64)
 
     pops_sublevel[:, 0] = pops[0]
 
@@ -236,9 +284,9 @@ def write_populations(write_path, x, y, height_len):
 
     pops_sublevel[:, 9] = pops[5]
 
-    pops_lte = fb['atom_H']['populations_LTE'][:, bifrost_x, bifrost_y]
+    pops_lte = fb['atom_H']['populations_LTE'][:, bifrost_x, bifrost_y, indices]
 
-    pops_sublevel_LTE = np.zeros((height_len, 10), dtype=np.float64)
+    pops_sublevel_LTE = np.zeros((indices.size, 10), dtype=np.float64)
 
     pops_sublevel_LTE[:, 0] = pops_lte[0]
 
@@ -266,7 +314,12 @@ def write_populations(write_path, x, y, height_len):
 
     reader.write(write_path / 'pops.H.out', struct)
 
+    # fold_467.close()
+    #
+    # fold_177.close()
+
     fb.close()
+
 
 class Status(enum.Enum):
     Requesting_work = 0
@@ -388,6 +441,7 @@ if __name__ == '__main__':
         nx = f['temperature'].shape[1]
         ny = f['temperature'].shape[2]
         height_len = f['temperature'].shape[3]
+        height_arr = f['z'][0, 0, 0] / 1e3
         f.close()
 
         # try:
@@ -397,26 +451,15 @@ if __name__ == '__main__':
 
         if not os.path.exists(ltau_out_file):
             fo = h5py.File(ltau_out_file, 'w')
-            fo['ltau500'] = np.zeros((1, nx, ny, height_len), dtype=np.float64)
-            fo['a_voigt'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
-            fo['populations'] = np.zeros((1, nH, nx, ny, height_len), dtype=np.float64)
-            fo['Cul'] = np.zeros((1, n_transitions, nx, ny, height_len), dtype=np.float64)
-            fo['eta_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
-            fo['eps_c'] = np.zeros((1, n_rad_transitions, nx, ny, height_len), dtype=np.float64)
-            fo['profiles_H'] = np.zeros((1, nx, ny, wave_H.size, 4), dtype=np.float64)
+            fo['profiles_H'] = np.zeros((1, 1, 7, wave_H.size, 4), dtype=np.float64)
             fo['wave_H'] = wave_H
             fo.close()
 
         sys.stdout.write('Made Output File.\n')
 
-        job_matrix = np.zeros((nx, ny), dtype=np.int64)
+        job_matrix = np.zeros(7, dtype=np.int64)
 
-        fo = h5py.File(ltau_out_file, 'r')
-        a, b, c = np.where(fo['ltau500'][:, :, :, 0] != 0)
-        job_matrix[b, c] = 1
-        fo.close()
-
-        x, y = np.where(job_matrix == 0)
+        x = np.where(job_matrix == 0)[0]
 
         for i in range(x.size):
             waiting_queue.add(i)
@@ -427,7 +470,7 @@ if __name__ == '__main__':
             item = waiting_queue.pop()
             work_type = {
                 'job': 'work',
-                'item': (item, x[item], y[item], height_len)
+                'item': (item, 180+90, 60+114, height_len, height_arr)
             }
             comm.send(work_type, dest=worker, tag=1)
             running_queue.add(item)
@@ -449,19 +492,13 @@ if __name__ == '__main__':
             )
             sender = status.Get_source()
             jobstatus = status_dict['status']
-            item, xx, yy, ltau500, adamp, cularr, populations, eta_c, eps_c, intensity_list = status_dict['item']
+            item, _, _, ltau500, adamp, cularr, populations, eta_c, eps_c, intensity_list = status_dict['item']
             fo = h5py.File(ltau_out_file, 'r+')
-            fo['ltau500'][0, xx, yy] = ltau500
-            fo['a_voigt'][0, :, xx, yy] = adamp
-            fo['populations'][0, :, xx, yy] = populations.T
-            fo['Cul'][0, :, xx, yy] = cularr
-            fo['eta_c'][0, :, xx, yy] = eta_c
-            fo['eps_c'][0, :, xx, yy] = eps_c
-            fo['profiles_H'][0, xx, yy] = intensity_list[0]
+            fo['profiles_H'][0, 0, item] = intensity_list[0]
             fo.close()
             sys.stdout.write(
                 'Sender: {} x: {} y: {} Status: {}\n'.format(
-                    sender, xx, yy, jobstatus.value
+                    sender, 0, item, jobstatus.value
                 )
             )
             running_queue.discard(item)
@@ -474,7 +511,7 @@ if __name__ == '__main__':
                 new_item = waiting_queue.pop()
                 work_type = {
                     'job': 'work',
-                    'item': (new_item, x[new_item], y[new_item], height_len)
+                    'item': (new_item, 180+90, 60+114, height_len, height_arr)
                 }
                 comm.send(work_type, dest=sender, tag=1)
                 running_queue.add(new_item)
@@ -500,11 +537,11 @@ if __name__ == '__main__':
             if work_type['job'] != 'work':
                 break
 
-            item, x, y, height_len = work_type['item']
+            item, x, y, height_len, height_arr = work_type['item']
 
             sys.stdout.write(
                 'Rank: {} x: {} y: {} start\n'.format(
-                    rank, x, y
+                    rank, x, item
                 )
             )
 
@@ -527,7 +564,7 @@ if __name__ == '__main__':
                 )
                 process.communicate()
 
-            write_atmos_files(sub_dir_path, x, y, height_len)
+            write_atmos_files(sub_dir_path, x, y, height_len, height_arr, item)
 
             cmdstr = rh_base_path / 'rhf1d/rhf1d'
 
