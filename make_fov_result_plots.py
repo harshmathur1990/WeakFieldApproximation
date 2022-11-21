@@ -218,11 +218,14 @@ def get_fov_data():
 
     fcaha.close()
 
-    return data[:, :, :, ::-1], aa, bb, cc, dd, mask[:, :, :, ::-1]
+    np_mask = np.zeros((17, 60), dtype=np.int64)
+    np_mask[np.where(data[2][1] < 0)] = 1
+
+    return data[:, :, :, ::-1], aa, bb, cc, dd, mask[:, :, :, ::-1], np_mask[:, ::-1]
 
 
 def make_fov_plots(points, colors_scatter):
-    data, wing_ca, core_ca, wing_ha, core_ha, mask = get_fov_data()
+    data, wing_ca, core_ca, wing_ha, core_ha, mask, np_mask = get_fov_data()
 
     fig, axs = plt.subplots(2, 3, figsize=(3.3, 7))
 
@@ -259,6 +262,7 @@ def make_fov_plots(points, colors_scatter):
             else:
                 axs[i][j].imshow(data[j][i].T, cmap='gray', origin='lower', aspect='equal')
             axs[i][j].contour(mask[j][i].T, levels=0, origin='lower', colors='blue', linewidths=0.5, aspect='equal')
+            axs[i][j].contour(np_mask.T, levels=0, origin='lower', colors='darkgreen', linewidths=0.5, aspect='equal')
             axs[i][j].axvline(12, linestyle='--', color='brown', linewidth=0.5)
             axs[i][j].axvline(8, linestyle='--', color='darkgreen', linewidth=0.5)
             for point, color in zip(points, colors_scatter):
@@ -1442,7 +1446,7 @@ def make_output_param_plots(points, colors_scatter):
 
     size = plt.rcParams['lines.markersize']
 
-    _, _, _, _, _, mask = get_fov_data()
+    _, _, _, _, _, mask, np_mask = get_fov_data()
 
     interesting_ltaus = [-4.5, -3, -1]
 
@@ -1569,6 +1573,7 @@ def make_output_param_plots(points, colors_scatter):
             if i == 2:
                 color = 'white'
             axs[i][j].contour(mask[0, 0].T, levels=0, colors=color, linewidths=0.5)
+            axs[i][j].contour(np_mask.T, levels=0, colors='darkgreen', linewidths=0.5)
             axs[i][j].set_yticks(np.array([0, 5, 10, 15, 20]) * 60 / 22.8)
             axs[i][j].set_xticks(np.array([0, 5]) * 17 / 6.46)
             axs[i][j].set_yticklabels([])
@@ -2250,7 +2255,7 @@ def plot_mag_field_compare_new(points, colors_scatter):
 
     ltau_indice = np.array(ltau_indice)
 
-    _, _, _, _, _, mask = get_fov_data()
+    _, _, _, _, _, mask, np_mask = get_fov_data()
 
     base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
 
@@ -2339,6 +2344,7 @@ def plot_mag_field_compare_new(points, colors_scatter):
         for j in range(6):
             color = 'black'
             axs[i][j].contour(X, Y, mask[0, 0].T, levels=0, colors=color, linewidths=0.5)
+            axs[i][j].contour(X, Y, np_mask.T, levels=0, colors='darkgreen', linewidths=0.5)
             axs[i][j].axvline(12 * 0.38, linestyle='--', color='brown', linewidth=0.5)
             axs[i][j].axvline(8 * 0.38, linestyle='--', color='darkgreen', linewidth=0.5)
             for point, color in zip(points, colors_scatter):
@@ -3870,25 +3876,25 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, new_points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # plot_profiles()
-    # points = [
-    #     (12, 49),
-    #     (12, 40),
-    #     (12, 34),
-    #     (12, 31),
-    #     (12, 18),
-    #     (8, 53),
-    #     (8, 50),
-    #     (8, 37),
-    #     (8, 31),
-    #     (8, 9),
-    # ]
-    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # new_points = list()
-    # for point in points:
-    #     new_points.append((point[0], 60 - point[1]))
+    points = [
+        (12, 49),
+        (12, 40),
+        (12, 34),
+        (12, 31),
+        (12, 18),
+        (8, 53),
+        (8, 50),
+        (8, 37),
+        (8, 31),
+        (8, 9),
+    ]
+    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    new_points = list()
+    for point in points:
+        new_points.append((point[0], 60 - point[1]))
     # make_output_param_plots(new_points, colors)
     # plot_mag_field_compare()
-    # plot_mag_field_compare_new(new_points, colors)
+    plot_mag_field_compare_new(new_points, colors)
     # make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
@@ -3927,40 +3933,40 @@ if __name__ == '__main__':
     #     make_forward_synthesis_plots(base_path / filename, points, colors, name)
     # infer_uncertainties()
 
-    pi = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
-
-    data_file = pi / 'aligned_Ca_Ha_stic_profiles.nc'
-
-    cs_files = [
-        pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_SiI_8536.h5',
-        pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_FeI_8538.h5',
-        pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_CaII_8542.h5'
-    ]
-
-    hs_file = pi / 'alignedspectra_scan2_map10_Ha.fits_stray_corrected.h5'
-
-    cut_indice = 14
-
-    points = [
-        51,
-        50,
-    ]
-    factor_ca_list = [
-        (-1, -1, -1),
-        (-1, -1, -1),
-    ]
-    factor_ha_list = [
-        (-10, -1),
-        (-10, -1),
-    ]
-    points_ha = [
-        50,
-        51
-    ]
-
-    colors_p = ['green', 'darkslateblue', 'purple', 'mediumvioletred']
-    colors = ["green", "blue", "white", "darkmagenta", "red"]
-    plot_stokes_parameters(cut_indice, [], [], colors=colors, data_file=data_file, vertical_cut=[30, 60], ca_v=[-0.003, 0.003], ha_v=[-0.002, 0.002])
+    # pi = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
+    #
+    # data_file = pi / 'aligned_Ca_Ha_stic_profiles.nc'
+    #
+    # cs_files = [
+    #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_SiI_8536.h5',
+    #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_FeI_8538.h5',
+    #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_CaII_8542.h5'
+    # ]
+    #
+    # hs_file = pi / 'alignedspectra_scan2_map10_Ha.fits_stray_corrected.h5'
+    #
+    # cut_indice = 14
+    #
+    # points = [
+    #     51,
+    #     50,
+    # ]
+    # factor_ca_list = [
+    #     (-1, -1, -1),
+    #     (-1, -1, -1),
+    # ]
+    # factor_ha_list = [
+    #     (-10, -1),
+    #     (-10, -1),
+    # ]
+    # points_ha = [
+    #     50,
+    #     51
+    # ]
+    #
+    # colors_p = ['green', 'darkslateblue', 'purple', 'mediumvioletred']
+    # colors = ["green", "blue", "white", "darkmagenta", "red"]
+    # plot_stokes_parameters(cut_indice, [], [], colors=colors, data_file=data_file, vertical_cut=[30, 60], ca_v=[-0.003, 0.003], ha_v=[-0.002, 0.002])
     # plot_spatial_variation_of_profiles(cut_indice, points, colors_p, factor_ca_list, factor_ha_list, data_file=data_file, cs_files=cs_files, hs_file=hs_file, mean_prof=True, points_ha=points_ha)
 
     # make_response_function_opp_polarity_plot()
