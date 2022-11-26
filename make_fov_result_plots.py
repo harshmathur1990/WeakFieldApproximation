@@ -219,7 +219,7 @@ def get_fov_data():
     fcaha.close()
 
     np_mask = np.zeros((17, 60), dtype=np.int64)
-    np_mask[np.where(data[2][1] < 0)] = 1
+    np_mask[np.where(data[2][1] < -50)] = 1
 
     return data[:, :, :, ::-1], aa, bb, cc, dd, mask[:, :, :, ::-1], np_mask[:, ::-1]
 
@@ -1233,42 +1233,52 @@ def plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_lis
         axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], norm_profile_ca[ind_ca_1], color=color, linewidth=linewidth, linestyle='-')
         axs1[1][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], norm_profile_ca[ind_ca_2], color=color, linewidth=linewidth, linestyle='-')
         axs1[1][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], norm_profile_ca[ind_ca_3], color=color, linewidth=linewidth, linestyle='-')
-        # gr1 = np.gradient(norm_stokes_I_ca[ind_ca_1], fcaha['wav'][ind[0:306]][ind_ca_1])
-        # gr2 = np.gradient(norm_stokes_I_ca[ind_ca_2], fcaha['wav'][ind[0:306]][ind_ca_2])
-        # gr3 = np.gradient(norm_stokes_I_ca[ind_ca_3], fcaha['wav'][ind[0:306]][ind_ca_3])
-        # gr1 /= np.abs(gr1).max()
-        # gr1 += center
-        # gr2 /= np.abs(gr2).max()
-        # gr2 += center
-        # gr3 /= np.abs(gr3).max()
-        # gr3 += center
-        # axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], gr1, color=color, linewidth=linewidth, linestyle='dotted')
-        # axs1[1][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], gr2, color=color, linewidth=linewidth, linestyle='dotted')
-        # axs1[1][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], gr3, color=color, linewidth=linewidth, linestyle='dotted')
+        gr1 = np.gradient(norm_stokes_I_ca[ind_ca_1], fcaha['wav'][ind[0:306]][ind_ca_1])
+        gr2 = np.gradient(norm_stokes_I_ca[ind_ca_2], fcaha['wav'][ind[0:306]][ind_ca_2])
+        gr3 = np.gradient(norm_stokes_I_ca[ind_ca_3], fcaha['wav'][ind[0:306]][ind_ca_3])
+        print(gr1.min(), gr1.max())
+        print(gr2.min(), gr2.max())
+        print(gr3.min(), gr3.max())
+        gr1 *= -1
+        gr2 *= -1
+        gr3 *= -1
+        gr1 /= np.abs(gr1).max()
+        gr1 += center
+        gr2 /= np.abs(gr2).max()
+        gr2 += center
+        gr3 /= np.abs(gr3).max()
+        gr3 += center
+        axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], gr1, color=color, linewidth=linewidth, linestyle='dotted')
+        axs1[1][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], gr2, color=color, linewidth=linewidth, linestyle='dotted')
+        axs1[1][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], gr3, color=color, linewidth=linewidth, linestyle='dotted')
     axs1[0][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], amedprofca[ind_ca_1], color='grey', linewidth=linewidth, linestyle='--')
     axs1[0][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], amedprofca[ind_ca_2], color='grey', linewidth=linewidth, linestyle='--')
     axs1[0][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], amedprofca[ind_ca_3], color='grey', linewidth=linewidth, linestyle='--')
-    # axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], np.ones_like(ind_ca_1) * center, color='grey', linewidth=linewidth, linestyle='--')
-    # axs1[1][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], np.ones_like(ind_ca_2) * center, color='grey', linewidth=linewidth, linestyle='--')
-    # axs1[1][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], np.ones_like(ind_ca_3) * center, color='grey', linewidth=linewidth, linestyle='--')
+    axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], np.ones_like(ind_ca_1) * center, color='grey', linewidth=linewidth, linestyle='--')
+    axs1[1][1].plot(fcaha['wav'][ind[0:306]][ind_ca_2], np.ones_like(ind_ca_2) * center, color='grey', linewidth=linewidth, linestyle='--')
+    axs1[1][2].plot(fcaha['wav'][ind[0:306]][ind_ca_3], np.ones_like(ind_ca_3) * center, color='grey', linewidth=linewidth, linestyle='--')
 
     for point, color, norm_profile_ha, norm_stokes_I_ha, amedprofha in zip(iter_points, colors, norm_profiles_ha, norm_stokes_I_ha_list, medprofha_list):
         axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], norm_stokes_I_ha[ind_ha_1], color=color, linewidth=linewidth, linestyle='-')
         axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], norm_stokes_I_ha[ind_ha_2], color=color, linewidth=linewidth, linestyle='-')
         axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], norm_profile_ha[ind_ha_1], color=color, linewidth=linewidth, linestyle='-')
         axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], norm_profile_ha[ind_ha_2], color=color, linewidth=linewidth, linestyle='-')
-        # gr1 = np.gradient(norm_stokes_I_ha[ind_ha_1], fcaha['wav'][ind[306:]][ind_ha_1])
-        # gr2 = np.gradient(norm_stokes_I_ha[ind_ha_2], fcaha['wav'][ind[306:]][ind_ha_2])
-        # gr1 /= np.abs(gr1).max()
-        # gr1 += center
-        # gr2 /= np.abs(gr2).max()
-        # gr2 += center
-        # axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], gr1, color=color, linewidth=linewidth, linestyle='dotted')
-        # axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], gr2, color=color, linewidth=linewidth, linestyle='dotted')
+        gr1 = np.gradient(norm_stokes_I_ha[ind_ha_1], fcaha['wav'][ind[306:]][ind_ha_1])
+        gr2 = np.gradient(norm_stokes_I_ha[ind_ha_2], fcaha['wav'][ind[306:]][ind_ha_2])
+        print(gr1.min(), gr1.max())
+        print(gr2.min(), gr2.max())
+        gr1 *= -1
+        gr2 *= -1
+        gr1 /= np.abs(gr1).max()
+        gr1 += center
+        gr2 /= np.abs(gr2).max()
+        gr2 += center
+        axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], gr1, color=color, linewidth=linewidth, linestyle='dotted')
+        axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], gr2, color=color, linewidth=linewidth, linestyle='dotted')
     axs2[0][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], amedprofha[ind_ha_1], color='grey', linewidth=linewidth, linestyle='--')
     axs2[0][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], amedprofha[ind_ha_2], color='grey', linewidth=linewidth, linestyle='--')
-    # axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], np.ones_like(ind_ha_1) * center, color='grey', linewidth=linewidth, linestyle='--')
-    # axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], np.ones_like(ind_ha_2) * center, color='grey', linewidth=linewidth, linestyle='--')
+    axs2[1][0].plot(fcaha['wav'][ind[306:]][ind_ha_1], np.ones_like(ind_ha_1) * center, color='grey', linewidth=linewidth, linestyle='--')
+    axs2[1][1].plot(fcaha['wav'][ind[306:]][ind_ha_2], np.ones_like(ind_ha_2) * center, color='grey', linewidth=linewidth, linestyle='--')
 
     for center in center_list:
         axs1[1][0].plot(fcaha['wav'][ind[0:306]][ind_ca_1], np.ones_like(ind_ca_1) * (center - 1), linewidth=0.5, linestyle='--', color='gray')
@@ -1573,15 +1583,15 @@ def make_output_param_plots(points, colors_scatter):
             if i == 2:
                 color = 'white'
             axs[i][j].contour(mask[0, 0].T, levels=0, colors=color, linewidths=0.5)
-            axs[i][j].contour(np_mask.T, levels=0, colors='darkgreen', linewidths=0.5)
+            axs[i][j].contour(np_mask.T, levels=0, colors='lightsteelblue', linewidths=0.5)
             axs[i][j].set_yticks(np.array([0, 5, 10, 15, 20]) * 60 / 22.8)
             axs[i][j].set_xticks(np.array([0, 5]) * 17 / 6.46)
             axs[i][j].set_yticklabels([])
             axs[i][j].set_xticklabels([])
-            # axs[i][j].axvline(12 * 0.38, linestyle='--', color='brown', linewidth=0.5)
-            # axs[i][j].axvline(8 * 0.38, linestyle='--', color='darkgreen', linewidth=0.5)
-            # for point, color in zip(points, colors_scatter):
-            #     axs[i][j].scatter(point[0] * 0.38, point[1] * 0.38, color=color, marker='x', s=size**2, linewidths=1)
+            axs[i][j].axvline(12, linestyle='--', color='brown', linewidth=0.5)
+            axs[i][j].axvline(8, linestyle='--', color='darkgreen', linewidth=0.5)
+            for point, color in zip(points, colors_scatter):
+                axs[i][j].scatter(point[0], point[1], color=color, marker='x')
 
     for i in range(3):
         axs[2][i].set_xticklabels([0, 5], fontsize=fontsize)
@@ -2297,8 +2307,14 @@ def plot_mag_field_compare_new(points, colors_scatter):
         for jj in range(6):
             maxval = np.abs(temp[k]).max()
             limval = (maxval // 100) * 100 + 100
-            vlim[ii][jj][0] = -limval
-            vlim[ii][jj][1] = limval
+            # vlim[ii][jj][0] = -limval
+            # vlim[ii][jj][1] = limval
+            if ii == 0:
+                vlim[ii][jj][0] = -800
+                vlim[ii][jj][1] = 800
+            else:
+                vlim[ii][jj][0] = -400
+                vlim[ii][jj][1] = 400
             print(vlim[ii][jj])
             k += 1
     
@@ -3817,7 +3833,7 @@ if __name__ == '__main__':
     # new_points = list()
     # for point in points:
     #     new_points.append((point[0], 60 - point[1]))
-    #
+
     # make_fov_plots(new_points, colors)
     # points = [
     #     49,
@@ -3892,9 +3908,9 @@ if __name__ == '__main__':
     new_points = list()
     for point in points:
         new_points.append((point[0], 60 - point[1]))
-    # make_output_param_plots(new_points, colors)
+    make_output_param_plots(new_points, colors)
     # plot_mag_field_compare()
-    plot_mag_field_compare_new(new_points, colors)
+    # plot_mag_field_compare_new(new_points, colors)
     # make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),

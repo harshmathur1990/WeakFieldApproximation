@@ -10,7 +10,7 @@ from lightweaver.utils import vac_to_air
 from scipy.interpolate import CubicSpline
 
 
-base_path = Path('/home/harsh/BifrostRun')
+base_path = Path('/home/harsh/BifrostRun_fast_Access')
 
 suppl_output_file_3000 = base_path / 'BIFROST_en024048_hion_snap_385_0_504_0_504_-500000.0_3000000.0_supplementary_outputs.nc'
 
@@ -35,42 +35,42 @@ def prepare_get_value_at_ltau(fs, fa, var_name, ltau):
 
 
 
-def get_blong_at_ltau():
+def get_var_at_ltau(var_name='B_z'):
 
     grid = np.arange(-16, 2, 0.1)
 
-    fs = h5py.File(suppl_output_file_3000, 'r')
+    fs = h5py.File(suppl_output_file_full, 'r')
 
     keys = list(fs.keys())
 
     fs.close()
 
-    if 'b_z_ltau_strata' not in keys:
+    if '{}_ltau_strata'.format(var_name) not in keys:
 
-        fa = h5py.File(atmos_file_3000, 'r')
+        fa = h5py.File(atmos_file_full, 'r')
 
-        fs = h5py.File(suppl_output_file_3000, 'r')
+        fs = h5py.File(suppl_output_file_full, 'r')
 
-        b_z_ltau_strata = np.zeros((1, 504, 504, grid.size), dtype=np.float64)
+        var_ltau_strata = np.zeros((1, 504, 504, grid.size), dtype=np.float64)
 
         t = tqdm(total=grid.size)
 
         for index, grid_val in enumerate(grid):
-            get_val_at_ltau = prepare_get_value_at_ltau(fs, fa, 'B_z', grid_val)
+            get_val_at_ltau = prepare_get_value_at_ltau(fs, fa, var_name, grid_val)
 
             vec_get_val_at_ltau = np.vectorize(get_val_at_ltau)
 
-            blong = np.fromfunction(vec_get_val_at_ltau, shape=(504, 504))
+            val = np.fromfunction(vec_get_val_at_ltau, shape=(504, 504))
 
-            b_z_ltau_strata[0, :, :, index] = blong
+            var_ltau_strata[0, :, :, index] = val
 
             t.update(1)
 
         fs.close()
 
-        fs = h5py.File(suppl_output_file_3000, 'r+')
+        fs = h5py.File(suppl_output_file_full, 'r+')
 
-        fs['b_z_ltau_strata'] = b_z_ltau_strata
+        fs['{}_ltau_strata'.format(var_name)] = var_ltau_strata
 
         fs.close()
 
@@ -78,13 +78,13 @@ def get_blong_at_ltau():
 
     else:
 
-        fs = h5py.File(suppl_output_file_3000, 'r')
+        fs = h5py.File(suppl_output_file_full, 'r')
 
-        b_z_ltau_strata = fs['b_z_ltau_strata'][()]
+        var_ltau_strata = fs['{}_ltau_strata'.format(var_name)][()]
 
         fs.close()
 
-    return b_z_ltau_strata
+    return var_ltau_strata
 
 
 def prepare_rotate_blong(blong):
@@ -384,6 +384,6 @@ def reinterpolate_multi_3d_supplimentary_outputs():
 
 
 if __name__ == '__main__':
-    # get_blong_at_ltau()
+    get_var_at_ltau('z')
     # compare_porta_1d_with_multi3d()
-    reinterpolate_multi_3d_supplimentary_outputs()
+    # reinterpolate_multi_3d_supplimentary_outputs()
