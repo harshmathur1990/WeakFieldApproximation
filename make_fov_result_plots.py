@@ -1818,6 +1818,21 @@ def get_wfanew_alternate():
 
     magha = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
 
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list,
+        errors=True
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_err = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
     wave_range = 1.5 / 10
 
     transition_skip_list = np.array(
@@ -1846,6 +1861,21 @@ def get_wfanew_alternate():
 
     magha_p = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
 
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list,
+        errors=True
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_p_err = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
     transition_skip_list = np.array(
         [
             [6560.57, 0.25],
@@ -1870,13 +1900,28 @@ def get_wfanew_alternate():
 
     magha_full_line = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
 
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list,
+        errors=True
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_full_line_err = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
     fcaha.close()
 
     # print (magha.min(), magha.max())
     # print (magha_p.min(), magha_p.max())
     # print (magha_full_line.min(), magha_full_line.max())
 
-    return -magha[:, ::-1], -magha_p[:, ::-1], -magha_full_line[:, ::-1]
+    return -magha[:, ::-1], -magha_p[:, ::-1], -magha_full_line[:, ::-1], np.abs(magha_err[:, ::-1]), np.abs(magha_p_err[:, ::-1]), np.abs(magha_full_line_err[:, ::-1])
 
 
 def get_wfa_rh15d():
@@ -3446,9 +3491,11 @@ def make_legend(fontsize=6):
 
 def make_mag_field_scatter_plots():
 
-    a, b, c = get_wfanew_alternate()
+    a, b, c, e1, e2, e3 = get_wfanew_alternate()
 
     magha, magha_p, magha_full_line = a.T, b.T, c.T
+
+    magha_err, magha_p_err, magha_full_line_err = e1.T, e2.T, e3.T
 
     interesting_ltaus = [-2, -4.5]
 
@@ -3459,7 +3506,7 @@ def make_mag_field_scatter_plots():
 
     ltau_indice = np.array(ltau_indice)
 
-    _, _, _, _, _, mask = get_fov_data()
+    _, _, _, _, _, mask, np_mask = get_fov_data()
 
     base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
 
@@ -3468,6 +3515,8 @@ def make_mag_field_scatter_plots():
     fwfa = h5py.File(wfa_8542_data_file, 'r')
 
     wfa_8542 = fwfa['blos_gauss'][()].T * -1
+
+    wfa_8542_err = np.abs(fwfa['blos_err_gauss'][()].T)
 
     fwfa.close()
 
@@ -3483,8 +3532,8 @@ def make_mag_field_scatter_plots():
     a, b = np.where(a0 <= 0)
     c, d = np.where(a0 > 0)
 
-    axs[0][0].scatter(np.abs(wfa_8542[c, d]), np.abs(magha[c, d]), s=1, color='royalblue')
-    axs[0][0].scatter(np.abs(wfa_8542[a, b]), np.abs(magha[a, b]), s=1, color='red')
+    axs[0][0].errorbar(np.abs(wfa_8542[c, d]), np.abs(magha[c, d]), xerr=wfa_8542_err[c, d], yerr=magha_err[c, d], fmt='o', elinewidth=0.5, markersize=1, color='royalblue')
+    axs[0][0].errorbar(np.abs(wfa_8542[a, b]), np.abs(magha[a, b]), xerr=wfa_8542_err[a, b], yerr=magha_err[a, b], fmt='o', elinewidth=0.5, markersize=1, color='red')
 
     maxval = np.abs(wfa_8542).max().astype(np.int64) + 1
     axs[0][0].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
@@ -3817,24 +3866,24 @@ def make_response_function_opp_polarity_plot():
 
 
 if __name__ == '__main__':
-    points = [
-        (12, 49),
-        (12, 40),
-        (12, 34),
-        (12, 31),
-        (12, 18),
-        (8, 53),
-        (8, 50),
-        (8, 37),
-        (8, 31),
-        (8, 9),
-    ]
-    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    new_points = list()
-    for point in points:
-        new_points.append((point[0], 60 - point[1]))
-
-    make_fov_plots(new_points, colors)
+    # points = [
+    #     (12, 49),
+    #     (12, 40),
+    #     (12, 34),
+    #     (12, 31),
+    #     (12, 18),
+    #     (8, 53),
+    #     (8, 50),
+    #     (8, 37),
+    #     (8, 31),
+    #     (8, 9),
+    # ]
+    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    # new_points = list()
+    # for point in points:
+    #     new_points.append((point[0], 60 - point[1]))
+    #
+    # make_fov_plots(new_points, colors)
     # points = [
     #     49,
     #     40,
@@ -3911,7 +3960,7 @@ if __name__ == '__main__':
     # make_output_param_plots(new_points, colors)
     # plot_mag_field_compare()
     # plot_mag_field_compare_new(new_points, colors)
-    # make_mag_field_scatter_plots()
+    make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),
