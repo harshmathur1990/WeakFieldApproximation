@@ -14,6 +14,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from weak_field_approx import prepare_calculate_blos, prepare_calculate_blos_rh15d
 from prepare_data import *
 from lightweaver.utils import vac_to_air
+from scipy import stats as st
 
 
 processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
@@ -3509,7 +3510,7 @@ def make_mag_field_scatter_plots():
     _, _, _, _, _, mask, np_mask = get_fov_data()
 
     base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
-
+    
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
     fwfa = h5py.File(wfa_8542_data_file, 'r')
@@ -3542,8 +3543,8 @@ def make_mag_field_scatter_plots():
     maxval = np.abs(wfa_8542).max().astype(np.int64) + 1
     axs[0][0].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
 
-    axs[0][1].scatter(np.abs(a1[c, d]), np.abs(magha[c, d]), s=1, color='royalblue')
-    axs[0][1].scatter(np.abs(a1[a, b]), np.abs(magha[a, b]), s=1, color='red')
+    axs[0][1].errorbar(np.abs(a1[c, d]), np.abs(magha[c, d]), yerr=magha_err[c, d], fmt='o', elinewidth=0.5, markersize=1, color='royalblue')
+    axs[0][1].errorbar(np.abs(a1[a, b]), np.abs(magha[a, b]), yerr=magha_err[a, b], fmt='o', elinewidth=0.5, markersize=1, color='red')
     maxval = np.abs(a1).max().astype(np.int64) + 1
     axs[0][1].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
 
