@@ -384,6 +384,6 @@ def reinterpolate_multi_3d_supplimentary_outputs():
 
 
 if __name__ == '__main__':
-    get_var_at_ltau('z')
-    # compare_porta_1d_with_multi3d()
+    # get_var_at_ltau('temperature')
+    compare_porta_1d_with_multi3d()
     # reinterpolate_multi_3d_supplimentary_outputs()
