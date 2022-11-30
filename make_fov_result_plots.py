@@ -2297,7 +2297,7 @@ def plot_mag_field_compare_new(points, colors_scatter):
 
     fontsize = 8
 
-    a, b, c = get_wfanew_alternate()
+    a, b, c, e1, b1, c1 = get_wfanew_alternate()
 
     magha, magha_p, magha_full_line = a.T, b.T, c.T
 
@@ -3518,10 +3518,14 @@ def make_mag_field_scatter_plots():
 
     wfa_8542_err = np.abs(fwfa['blos_err_gauss'][()].T)
 
+    wfa_8542 = wfa_8542[::-1]
+
+    wfa_8542_err = wfa_8542_err[::-1]
+
     fwfa.close()
 
-    a0 = -f['blong'][0, 0:17, :, ltau_indice[0]].T
-    a1 = -f['blong'][0, 0:17, :, ltau_indice[1]].T
+    a0 = -f['blong'][0, 0:17, :, ltau_indice[0]][:, ::-1].T
+    a1 = -f['blong'][0, 0:17, :, ltau_indice[1]][:, ::-1].T
 
     f.close()
 
