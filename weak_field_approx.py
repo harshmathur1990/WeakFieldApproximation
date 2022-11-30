@@ -9,7 +9,8 @@ def calculate_b_los(
     lambda_range_min,
     lambda_range_max,
     g_eff,
-    transition_skip_list=None
+    transition_skip_list=None,
+    errors=False
 ):
     '''
     stokes_I: Array of Intensties
@@ -57,7 +58,19 @@ def calculate_b_los(
 
     denominator = np.sum(np.square(derivative))
 
-    return -numerator / (constant * denominator)
+    if not errors:
+
+        blos = -numerator / (constant * denominator)
+
+        return blos
+    else:
+        stokes_V_err = np.ones_like(stokes_V_cropped) * stokes_V_cropped.std()
+
+        numerator2 = np.sum(derivative * stokes_V_err)\
+
+        blos_err = -numerator2 / (constant * denominator)
+
+        return blos_err
 
 
 def prepare_calculate_blos(
@@ -67,7 +80,8 @@ def prepare_calculate_blos(
     lambda_range_min,
     lambda_range_max,
     g_eff,
-    transition_skip_list=None
+    transition_skip_list=None,
+    errors=False
 ):
     def actual_calculate_blos(i, j):
         i = int(i)
@@ -81,7 +95,8 @@ def prepare_calculate_blos(
             lambda_range_min,
             lambda_range_max,
             g_eff,
-            transition_skip_list=transition_skip_list
+            transition_skip_list=transition_skip_list,
+            errors=errors
         )
     return actual_calculate_blos
 

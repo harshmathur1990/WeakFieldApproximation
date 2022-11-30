@@ -1,10 +1,10 @@
 import sys
-sys.path.insert(1, '/home/harsh/CourseworkRepo/pyMilne')
-sys.path.insert(1, '/home/harsh/CourseworkRepo/pyMilne/example_CRISP')
+# sys.path.insert(1, '/home/harsh/CourseworkRepo/pyMilne')
+# sys.path.insert(1, '/home/harsh/CourseworkRepo/pyMilne/example_CRISP')
 import numpy as np
 import matplotlib.pyplot as plt
-import MilneEddington as ME
-import imtools as im
+# import MilneEddington as ME
+# import imtools as im
 import time
 from pathlib import Path
 import h5py
@@ -120,8 +120,8 @@ def do_me_inversion():
 
 
 def do_wfa():
-    # processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
-    processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
+    processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
+    # processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
 
     profile_file = processed_inputs / 'aligned_Ca_Ha_stic_profiles.nc'
     center_wave = 8542.09
@@ -143,6 +143,20 @@ def do_wfa():
 
     blos = np.fromfunction(vec_actual_calculate_blos, shape=(f['profiles'].shape[1], f['profiles'].shape[2]))
 
+    actual_calculate_blos = prepare_calculate_blos(
+        f['profiles'][:, :, :, ind, :],
+        f['wav'][ind] / 10,
+        center_wave / 10,
+        (center_wave - del_lambda) / 10,
+        (center_wave + del_lambda) / 10,
+        1.1,
+        errors=True
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    blos_err = np.fromfunction(vec_actual_calculate_blos, shape=(f['profiles'].shape[1], f['profiles'].shape[2]))
+
     f.close()
     # plt.imshow(blos, cmap='gray', origin='lower')
     #
@@ -155,9 +169,10 @@ def do_wfa():
     f['geff'] = 1.1
     f['center_wave_nm'] = center_wave / 10
     f['blos_gauss'] = blos
+    f['blos_err_gauss'] = blos_err
     f.close()
 
 
 if __name__ == "__main__":
-    do_me_inversion()
+    # do_me_inversion()
     do_wfa()
