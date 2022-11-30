@@ -3414,7 +3414,7 @@ def mean_profile_inversion_plots():
 
 def make_legend(fontsize=6):
     color = ['black', 'darkblue', 'mediumvioletred', 'gray']
-    label_list = ['pore', 'surge flow', 'opposite polarity', 'median profile']
+    label_list = ['pore', 'surge flow', 'opposite polarity', 'quiet-Sun profile']
 
     handles = [Patch(color=c, label=l) for l, c in zip(label_list, color)]
     plt.close('all')
@@ -3817,24 +3817,24 @@ def make_response_function_opp_polarity_plot():
 
 
 if __name__ == '__main__':
-    # points = [
-    #     (12, 49),
-    #     (12, 40),
-    #     (12, 34),
-    #     (12, 31),
-    #     (12, 18),
-    #     (8, 53),
-    #     (8, 50),
-    #     (8, 37),
-    #     (8, 31),
-    #     (8, 9),
-    # ]
-    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # new_points = list()
-    # for point in points:
-    #     new_points.append((point[0], 60 - point[1]))
+    points = [
+        (12, 49),
+        (12, 40),
+        (12, 34),
+        (12, 31),
+        (12, 18),
+        (8, 53),
+        (8, 50),
+        (8, 37),
+        (8, 31),
+        (8, 9),
+    ]
+    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    new_points = list()
+    for point in points:
+        new_points.append((point[0], 60 - point[1]))
 
-    # make_fov_plots(new_points, colors)
+    make_fov_plots(new_points, colors)
     # points = [
     #     49,
     #     40,
@@ -3892,23 +3892,23 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, new_points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # plot_profiles()
-    points = [
-        (12, 49),
-        (12, 40),
-        (12, 34),
-        (12, 31),
-        (12, 18),
-        (8, 53),
-        (8, 50),
-        (8, 37),
-        (8, 31),
-        (8, 9),
-    ]
-    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    new_points = list()
-    for point in points:
-        new_points.append((point[0], 60 - point[1]))
-    make_output_param_plots(new_points, colors)
+    # points = [
+    #     (12, 49),
+    #     (12, 40),
+    #     (12, 34),
+    #     (12, 31),
+    #     (12, 18),
+    #     (8, 53),
+    #     (8, 50),
+    #     (8, 37),
+    #     (8, 31),
+    #     (8, 9),
+    # ]
+    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    # new_points = list()
+    # for point in points:
+    #     new_points.append((point[0], 60 - point[1]))
+    # make_output_param_plots(new_points, colors)
     # plot_mag_field_compare()
     # plot_mag_field_compare_new(new_points, colors)
     # make_mag_field_scatter_plots()
