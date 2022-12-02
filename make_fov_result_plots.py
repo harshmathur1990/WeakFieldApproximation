@@ -14,6 +14,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from weak_field_approx import prepare_calculate_blos, prepare_calculate_blos_rh15d
 from prepare_data import *
 from lightweaver.utils import vac_to_air
+from scipy import stats as st
 
 
 processed_inputs = Path('/home/harsh/SpinorNagaraju/maps_1/stic/processed_inputs/')
@@ -1818,6 +1819,21 @@ def get_wfanew_alternate():
 
     magha = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
 
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list,
+        errors=True
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_err = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
     wave_range = 1.5 / 10
 
     transition_skip_list = np.array(
@@ -1846,6 +1862,21 @@ def get_wfanew_alternate():
 
     magha_p = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
 
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list,
+        errors=True
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_p_err = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
     transition_skip_list = np.array(
         [
             [6560.57, 0.25],
@@ -1870,13 +1901,28 @@ def get_wfanew_alternate():
 
     magha_full_line = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
 
+    actual_calculate_blos = prepare_calculate_blos(
+        fcaha['profiles'][:, :, :, ind[306:]],
+        fcaha['wav'][ind[306:]] / 10,
+        ha_center_wave,
+        ha_center_wave - wave_range,
+        ha_center_wave + wave_range,
+        1.048,
+        transition_skip_list=transition_skip_list,
+        errors=True
+    )
+
+    vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
+
+    magha_full_line_err = np.fromfunction(vec_actual_calculate_blos, shape=(17, 60))
+
     fcaha.close()
 
     # print (magha.min(), magha.max())
     # print (magha_p.min(), magha_p.max())
     # print (magha_full_line.min(), magha_full_line.max())
 
-    return -magha[:, ::-1], -magha_p[:, ::-1], -magha_full_line[:, ::-1]
+    return -magha[:, ::-1], -magha_p[:, ::-1], -magha_full_line[:, ::-1], np.abs(magha_err[:, ::-1]), np.abs(magha_p_err[:, ::-1]), np.abs(magha_full_line_err[:, ::-1])
 
 
 def get_wfa_rh15d():
@@ -2252,7 +2298,7 @@ def plot_mag_field_compare_new(points, colors_scatter):
 
     fontsize = 8
 
-    a, b, c = get_wfanew_alternate()
+    a, b, c, e1, b1, c1 = get_wfanew_alternate()
 
     magha, magha_p, magha_full_line = a.T, b.T, c.T
 
@@ -3446,9 +3492,11 @@ def make_legend(fontsize=6):
 
 def make_mag_field_scatter_plots():
 
-    a, b, c = get_wfanew_alternate()
+    a, b, c, e1, e2, e3 = get_wfanew_alternate()
 
     magha, magha_p, magha_full_line = a.T, b.T, c.T
+
+    magha_err, magha_p_err, magha_full_line_err = e1.T, e2.T, e3.T
 
     interesting_ltaus = [-2, -4.5]
 
@@ -3462,17 +3510,23 @@ def make_mag_field_scatter_plots():
     _, _, _, _, _, mask, np_mask = get_fov_data()
 
     base_path = Path('/home/harsh/SpinorNagaraju/maps_1/stic/pca_kmeans_fulldata_inversions/')
-
+    
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
     fwfa = h5py.File(wfa_8542_data_file, 'r')
 
     wfa_8542 = fwfa['blos_gauss'][()].T * -1
 
+    wfa_8542_err = np.abs(fwfa['blos_err_gauss'][()].T)
+
+    wfa_8542 = wfa_8542[::-1]
+
+    wfa_8542_err = wfa_8542_err[::-1]
+
     fwfa.close()
 
-    a0 = -f['blong'][0, 0:17, :, ltau_indice[0]].T
-    a1 = -f['blong'][0, 0:17, :, ltau_indice[1]].T
+    a0 = -f['blong'][0, 0:17, :, ltau_indice[0]][:, ::-1].T
+    a1 = -f['blong'][0, 0:17, :, ltau_indice[1]][:, ::-1].T
 
     f.close()
 
@@ -3483,14 +3537,14 @@ def make_mag_field_scatter_plots():
     a, b = np.where(a0 <= 0)
     c, d = np.where(a0 > 0)
 
-    axs[0][0].scatter(np.abs(wfa_8542[c, d]), np.abs(magha[c, d]), s=1, color='royalblue')
-    axs[0][0].scatter(np.abs(wfa_8542[a, b]), np.abs(magha[a, b]), s=1, color='red')
+    axs[0][0].errorbar(np.abs(wfa_8542[c, d]), np.abs(magha[c, d]), xerr=wfa_8542_err[c, d], yerr=magha_err[c, d], fmt='o', elinewidth=0.5, markersize=1, color='royalblue')
+    axs[0][0].errorbar(np.abs(wfa_8542[a, b]), np.abs(magha[a, b]), xerr=wfa_8542_err[a, b], yerr=magha_err[a, b], fmt='o', elinewidth=0.5, markersize=1, color='red')
 
     maxval = np.abs(wfa_8542).max().astype(np.int64) + 1
     axs[0][0].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
 
-    axs[0][1].scatter(np.abs(a1[c, d]), np.abs(magha[c, d]), s=1, color='royalblue')
-    axs[0][1].scatter(np.abs(a1[a, b]), np.abs(magha[a, b]), s=1, color='red')
+    axs[0][1].errorbar(np.abs(a1[c, d]), np.abs(magha[c, d]), yerr=magha_err[c, d], fmt='o', elinewidth=0.5, markersize=1, color='royalblue')
+    axs[0][1].errorbar(np.abs(a1[a, b]), np.abs(magha[a, b]), yerr=magha_err[a, b], fmt='o', elinewidth=0.5, markersize=1, color='red')
     maxval = np.abs(a1).max().astype(np.int64) + 1
     axs[0][1].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
 
