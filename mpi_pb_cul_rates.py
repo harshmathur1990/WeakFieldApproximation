@@ -11,15 +11,22 @@ from tqdm import tqdm
 import tables as tb
 
 
-atmos_file = Path(
-    '/home/harsh/BifrostRun_fast_Access/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc'
-)
+# atmos_file = Path(
+#     '/home/harsh/BifrostRun_fast_Access/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc'
+# )
 
-ltau_out_file = Path(
-    '/home/harsh/BifrostRun_fast_Access/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_pb_rates.nc'
-)
+atmos_file = Path('/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc')
 
-stop_file = Path('/home/harsh/CourseworkRepo/WFAComparison/stop')
+
+# ltau_out_file = Path(
+#     '/home/harsh/BifrostRun_fast_Access/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_pb_rates.nc'
+# )
+
+ltau_out_file = Path('/data/harsh/merge_bifrost_output/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_pb_rates.nc')
+
+# stop_file = Path('/home/harsh/CourseworkRepo/WFAComparison/stop')
+
+stop_file = Path('/data/harsh/merge_bifrost_output/stop')
 
 def generate_radiative_transitions():
     transitions = [3, 0, 1, 0, 5, 1, 5, 3, 7, 0, 4, 0, 7, 2, 4, 2, 6, 1, 8, 3, 6, 3]
@@ -225,10 +232,8 @@ if __name__ == '__main__':
             jobstatus = status_dict['status']
             item, xx, yy, zz, cularr = status_dict['item']
             fo = tb.open_file(ltau_out_file, mode='r+')
-            print(fo.root.Cul_pb_rates.shape)
-            print(cularr.shape)
-            import ipdb;ipdb.set_trace()
-            fo.root.Cul_pb_rates[xx][:, yy][:, :, zz] = cularr
+            for indd, (xxx, yyy, zzz) in enumerate(zip(xx, yy, zz)):
+                fo.root.Cul_pb_rates[xxx, yyy, zzz] = cularr[indd]
             t.update(xx.shape[0])
             fo.close()
             running_queue.discard(item)
