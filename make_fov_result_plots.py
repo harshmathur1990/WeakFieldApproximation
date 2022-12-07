@@ -242,8 +242,8 @@ def make_fov_plots(points, colors_scatter):
             if j == 2:
                 maxval = np.abs(data[j][i]).max()
                 limval = (maxval // 100) * 100 + 100
-                vmin = -limval
-                vmax = limval
+                vmin = -800  #-limval
+                vmax = 800  #limval
 
                 print(limval)
 
@@ -351,7 +351,7 @@ def make_fov_plots(points, colors_scatter):
     cbar = fig.colorbar(
         im02,
         cax=cbaxes,
-        ticks=[-500, 0, 500],
+        ticks=[-700, 0, 700],
         orientation='horizontal'
     )
 
@@ -3498,7 +3498,7 @@ def make_mag_field_scatter_plots():
 
     magha_err, magha_p_err, magha_full_line_err = e1.T, e2.T, e3.T
 
-    interesting_ltaus = [-2, -4.5]
+    interesting_ltaus = [-3.5, -4.5]
 
     ltau_indice = list()
 
@@ -3537,26 +3537,43 @@ def make_mag_field_scatter_plots():
     a, b = np.where(a0 <= 0)
     c, d = np.where(a0 > 0)
 
-    axs[0][0].errorbar(np.abs(wfa_8542[c, d]), np.abs(magha[c, d]), xerr=wfa_8542_err[c, d], yerr=magha_err[c, d], fmt='o', elinewidth=0.5, markersize=1, color='royalblue')
-    axs[0][0].errorbar(np.abs(wfa_8542[a, b]), np.abs(magha[a, b]), xerr=wfa_8542_err[a, b], yerr=magha_err[a, b], fmt='o', elinewidth=0.5, markersize=1, color='red')
+    slope_a = np.polyfit(np.abs(wfa_8542[c, d]), np.abs(magha[c, d]), 1)
+    slope_b = np.polyfit(np.abs(a1[c, d]), np.abs(magha[c, d]), 1)
+    slope_c = np.polyfit(np.abs(a0[c, d]), np.abs(magha_p[c, d]), 1)
+    slope_d = np.polyfit(np.abs(a0[c, d]), np.abs(magha_full_line[c, d]), 1)
+    slope = np.polyfit(np.abs(wfa_8542[c, d]), np.abs(a1[c, d]), 1)
+
+    # axs[0][0].errorbar(np.abs(wfa_8542[c, d]), np.abs(magha[c, d]), xerr=wfa_8542_err[c, d], yerr=magha_err[c, d], fmt='o', elinewidth=0.5, markersize=1, color='royalblue')
+    # axs[0][0].errorbar(np.abs(wfa_8542[a, b]), np.abs(magha[a, b]), xerr=wfa_8542_err[a, b], yerr=magha_err[a, b], fmt='o', elinewidth=0.5, markersize=1, color='red')
+
+    axs[0][0].scatter(np.abs(wfa_8542[c, d]), np.abs(magha[c, d]), s=1, color='royalblue')
+    axs[0][0].scatter(np.abs(wfa_8542[a, b]), np.abs(magha[a, b]), s=1, color='red')
 
     maxval = np.abs(wfa_8542).max().astype(np.int64) + 1
     axs[0][0].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
+    axs[0][0].plot(range(maxval), slope_a[0] * range(maxval) + slope_a[1], color='black', linestyle='--')
 
-    axs[0][1].errorbar(np.abs(a1[c, d]), np.abs(magha[c, d]), yerr=magha_err[c, d], fmt='o', elinewidth=0.5, markersize=1, color='royalblue')
-    axs[0][1].errorbar(np.abs(a1[a, b]), np.abs(magha[a, b]), yerr=magha_err[a, b], fmt='o', elinewidth=0.5, markersize=1, color='red')
+    # axs[0][1].errorbar(np.abs(a1[c, d]), np.abs(magha[c, d]), yerr=magha_err[c, d], fmt='o', elinewidth=0.5, markersize=1, color='royalblue')
+    # axs[0][1].errorbar(np.abs(a1[a, b]), np.abs(magha[a, b]), yerr=magha_err[a, b], fmt='o', elinewidth=0.5, markersize=1, color='red')
+
+    axs[0][1].scatter(np.abs(a1[c, d]), np.abs(magha[c, d]), s=1, color='royalblue')
+    axs[0][1].scatter(np.abs(a1[a, b]), np.abs(magha[a, b]), s=1, color='red')
+
     maxval = np.abs(a1).max().astype(np.int64) + 1
     axs[0][1].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
+    axs[0][1].plot(range(maxval), slope_b[0] * range(maxval) + slope_b[1], color='black', linestyle='--')
 
     axs[1][0].scatter(np.abs(a0[c, d]), np.abs(magha_p[c, d]), s=1, color='royalblue')
     axs[1][0].scatter(np.abs(a0[a, b]), np.abs(magha_p[a, b]), s=1, color='red')
     maxval = np.abs(a0).max().astype(np.int64) + 1
     axs[1][0].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
+    axs[1][0].plot(range(maxval), slope_c[0] * range(maxval) + slope_c[1], color='black', linestyle='--')
 
     axs[1][1].scatter(np.abs(a0[c, d]), np.abs(magha_full_line[c, d]), s=1, color='royalblue')
     axs[1][1].scatter(np.abs(a0[a, b]), np.abs(magha_full_line[a, b]), s=1, color='red')
     maxval = np.abs(a0).max().astype(np.int64) + 1
     axs[1][1].plot(range(maxval), range(maxval), color='darkorange', linestyle='--')
+    axs[1][1].plot(range(maxval), slope_d[0] * range(maxval) + slope_d[1], color='black', linestyle='--')
 
     for i in range(2):
         for j in range(2):
@@ -3565,6 +3582,30 @@ def make_mag_field_scatter_plots():
             axs[i][j].xaxis.set_minor_locator(MultipleLocator(50))
             axs[i][j].yaxis.set_minor_locator(MultipleLocator(50))
 
+    axs[0][0].text(
+        0.4, 0.9,
+        r'$m$ = {}'.format(np.round(slope_a[0], 2)),
+        transform=axs[0][0].transAxes,
+        fontsize=fontsize
+    )
+    axs[0][1].text(
+        0.4, 0.9,
+        r'$m$ = {}'.format(np.round(slope_b[0], 2)),
+        transform=axs[0][1].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][0].text(
+        0.4, 0.9,
+        r'$m$ = {}'.format(np.round(slope_c[0], 2)),
+        transform=axs[1][0].transAxes,
+        fontsize=fontsize
+    )
+    axs[1][1].text(
+        0.4, 0.9,
+        r'$m$ = {}'.format(np.round(slope_d[0], 2)),
+        transform=axs[1][1].transAxes,
+        fontsize=fontsize
+    )
     axs[0][0].set_xlabel(r'$|B_{\mathrm{LOS}}|$ WFA (Ca II 8542 $\mathrm{\AA}$) [G]', fontsize=fontsize)
     axs[0][1].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$4.5) [G]', fontsize=fontsize)
     axs[1][0].set_xlabel(r'$|B_{\mathrm{LOS}}|$ ($\log \tau_{500}$ = $-$2) [G]', fontsize=fontsize)
@@ -3843,7 +3884,7 @@ def make_response_function_opp_polarity_plot():
 
     axs.text(
         0.02, 0.93,
-        r'$\Delta\lambda$ = $-$1.03 $\mathrm{\AA}$',
+        r'$\Delta v$ = $-$12.05 $\mathrm{km\;s^{-1}}$',
         transform=axs.transAxes,
         fontsize=fontsize,
         color='black'
@@ -3851,7 +3892,7 @@ def make_response_function_opp_polarity_plot():
 
     axs.text(
         0.02, 0.83,
-        r'$\Delta\lambda$ = $-$0.11 $\mathrm{\AA}$',
+        r'$\Delta v$ = $-$1.28 $\mathrm{km\;s^{-1}}$',
         transform=axs.transAxes,
         fontsize=fontsize,
         color='darkgreen'
@@ -3871,24 +3912,24 @@ def make_response_function_opp_polarity_plot():
 
 
 if __name__ == '__main__':
-    # points = [
-    #     (12, 49),
-    #     (12, 40),
-    #     (12, 34),
-    #     (12, 31),
-    #     (12, 18),
-    #     (8, 53),
-    #     (8, 50),
-    #     (8, 37),
-    #     (8, 31),
-    #     (8, 9),
-    # ]
-    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # new_points = list()
-    # for point in points:
-    #     new_points.append((point[0], 60 - point[1]))
-    #
-    # make_fov_plots(new_points, colors)
+    points = [
+        (12, 49),
+        (12, 40),
+        (12, 34),
+        (12, 31),
+        (12, 18),
+        (8, 53),
+        (8, 50),
+        (8, 37),
+        (8, 31),
+        (8, 9),
+    ]
+    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    new_points = list()
+    for point in points:
+        new_points.append((point[0], 60 - point[1]))
+
+    make_fov_plots(new_points, colors)
     # points = [
     #     49,
     #     40,
@@ -3965,7 +4006,7 @@ if __name__ == '__main__':
     # make_output_param_plots(new_points, colors)
     # plot_mag_field_compare()
     # plot_mag_field_compare_new(new_points, colors)
-    make_mag_field_scatter_plots()
+    # make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),

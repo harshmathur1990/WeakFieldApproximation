@@ -87,6 +87,9 @@ def make_progress_plots():
 
     fig, axs = plt.subplots(3, 4, figsize=(7, 7 * 3/4))
 
+    vmin00 = data[0][0].min() * 1e3
+    vmax00 = data[0][0].max() * 1e3
+
     for i in range(3):
         for j in range(4):
             axs[i][j].set_xticks([])
@@ -139,8 +142,12 @@ def make_progress_plots():
                 cbar.ax.yaxis.set_ticks_position('left')
 
             else:
-                im = axs[i][j].imshow(data[i][j], cmap='gray', origin='lower')
-
+                if (i == 0 and j == 0) or (i == 2 and j == 2):
+                    im = axs[i][j].imshow(data[i][j], cmap='gray', origin='lower', vmin=vmin00 * 1e-3, vmax=vmax00 * 1e-3)
+                elif i == 0 and j == 2:
+                    im = axs[i][j].imshow(data[i][j], cmap='gray', origin='lower')
+                else:
+                    im = axs[i][j].imshow(data[i][j], cmap='gray', origin='lower', vmin=vmin00, vmax=vmax00)
             if (i == 1 and j in [2, 3]) or (i == 2 and j in [2, 3]):
                 pass
             else:
@@ -380,4 +387,4 @@ def make_height_histogram_plots():
 
 if __name__ == '__main__':
     make_progress_plots()
-    make_height_histogram_plots()
+    # make_height_histogram_plots()

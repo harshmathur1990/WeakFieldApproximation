@@ -383,7 +383,42 @@ def reinterpolate_multi_3d_supplimentary_outputs():
     fsuppl.close()
 
 
-if __name__ == '__main__':
-    # get_var_at_ltau('temperature')
-    compare_porta_1d_with_multi3d()
-    # reinterpolate_multi_3d_supplimentary_outputs()
+def generate_radiative_transitions():
+    transitions = [3, 0, 1, 0, 5, 1, 5, 3, 7, 0, 4, 0, 7, 2, 4, 2, 6, 1, 8, 3, 6, 3]
+
+    return transitions
+
+
+def collisional_transitions():
+    collisional_transitions = list()
+
+    radiative_transitions = generate_radiative_transitions()
+    for i in range(9):
+        for j in range(9):
+            if i <= j:
+                continue
+
+            rad_p = False
+
+            k = 0
+            while k < len(radiative_transitions):
+                if radiative_transitions[k] == i and radiative_transitions[k + 1] == j:
+                    rad_p = True
+                    break
+                k += 2
+
+            if rad_p is False:
+                collisional_transitions.append(i)
+                collisional_transitions.append(j)
+
+    return collisional_transitions
+
+
+
+
+# if __name__ == '__main__':
+#     get_var_at_ltau('temperature')
+#     compare_porta_1d_with_multi3d()
+#     reinterpolate_multi_3d_supplimentary_outputs()
+    # get_pb_rates_for_rh()
+#
