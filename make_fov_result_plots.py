@@ -3895,7 +3895,7 @@ def make_response_function_opp_polarity_plot():
 
     axs.text(
         0.02, 0.93,
-        r'$\Delta v$ = $-$12.05 $\mathrm{km\;s^{-1}}$',
+        r'$\Delta \lambda$ = $-$1.03 $\mathrm{\AA}$',
         transform=axs.transAxes,
         fontsize=fontsize,
         color='black'
@@ -3903,7 +3903,7 @@ def make_response_function_opp_polarity_plot():
 
     axs.text(
         0.02, 0.83,
-        r'$\Delta v$ = $-$1.28 $\mathrm{km\;s^{-1}}$',
+        r'$\Delta \lambda$ = $-$0.11 $\mathrm{\AA}$',
         transform=axs.transAxes,
         fontsize=fontsize,
         color='darkgreen'
@@ -4091,4 +4091,4 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, [], [], colors=colors, data_file=data_file, vertical_cut=[30, 60], ca_v=[-0.003, 0.003], ha_v=[-0.002, 0.002])
     # plot_spatial_variation_of_profiles(cut_indice, points, colors_p, factor_ca_list, factor_ha_list, data_file=data_file, cs_files=cs_files, hs_file=hs_file, mean_prof=True, points_ha=points_ha)
 
-    # make_response_function_opp_polarity_plot()
+    make_response_function_opp_polarity_plot()
