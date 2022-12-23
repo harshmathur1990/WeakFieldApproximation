@@ -11,22 +11,22 @@ from tqdm import tqdm
 import tables as tb
 
 
-# atmos_file = Path(
-#     '/home/harsh/BifrostRun_fast_Access/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc'
-# )
+atmos_file = Path(
+    '/home/harsh/BifrostRun_fast_Access/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc'
+)
 
-atmos_file = Path('/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc')
+# atmos_file = Path('/data/harsh/merge_bifrost_output/BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0.nc')
 
 
-# ltau_out_file = Path(
-#     '/home/harsh/BifrostRun_fast_Access/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_pb_rates.nc'
-# )
+ltau_out_file = Path(
+    '/home/harsh/BifrostRun_fast_Access/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_pb_rates.nc'
+)
 
-ltau_out_file = Path('/data/harsh/merge_bifrost_output/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_pb_rates.nc')
+# ltau_out_file = Path('/data/harsh/merge_bifrost_output/MULTI3D_BIFROST_en024048_hion_snap_385_0_504_0_504_-1020996.0_15000000.0_pb_rates.nc')
 
-# stop_file = Path('/home/harsh/CourseworkRepo/WFAComparison/stop')
+stop_file = Path('/home/harsh/CourseworkRepo/WFAComparison/stop')
 
-stop_file = Path('/data/harsh/merge_bifrost_output/stop')
+# stop_file = Path('/data/harsh/merge_bifrost_output/stop')
 
 def generate_radiative_transitions():
     transitions = [3, 0, 1, 0, 5, 1, 5, 3, 7, 0, 4, 0, 7, 2, 4, 2, 6, 1, 8, 3, 6, 3]
@@ -145,7 +145,9 @@ def prepare_get_pb_rates_for_rh():
 
     ngi = n_to_g_mapper[ni]
 
-    cs = CubicSpline(PB04_temp, PB04[indices], axis=1)
+    # cs = CubicSpline(PB04_temp, PB04[indices], axis=1)
+
+    vec_interp = np.vectorize(np.interp, signature='(),(n),(n)->()')
 
     gj = atomic_level_to_g_mapper[total_transitions[:, 1]]
 
@@ -153,7 +155,7 @@ def prepare_get_pb_rates_for_rh():
 
     def get_pb_rates_for_rh(temp, electron_density_si):
 
-        return cs(temp) * electron_density_si * 1e-6 * 8.63e-6 * gj / (ngi * np.sqrt(temp) * ngj)
+        return vec_interp(temp, PB04_temp, PB04[indices]) * electron_density_si * 1e-6 * 8.63e-6 * gj / (ngi * np.sqrt(temp) * ngj)
 
     return get_pb_rates_for_rh
 
@@ -201,7 +203,7 @@ if __name__ == '__main__':
 
         t = tqdm(total=x.shape[0])
 
-        for i in range(x.size // batch_size):
+        for i in range((x.size // batch_size) + 1):
             waiting_queue.add(i)
 
         for worker in range(1, size):
@@ -232,9 +234,10 @@ if __name__ == '__main__':
             jobstatus = status_dict['status']
             item, xx, yy, zz, cularr = status_dict['item']
             fo = tb.open_file(ltau_out_file, mode='r+')
-            for indd, (xxx, yyy, zzz) in enumerate(zip(xx, yy, zz)):
-                fo.root.Cul_pb_rates[xxx, yyy, zzz] = cularr[indd]
-            t.update(xx.shape[0])
+            if xx.size > 0:
+                for indd, (xxx, yyy, zzz) in enumerate(zip(xx, yy, zz)):
+                    fo.root.Cul_pb_rates[xxx, yyy, zzz] = cularr[indd]
+                    t.update(1)
             fo.close()
             running_queue.discard(item)
             if jobstatus == Status.Work_done:
@@ -273,13 +276,16 @@ if __name__ == '__main__':
 
             item, x, y, z = work_type['item']
 
-            f = h5py.File(atmos_file, 'r')
+            if x.size == 0:
+                comm.send({'status': Status.Work_done, 'item': (item, x, y, z, None)}, dest=0, tag=2)
+            else:
+                f = h5py.File(atmos_file, 'r')
 
-            temp = f['temperature'][()][0, x, y, z]
-            electron_density_si = f['electron_density'][()][0, x, y, z]
+                temp = f['temperature'][()][0, x, y, z]
+                electron_density_si = f['electron_density'][()][0, x, y, z]
 
-            f.close()
+                f.close()
 
-            rates = vec_get_pb_rates_for_rh(temp, electron_density_si)
+                rates = vec_get_pb_rates_for_rh(temp, electron_density_si)
 
-            comm.send({'status': Status.Work_done, 'item': (item, x, y, z, rates)}, dest=0, tag=2)
+                comm.send({'status': Status.Work_done, 'item': (item, x, y, z, rates)}, dest=0, tag=2)
