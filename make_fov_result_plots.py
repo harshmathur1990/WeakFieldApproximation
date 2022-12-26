@@ -4017,7 +4017,7 @@ if __name__ == '__main__':
     # make_output_param_plots(new_points, colors)
     # plot_mag_field_compare()
     # plot_mag_field_compare_new(new_points, colors)
-    make_mag_field_scatter_plots()
+    #make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
     #     (12, 40),
