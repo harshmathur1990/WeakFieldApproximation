@@ -230,7 +230,7 @@ def make_fov_plots(points, colors_scatter):
 
     fig, axs = plt.subplots(2, 3, figsize=(3.3, 7))
 
-    extent = [0, 6.46, 0, 22.8]
+    extent = [0, 17 * 0.38, 0, 60 * 0.38]
 
     fontsize = 10
 
@@ -247,7 +247,7 @@ def make_fov_plots(points, colors_scatter):
 
                 print(limval)
 
-                gh = axs[i][j].imshow(data[j][i].T, cmap=cmap1, origin='lower', vmin=vmin, vmax=vmax, aspect='equal')
+                gh = axs[i][j].imshow(data[j][i].T, cmap=cmap1, origin='lower', vmin=vmin, vmax=vmax, aspect='equal', extent=extent)
                 if i == 0:
                     im02 = gh
                 else:
@@ -255,19 +255,19 @@ def make_fov_plots(points, colors_scatter):
             elif j == 3:
                 vmin = 0
                 vmax = np.round(data[j][i].max() * 100, 2)
-                gh = axs[i][j].imshow(data[j][i].T * 100, cmap='gray', origin='lower', vmin=vmin, vmax=vmax, aspect='equal')
+                gh = axs[i][j].imshow(data[j][i].T * 100, cmap='gray', origin='lower', vmin=vmin, vmax=vmax, aspect='equal', extent=extent)
                 if i == 0:
                     im03 = gh
                 else:
                     im13 = gh
             else:
-                axs[i][j].imshow(data[j][i].T, cmap='gray', origin='lower', aspect='equal')
-            axs[i][j].contour(mask[j][i].T, levels=0, origin='lower', colors='blue', linewidths=0.5, aspect='equal')
-            axs[i][j].contour(np_mask.T, levels=0, origin='lower', colors='darkgreen', linewidths=0.5, aspect='equal')
-            axs[i][j].axvline(12, linestyle='--', color='brown', linewidth=0.5)
-            axs[i][j].axvline(8, linestyle='--', color='darkgreen', linewidth=0.5)
+                axs[i][j].imshow(data[j][i].T, cmap='gray', origin='lower', aspect='equal', extent=extent)
+            axs[i][j].contour(mask[j][i].T, levels=0, origin='lower', colors='blue', linewidths=0.5, aspect='equal', extent=extent)
+            axs[i][j].contour(np_mask.T, levels=0, origin='lower', colors='darkgreen', linewidths=0.5, aspect='equal', extent=extent)
+            axs[i][j].axvline(12 * 0.38, linestyle='--', color='brown', linewidth=0.5)
+            axs[i][j].axvline(8 * 0.38, linestyle='--', color='darkgreen', linewidth=0.5)
             for point, color in zip(points, colors_scatter):
-                axs[i][j].scatter(point[0], point[1], color=color, marker='x')
+                axs[i][j].scatter(point[0] * 0.38, point[1] * 0.38, color=color, marker='x')
 
     axs[0][0].text(
         0.02, 0.04,
@@ -417,22 +417,22 @@ def make_fov_plots(points, colors_scatter):
     #
     # cbar.ax.yaxis.set_ticks_position('left')
 
-    axs[0][0].xaxis.set_minor_locator(MultipleLocator(17/6.46))
-    axs[0][1].xaxis.set_minor_locator(MultipleLocator(17/6.46))
-    axs[0][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[0][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][2].xaxis.set_minor_locator(MultipleLocator(1))
     # axs[0][3].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[0][0].yaxis.set_minor_locator(MultipleLocator(60/22.8))
-    axs[0][1].yaxis.set_minor_locator(MultipleLocator(60/22.8))
-    axs[0][2].yaxis.set_minor_locator(MultipleLocator(60/22.8))
+    axs[0][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][2].yaxis.set_minor_locator(MultipleLocator(1))
     # axs[0][3].yaxis.set_minor_locator(MultipleLocator(60/22.8))
 
-    axs[1][0].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[1][1].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[1][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][2].xaxis.set_minor_locator(MultipleLocator(1))
     # axs[1][3].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[1][0].yaxis.set_minor_locator(MultipleLocator(60 / 22.8))
-    axs[1][1].yaxis.set_minor_locator(MultipleLocator(60 / 22.8))
-    axs[1][2].yaxis.set_minor_locator(MultipleLocator(60 / 22.8))
+    axs[1][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][2].yaxis.set_minor_locator(MultipleLocator(1))
     # axs[1][3].yaxis.set_minor_locator(MultipleLocator(60 / 22.8))
 
     axs[0][0].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
@@ -445,36 +445,36 @@ def make_fov_plots(points, colors_scatter):
     axs[1][2].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
     # axs[1][3].tick_params(direction='out', which='both', color='black', labelsize=fontsize)
 
-    axs[0][0].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[0][0].set_xticks([0, 2, 4])
     axs[0][0].set_xticklabels([])
-    axs[0][1].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[0][1].set_xticks([0, 2, 4])
     axs[0][1].set_xticklabels([])
-    axs[0][2].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[0][2].set_xticks([0, 2, 4])
     axs[0][2].set_xticklabels([])
     # axs[0][3].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
     # axs[0][3].set_xticklabels([])
-    axs[1][0].set_xticks([0, 2 * 17/6.46, 4 * 17/6.46])
+    axs[1][0].set_xticks([0, 2, 4])
     axs[1][0].set_xticklabels([0, 2, 4])
-    axs[1][1].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[1][1].set_xticks([0, 2, 4])
     axs[1][1].set_xticklabels([0, 2, 4])
-    axs[1][2].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
+    axs[1][2].set_xticks([0, 2, 4 ])
     axs[1][2].set_xticklabels([0, 2, 4])
     # axs[1][3].set_xticks([0, 2 * 17 / 6.46, 4 * 17 / 6.46])
     # axs[1][3].set_xticklabels([0, 2, 4])
 
-    axs[0][0].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[0][0].set_yticks([0, 10, 20])
     axs[0][0].set_yticklabels([0, 10, 20])
-    axs[0][1].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[0][1].set_yticks([0, 10, 20])
     axs[0][1].set_yticklabels([])
-    axs[0][2].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[0][2].set_yticks([0, 10, 20])
     axs[0][2].set_yticklabels([])
     # axs[0][3].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
     # axs[0][3].set_yticklabels([])
-    axs[1][0].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[1][0].set_yticks([0, 10, 20])
     axs[1][0].set_yticklabels([0, 10, 20])
-    axs[1][1].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[1][1].set_yticks([0, 10, 20])
     axs[1][1].set_yticklabels([])
-    axs[1][2].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
+    axs[1][2].set_yticks([0, 10, 20])
     axs[1][2].set_yticklabels([])
     # axs[1][3].set_yticks([0, 10 * 60 / 22.8, 20 * 60 / 22.8])
     # axs[1][3].set_yticklabels([])
@@ -1486,17 +1486,18 @@ def make_output_param_plots(points, colors_scatter):
 
     # X, Y = np.meshgrid(np.arange(0, 17 * 0.38, 0.38), np.arange(0, 60 * 0.38, 0.38))
 
-    im00 = axs[0][0].imshow(f['temp'][0, 0:17, :, ltau_indice[0]][:, ::-1].T / 1e3, cmap='hot', aspect='equal', origin='lower')
-    im01 = axs[0][1].imshow(f['temp'][0, 0:17, :, ltau_indice[1]][:, ::-1].T / 1e3, cmap='hot', aspect='equal', origin='lower')
-    im02 = axs[0][2].imshow(f['temp'][0, 0:17, :, ltau_indice[2]][:, ::-1].T / 1e3, cmap='hot', aspect='equal', origin='lower')
+    extent = list(np.array([0, 17 * 0.38, 0, 60 * 0.38]))
+    im00 = axs[0][0].imshow(f['temp'][0, 0:17, :, ltau_indice[0]][:, ::-1].T / 1e3, cmap='hot', aspect='equal', origin='lower', extent=extent)
+    im01 = axs[0][1].imshow(f['temp'][0, 0:17, :, ltau_indice[1]][:, ::-1].T / 1e3, cmap='hot', aspect='equal', origin='lower', extent=extent)
+    im02 = axs[0][2].imshow(f['temp'][0, 0:17, :, ltau_indice[2]][:, ::-1].T / 1e3, cmap='hot', aspect='equal', origin='lower', extent=extent)
 
-    im10 = axs[1][0].imshow((f['vlos'][0, 0:17, :, ltau_indice[0]][:, ::-1].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, aspect='equal', origin='lower')
-    im11 = axs[1][1].imshow((f['vlos'][0, 0:17, :, ltau_indice[1]][:, ::-1].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, aspect='equal', origin='lower')
-    im12 = axs[1][2].imshow((f['vlos'][0, 0:17, :, ltau_indice[2]][:, ::-1].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, aspect='equal', origin='lower')
+    im10 = axs[1][0].imshow((f['vlos'][0, 0:17, :, ltau_indice[0]][:, ::-1].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, aspect='equal', origin='lower', extent=extent)
+    im11 = axs[1][1].imshow((f['vlos'][0, 0:17, :, ltau_indice[1]][:, ::-1].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, aspect='equal', origin='lower', extent=extent)
+    im12 = axs[1][2].imshow((f['vlos'][0, 0:17, :, ltau_indice[2]][:, ::-1].T - calib_vlos) / 1e5, cmap='bwr', vmin=-5, vmax=5, aspect='equal', origin='lower', extent=extent)
 
-    im20 = axs[2][0].imshow(f['vturb'][0, 0:17, :, ltau_indice[0]][:, ::-1].T / 1e5, cmap='copper', vmin=0, vmax=5, aspect='equal', origin='lower')
-    im21 = axs[2][1].imshow(f['vturb'][0, 0:17, :, ltau_indice[1]][:, ::-1].T / 1e5, cmap='copper', vmin=0, vmax=5, aspect='equal', origin='lower')
-    im22 = axs[2][2].imshow(f['vturb'][0, 0:17, :, ltau_indice[2]][:, ::-1].T / 1e5, cmap='copper', vmin=0, vmax=5, aspect='equal', origin='lower')
+    im20 = axs[2][0].imshow(f['vturb'][0, 0:17, :, ltau_indice[0]][:, ::-1].T / 1e5, cmap='copper', vmin=0, vmax=5, aspect='equal', origin='lower', extent=extent)
+    im21 = axs[2][1].imshow(f['vturb'][0, 0:17, :, ltau_indice[1]][:, ::-1].T / 1e5, cmap='copper', vmin=0, vmax=5, aspect='equal', origin='lower', extent=extent)
+    im22 = axs[2][2].imshow(f['vturb'][0, 0:17, :, ltau_indice[2]][:, ::-1].T / 1e5, cmap='copper', vmin=0, vmax=5, aspect='equal', origin='lower', extent=extent)
 
     cbaxes = inset_axes(
         axs[0][0],
@@ -1583,41 +1584,41 @@ def make_output_param_plots(points, colors_scatter):
             color = 'black'
             if i == 2:
                 color = 'white'
-            axs[i][j].contour(mask[0, 0].T, levels=0, colors=color, linewidths=0.5)
-            axs[i][j].contour(np_mask.T, levels=0, colors='lightsteelblue', linewidths=0.5)
-            axs[i][j].set_yticks(np.array([0, 5, 10, 15, 20]) * 60 / 22.8)
-            axs[i][j].set_xticks(np.array([0, 5]) * 17 / 6.46)
+            axs[i][j].contour(mask[0, 0].T, levels=0, colors=color, linewidths=0.5, extent=extent)
+            axs[i][j].contour(np_mask.T, levels=0, colors='lightsteelblue', linewidths=0.5, extent=extent)
+            axs[i][j].set_yticks([0, 5, 10, 15, 20])
+            axs[i][j].set_xticks([0, 5])
             axs[i][j].set_yticklabels([])
             axs[i][j].set_xticklabels([])
-            axs[i][j].axvline(12, linestyle='--', color='brown', linewidth=0.5)
-            axs[i][j].axvline(8, linestyle='--', color='darkgreen', linewidth=0.5)
+            axs[i][j].axvline(12 * 0.38, linestyle='--', color='brown', linewidth=0.5)
+            axs[i][j].axvline(8 * 0.38, linestyle='--', color='darkgreen', linewidth=0.5)
             for point, color in zip(points, colors_scatter):
-                axs[i][j].scatter(point[0], point[1], color=color, marker='x')
+                axs[i][j].scatter(point[0] * 0.38, point[1] * 0.38, color=color, marker='x')
 
     for i in range(3):
-        axs[2][i].set_xticklabels([0, 5], fontsize=fontsize)
-        axs[i][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+        axs[2][i].set_xticklabels(np.array([0, 5]), fontsize=fontsize)
+        axs[i][0].set_yticklabels(np.array([0, 5, 10, 15, 20]), fontsize=fontsize)
 
-    axs[0][0].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[0][1].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[0][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[0][0].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[0][1].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[0][2].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[0][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][2].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][2].yaxis.set_minor_locator(MultipleLocator(1))
 
-    axs[1][0].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[1][1].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[1][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[1][0].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[1][1].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[1][2].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][2].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][2].yaxis.set_minor_locator(MultipleLocator(1))
 
-    axs[2][0].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[2][1].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[2][2].xaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[2][0].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[2][1].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
-    axs[2][2].yaxis.set_minor_locator(MultipleLocator(17 / 6.46))
+    axs[2][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][1].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][2].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][1].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[2][2].yaxis.set_minor_locator(MultipleLocator(1))
 
     axs[0][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
     axs[1][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
@@ -2363,43 +2364,45 @@ def plot_mag_field_compare_new(points, colors_scatter):
                 vlim[ii][jj][1] = 400
             print(vlim[ii][jj])
             k += 1
-    
-    im00 = axs[0][0].pcolormesh(X, Y, a1, cmap=cmap, shading='nearest', linewidth=0, rasterized=True, vmin=vlim[0][0][0], vmax=vlim[0][0][1])
 
-    im01 = axs[0][1].pcolormesh(X, Y, a2, cmap=cmap, shading='nearest', linewidth=0, rasterized=True, vmin=vlim[0][1][0], vmax=vlim[0][1][1])
+    extent = [0, 17 * 0.38, 0, 60 * 0.38]
+
+    im00 = axs[0][0].imshow(a1, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][0][0], vmax=vlim[0][0][1], extent=extent)             #shading='nearest', linewidth=0, rasterized=True
+
+    im01 = axs[0][1].imshow(a2, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][1][0], vmax=vlim[0][1][1], extent=extent)
 
     # im02 = axs[0][2].pcolormesh(X, Y, a3, cmap=cmap, shading='nearest', linewidth=0, rasterized=True, vmin=vlim[0][2][0], vmax=vlim[0][2][1])
 
-    im02 = axs[0][2].pcolormesh(X, Y, magha, cmap=cmap, shading='nearest', linewidth=0, rasterized=True, vmin=vlim[0][3][0], vmax=vlim[0][3][1])
+    im02 = axs[0][2].imshow(magha, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][3][0], vmax=vlim[0][3][1], extent=extent)
 
-    im03 = axs[0][3].pcolormesh(X, Y, magha_p, cmap=cmap, shading='nearest', linewidth=0, rasterized=True, vmin=vlim[0][4][0], vmax=vlim[0][4][1])
+    im03 = axs[0][3].imshow(magha_p, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][4][0], vmax=vlim[0][4][1], extent=extent)
 
-    im04 = axs[0][4].pcolormesh(X, Y, magha_full_line, cmap=cmap, shading='nearest', linewidth=0, rasterized=True, vmin=vlim[0][5][0], vmax=vlim[0][5][1])
+    im04 = axs[0][4].imshow(magha_full_line, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][5][0], vmax=vlim[0][5][1], extent=extent)
 
     # im10 = axs[1][0].pcolormesh(X, Y, np.abs(a1) - np.abs(a0), cmap='bwr', shading='nearest', linewidth=0, rasterized=True, vmin=vlim[1][0][0], vmax=vlim[1][0][1])
 
-    im11 = axs[1][1].pcolormesh(X, Y, np.abs(a2) - np.abs(a1), cmap='bwr', shading='nearest', linewidth=0, rasterized=True, vmin=vlim[1][1][0], vmax=vlim[1][1][1])
+    im11 = axs[1][1].imshow(np.abs(a2) - np.abs(a1), cmap='bwr', origin='lower', aspect='auto', vmin=vlim[1][1][0], vmax=vlim[1][1][1], extent=extent)
 
     # im12 = axs[1][2].pcolormesh(X, Y, np.abs(a3) - np.abs(a2), cmap='bwr', shading='nearest', linewidth=0, rasterized=True, vmin=vlim[1][2][0], vmax=vlim[1][2][1])
 
-    im12 = axs[1][2].pcolormesh(X, Y, np.abs(magha) - np.abs(a2), cmap='bwr', shading='nearest', linewidth=0, rasterized=True, vmin=vlim[1][3][0], vmax=vlim[1][3][1])
+    im12 = axs[1][2].imshow(np.abs(magha) - np.abs(a2), cmap='bwr', origin='lower', aspect='auto', vmin=vlim[1][3][0], vmax=vlim[1][3][1], extent=extent)
 
-    im13 = axs[1][3].pcolormesh(X, Y, np.abs(magha_p) - np.abs(a1), cmap='bwr', shading='nearest', linewidth=0, rasterized=True, vmin=vlim[1][4][0], vmax=vlim[1][4][1])
+    im13 = axs[1][3].imshow(np.abs(magha_p) - np.abs(a1), cmap='bwr', origin='lower', aspect='auto', vmin=vlim[1][4][0], vmax=vlim[1][4][1], extent=extent)
 
-    im14 = axs[1][4].pcolormesh(X, Y, np.abs(magha_full_line) - np.abs(a1), cmap='bwr', shading='nearest', linewidth=0, rasterized=True, vmin=vlim[1][5][0], vmax=vlim[1][5][1])
+    im14 = axs[1][4].imshow(np.abs(magha_full_line) - np.abs(a1), cmap='bwr', origin='lower', aspect='auto', vmin=vlim[1][5][0], vmax=vlim[1][5][1], extent=extent)
 
-    im00.set_edgecolor('face')
-    im01.set_edgecolor('face')
-    im02.set_edgecolor('face')
-    im03.set_edgecolor('face')
-    im04.set_edgecolor('face')
+    # im00.set_edgecolor('face')
+    # im01.set_edgecolor('face')
+    # im02.set_edgecolor('face')
+    # im03.set_edgecolor('face')
+    # im04.set_edgecolor('face')
     # im05.set_edgecolor('face')
 
     # im10.set_edgecolor('face')
-    im11.set_edgecolor('face')
-    im12.set_edgecolor('face')
-    im13.set_edgecolor('face')
-    im14.set_edgecolor('face')
+    # im11.set_edgecolor('face')
+    # im12.set_edgecolor('face')
+    # im13.set_edgecolor('face')
+    # im14.set_edgecolor('face')
     # im15.set_edgecolor('face')
 
     for i in range(2):
@@ -2407,8 +2410,8 @@ def plot_mag_field_compare_new(points, colors_scatter):
             if i == 1 and j == 0:
                 continue
             color = 'black'
-            axs[i][j].contour(X, Y, mask[0, 0].T, levels=0, colors=color, linewidths=0.5)
-            axs[i][j].contour(X, Y, np_mask.T, levels=0, colors='darkgreen', linewidths=0.5)
+            axs[i][j].contour(mask[0, 0].T, levels=0, colors=color, linewidths=0.5, extent=extent)
+            axs[i][j].contour(np_mask.T, levels=0, colors='darkgreen', linewidths=0.5, extent=extent)
             axs[i][j].axvline(12 * 0.38, linestyle='--', color='brown', linewidth=0.5)
             axs[i][j].axvline(8 * 0.38, linestyle='--', color='darkgreen', linewidth=0.5)
             for point, color in zip(points, colors_scatter):
@@ -3998,25 +4001,25 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, new_points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # plot_profiles()
-    # points = [
-    #     (12, 49),
-    #     (12, 40),
-    #     (12, 34),
-    #     (12, 31),
-    #     (12, 18),
-    #     (8, 53),
-    #     (8, 50),
-    #     (8, 37),
-    #     (8, 31),
-    #     (8, 9),
-    # ]
-    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # new_points = list()
-    # for point in points:
-    #     new_points.append((point[0], 60 - point[1]))
+    points = [
+        (12, 49),
+        (12, 40),
+        (12, 34),
+        (12, 31),
+        (12, 18),
+        (8, 53),
+        (8, 50),
+        (8, 37),
+        (8, 31),
+        (8, 9),
+    ]
+    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    new_points = list()
+    for point in points:
+        new_points.append((point[0], 60 - point[1]))
     # make_output_param_plots(new_points, colors)
     # plot_mag_field_compare()
-    # plot_mag_field_compare_new(new_points, colors)
+    plot_mag_field_compare_new(new_points, colors)
     #make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
@@ -4091,4 +4094,4 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, [], [], colors=colors, data_file=data_file, vertical_cut=[30, 60], ca_v=[-0.003, 0.003], ha_v=[-0.002, 0.002])
     # plot_spatial_variation_of_profiles(cut_indice, points, colors_p, factor_ca_list, factor_ha_list, data_file=data_file, cs_files=cs_files, hs_file=hs_file, mean_prof=True, points_ha=points_ha)
 
-    make_response_function_opp_polarity_plot()
+    # make_response_function_opp_polarity_plot()
