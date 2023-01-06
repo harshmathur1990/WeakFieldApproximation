@@ -1827,7 +1827,7 @@ def get_wfanew_alternate():
         ha_center_wave + wave_range,
         1.048,
         transition_skip_list=transition_skip_list,
-        errors=True
+        errors=2
     )
 
     vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
@@ -1870,7 +1870,7 @@ def get_wfanew_alternate():
         ha_center_wave + wave_range,
         1.048,
         transition_skip_list=transition_skip_list,
-        errors=True
+        errors=2
     )
 
     vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
@@ -1909,7 +1909,7 @@ def get_wfanew_alternate():
         ha_center_wave + wave_range,
         1.048,
         transition_skip_list=transition_skip_list,
-        errors=True
+        errors=2
     )
 
     vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
@@ -3998,25 +3998,25 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, new_points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # plot_profiles()
-    # points = [
-    #     (12, 49),
-    #     (12, 40),
-    #     (12, 34),
-    #     (12, 31),
-    #     (12, 18),
-    #     (8, 53),
-    #     (8, 50),
-    #     (8, 37),
-    #     (8, 31),
-    #     (8, 9),
-    # ]
-    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    # new_points = list()
-    # for point in points:
-    #     new_points.append((point[0], 60 - point[1]))
+    points = [
+        (12, 49),
+        (12, 40),
+        (12, 34),
+        (12, 31),
+        (12, 18),
+        (8, 53),
+        (8, 50),
+        (8, 37),
+        (8, 31),
+        (8, 9),
+    ]
+    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    new_points = list()
+    for point in points:
+        new_points.append((point[0], 60 - point[1]))
     # make_output_param_plots(new_points, colors)
     # plot_mag_field_compare()
-    # plot_mag_field_compare_new(new_points, colors)
+    plot_mag_field_compare_new(new_points, colors)
     #make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
@@ -4091,4 +4091,4 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, [], [], colors=colors, data_file=data_file, vertical_cut=[30, 60], ca_v=[-0.003, 0.003], ha_v=[-0.002, 0.002])
     # plot_spatial_variation_of_profiles(cut_indice, points, colors_p, factor_ca_list, factor_ha_list, data_file=data_file, cs_files=cs_files, hs_file=hs_file, mean_prof=True, points_ha=points_ha)
 
-    make_response_function_opp_polarity_plot()
+    # make_response_function_opp_polarity_plot()
