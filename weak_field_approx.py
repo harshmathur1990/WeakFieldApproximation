@@ -58,7 +58,7 @@ def calculate_b_los(
 
     denominator = np.sum(np.square(derivative))
 
-    if errors is None or False:
+    if errors is None or errors is False:
 
         blos = -numerator / (constant * denominator)
 
