@@ -10,7 +10,7 @@ def calculate_b_los(
     lambda_range_max,
     g_eff,
     transition_skip_list=None,
-    errors=False
+    errors=None
 ):
     '''
     stokes_I: Array of Intensties
@@ -58,20 +58,29 @@ def calculate_b_los(
 
     denominator = np.sum(np.square(derivative))
 
-    if not errors:
+    if errors is None or errors is False:
 
         blos = -numerator / (constant * denominator)
 
         return blos
-    else:
+
+    elif errors == 1:
         stokes_V_err = np.ones_like(stokes_V_cropped) * stokes_V_cropped.std()
 
-        numerator2 = np.sum(derivative * stokes_V_err)\
+        numerator2 = np.sum(derivative * stokes_V_err)
 
         blos_err = -numerator2 / (constant * denominator)
 
         return blos_err
 
+    else:
+        blos = -numerator / (constant * denominator)
+
+        error_norm = np.sum(derivative.std() / derivative + stokes_V_cropped.std() / stokes_V_cropped + np.std(np.square(derivative)**2) / np.square(derivative))
+
+        error = 1 * error_norm
+
+        return error
 
 def prepare_calculate_blos(
     obs,

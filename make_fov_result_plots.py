@@ -1828,7 +1828,7 @@ def get_wfanew_alternate():
         ha_center_wave + wave_range,
         1.048,
         transition_skip_list=transition_skip_list,
-        errors=True
+        errors=2
     )
 
     vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
@@ -1871,7 +1871,7 @@ def get_wfanew_alternate():
         ha_center_wave + wave_range,
         1.048,
         transition_skip_list=transition_skip_list,
-        errors=True
+        errors=2
     )
 
     vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
@@ -1910,7 +1910,7 @@ def get_wfanew_alternate():
         ha_center_wave + wave_range,
         1.048,
         transition_skip_list=transition_skip_list,
-        errors=True
+        errors=2
     )
 
     vec_actual_calculate_blos = np.vectorize(actual_calculate_blos)
@@ -2318,7 +2318,7 @@ def plot_mag_field_compare_new(points, colors_scatter):
 
     f = h5py.File(base_path / 'combined_output.nc', 'r')
 
-    fig, axs = plt.subplots(2, 5, figsize=(7, 7))
+    fig, axs = plt.subplots(2, 4, figsize=(5.02, 8))
 
     a1 = -f['blong'][0, 0:17, :, ltau_indice[0]][:, ::-1].T
     a2 = -f['blong'][0, 0:17, :, ltau_indice[1]][:, ::-1].T
@@ -2367,29 +2367,29 @@ def plot_mag_field_compare_new(points, colors_scatter):
 
     extent = [0, 17 * 0.38, 0, 60 * 0.38]
 
-    im00 = axs[0][0].imshow(a1, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][0][0], vmax=vlim[0][0][1], extent=extent)             #shading='nearest', linewidth=0, rasterized=True
+    im00 = axs[0][0].imshow(a1, cmap=cmap, origin='lower', aspect='equal', interpolation='nearest', vmin=vlim[0][0][0], vmax=vlim[0][0][1], extent=extent)             #shading='nearest', linewidth=0, rasterized=True
 
-    im01 = axs[0][1].imshow(a2, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][1][0], vmax=vlim[0][1][1], extent=extent)
+    im01 = axs[0][1].imshow(a2, cmap=cmap, origin='lower', aspect='equal', interpolation='nearest', vmin=vlim[0][1][0], vmax=vlim[0][1][1], extent=extent)
 
     # im02 = axs[0][2].pcolormesh(X, Y, a3, cmap=cmap, shading='nearest', linewidth=0, rasterized=True, vmin=vlim[0][2][0], vmax=vlim[0][2][1])
 
-    im02 = axs[0][2].imshow(magha, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][3][0], vmax=vlim[0][3][1], extent=extent)
+    im02 = axs[0][2].imshow(magha, cmap=cmap, origin='lower', aspect='equal', interpolation='nearest', vmin=vlim[0][3][0], vmax=vlim[0][3][1], extent=extent)
 
-    im03 = axs[0][3].imshow(magha_p, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][4][0], vmax=vlim[0][4][1], extent=extent)
+    im03 = axs[0][3].imshow(magha_p, cmap=cmap, origin='lower', aspect='equal', interpolation='nearest', vmin=vlim[0][4][0], vmax=vlim[0][4][1], extent=extent)
 
-    im04 = axs[0][4].imshow(magha_full_line, cmap=cmap, origin='lower', aspect='auto', vmin=vlim[0][5][0], vmax=vlim[0][5][1], extent=extent)
+    im10 = axs[1][0].imshow(magha_full_line, cmap=cmap, origin='lower', aspect='equal', interpolation='nearest', vmin=vlim[0][5][0], vmax=vlim[0][5][1], extent=extent)
 
     # im10 = axs[1][0].pcolormesh(X, Y, np.abs(a1) - np.abs(a0), cmap='bwr', shading='nearest', linewidth=0, rasterized=True, vmin=vlim[1][0][0], vmax=vlim[1][0][1])
 
-    im11 = axs[1][1].imshow(np.abs(a2) - np.abs(a1), cmap='bwr', origin='lower', aspect='auto', vmin=vlim[1][1][0], vmax=vlim[1][1][1], extent=extent)
+    im11 = axs[1][1].imshow(np.abs(a2) - np.abs(a1), cmap='bwr', origin='lower', aspect='equal', interpolation='nearest', vmin=vlim[1][1][0], vmax=vlim[1][1][1], extent=extent)
 
     # im12 = axs[1][2].pcolormesh(X, Y, np.abs(a3) - np.abs(a2), cmap='bwr', shading='nearest', linewidth=0, rasterized=True, vmin=vlim[1][2][0], vmax=vlim[1][2][1])
 
-    im12 = axs[1][2].imshow(np.abs(magha) - np.abs(a2), cmap='bwr', origin='lower', aspect='auto', vmin=vlim[1][3][0], vmax=vlim[1][3][1], extent=extent)
+    im13 = axs[1][3].imshow(np.abs(magha) - np.abs(a2), cmap='bwr', origin='lower', aspect='equal', interpolation='nearest', vmin=vlim[1][3][0], vmax=vlim[1][3][1], extent=extent)
 
-    im13 = axs[1][3].imshow(np.abs(magha_p) - np.abs(a1), cmap='bwr', origin='lower', aspect='auto', vmin=vlim[1][4][0], vmax=vlim[1][4][1], extent=extent)
-
-    im14 = axs[1][4].imshow(np.abs(magha_full_line) - np.abs(a1), cmap='bwr', origin='lower', aspect='auto', vmin=vlim[1][5][0], vmax=vlim[1][5][1], extent=extent)
+    # im13 = axs[1][3].imshow(np.abs(magha_p) - np.abs(a1), cmap='bwr', origin='lower', aspect='equal', vmin=vlim[1][4][0], vmax=vlim[1][4][1], extent=extent)
+    #
+    # im14 = axs[1][4].imshow(np.abs(magha_full_line) - np.abs(a1), cmap='bwr', origin='lower', aspect='equal', vmin=vlim[1][5][0], vmax=vlim[1][5][1], extent=extent)
 
     # im00.set_edgecolor('face')
     # im01.set_edgecolor('face')
@@ -2406,8 +2406,8 @@ def plot_mag_field_compare_new(points, colors_scatter):
     # im15.set_edgecolor('face')
 
     for i in range(2):
-        for j in range(5):
-            if i == 1 and j == 0:
+        for j in range(4):
+            if i == 1 and j == 2:
                 continue
             color = 'black'
             axs[i][j].contour(mask[0, 0].T, levels=0, colors=color, linewidths=0.5, extent=extent)
@@ -2482,14 +2482,14 @@ def plot_mag_field_compare_new(points, colors_scatter):
     cbar.ax.tick_params(labelsize=fontsize, colors='black')
 
     cbaxes = inset_axes(
-        axs[0][4],
+        axs[1][0],
         width="100%",
         height="5%",
         loc='upper center',
         borderpad=-1.5
     )
     cbar = fig.colorbar(
-        im04,
+        im10,
         cax=cbaxes,
         ticks=[vlim[0][4][0]+100, 0, vlim[0][4][1]-100],
         orientation='horizontal'
@@ -2546,22 +2546,6 @@ def plot_mag_field_compare_new(points, colors_scatter):
     cbar.ax.tick_params(labelsize=fontsize, colors='black')
 
     cbaxes = inset_axes(
-        axs[1][2],
-        width="100%",
-        height="5%",
-        loc='upper center',
-        borderpad=-1.5
-    )
-    cbar = fig.colorbar(
-        im12,
-        cax=cbaxes,
-        ticks=[vlim[1][2][0]+100, 0, vlim[1][2][1]-100],
-        orientation='horizontal'
-    )
-    cbar.ax.xaxis.set_ticks_position('top')
-    cbar.ax.tick_params(labelsize=fontsize, colors='black')
-
-    cbaxes = inset_axes(
         axs[1][3],
         width="100%",
         height="5%",
@@ -2571,27 +2555,43 @@ def plot_mag_field_compare_new(points, colors_scatter):
     cbar = fig.colorbar(
         im13,
         cax=cbaxes,
-        ticks=[vlim[1][3][0]+100, 0, vlim[1][3][1]-100],
+        ticks=[vlim[1][2][0]+100, 0, vlim[1][2][1]-100],
         orientation='horizontal'
     )
     cbar.ax.xaxis.set_ticks_position('top')
     cbar.ax.tick_params(labelsize=fontsize, colors='black')
 
-    cbaxes = inset_axes(
-        axs[1][4],
-        width="100%",
-        height="5%",
-        loc='upper center',
-        borderpad=-1.5
-    )
-    cbar = fig.colorbar(
-        im14,
-        cax=cbaxes,
-        ticks=[vlim[1][4][0]+100, 0, vlim[1][4][1]-100],
-        orientation='horizontal'
-    )
-    cbar.ax.xaxis.set_ticks_position('top')
-    cbar.ax.tick_params(labelsize=fontsize, colors='black')
+    # cbaxes = inset_axes(
+    #     axs[1][3],
+    #     width="100%",
+    #     height="5%",
+    #     loc='upper center',
+    #     borderpad=-1.5
+    # )
+    # cbar = fig.colorbar(
+    #     im13,
+    #     cax=cbaxes,
+    #     ticks=[vlim[1][3][0]+100, 0, vlim[1][3][1]-100],
+    #     orientation='horizontal'
+    # )
+    # cbar.ax.xaxis.set_ticks_position('top')
+    # cbar.ax.tick_params(labelsize=fontsize, colors='black')
+
+    # cbaxes = inset_axes(
+    #     axs[1][4],
+    #     width="100%",
+    #     height="5%",
+    #     loc='upper center',
+    #     borderpad=-1.5
+    # )
+    # cbar = fig.colorbar(
+    #     im14,
+    #     cax=cbaxes,
+    #     ticks=[vlim[1][4][0]+100, 0, vlim[1][4][1]-100],
+    #     orientation='horizontal'
+    # )
+    # cbar.ax.xaxis.set_ticks_position('top')
+    # cbar.ax.tick_params(labelsize=fontsize, colors='black')
 
     # cbaxes = inset_axes(
     #     axs[1][5],
@@ -2616,15 +2616,15 @@ def plot_mag_field_compare_new(points, colors_scatter):
     axs[0][2].set_yticklabels([])
     axs[0][3].set_xticklabels([])
     axs[0][3].set_yticklabels([])
-    axs[0][4].set_xticklabels([])
-    axs[0][4].set_yticklabels([])
+    # axs[0][4].set_xticklabels([])
+    # axs[0][4].set_yticklabels([])
     # axs[0][5].set_xticklabels([])
     # axs[0][5].set_yticklabels([])
 
     axs[1][1].set_yticklabels([])
     axs[1][2].set_yticklabels([])
     axs[1][3].set_yticklabels([])
-    axs[1][4].set_yticklabels([])
+    # axs[1][4].set_yticklabels([])
     # axs[1][5].set_yticklabels([])
 
     axs[0][0].set_yticks([0, 5, 10, 15, 20])
@@ -2632,33 +2632,33 @@ def plot_mag_field_compare_new(points, colors_scatter):
     axs[0][1].set_yticks([0, 5, 10, 15, 20])
     axs[0][2].set_yticks([0, 5, 10, 15, 20])
     axs[0][3].set_yticks([0, 5, 10, 15, 20])
-    axs[0][4].set_yticks([0, 5, 10, 15, 20])
+    # axs[0][4].set_yticks([0, 5, 10, 15, 20])
     # axs[0][5].set_yticks([0, 5, 10, 15, 20])
-    # axs[1][0].set_yticks([0, 5, 10, 15, 20])
-    # axs[1][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
+    axs[1][0].set_yticks([0, 5, 10, 15, 20])
+    axs[1][0].set_yticklabels([0, 5, 10, 15, 20], fontsize=fontsize)
     axs[1][1].set_yticks([0, 5, 10, 15, 20])
     axs[1][2].set_yticks([0, 5, 10, 15, 20])
     axs[1][3].set_yticks([0, 5, 10, 15, 20])
-    axs[1][4].set_yticks([0, 5, 10, 15, 20])
+    # axs[1][4].set_yticks([0, 5, 10, 15, 20])
     # axs[1][5].set_yticks([0, 5, 10, 15, 20])
 
     axs[0][0].set_xticks([0, 5])
     axs[0][1].set_xticks([0, 5])
     axs[0][2].set_xticks([0, 5])
     axs[0][3].set_xticks([0, 5])
-    axs[0][4].set_xticks([0, 5])
+    # axs[0][4].set_xticks([0, 5])
     # axs[0][5].set_xticks([0, 5])
 
-    # axs[1][0].set_xticks([0, 5])
-    # axs[1][0].set_xticklabels([0, 5], fontsize=fontsize)
+    axs[1][0].set_xticks([0, 5])
+    axs[1][0].set_xticklabels([0, 5], fontsize=fontsize)
     axs[1][1].set_xticks([0, 5])
     axs[1][1].set_xticklabels([0, 5], fontsize=fontsize)
     axs[1][2].set_xticks([0, 5])
     axs[1][2].set_xticklabels([0, 5], fontsize=fontsize)
     axs[1][3].set_xticks([0, 5])
     axs[1][3].set_xticklabels([0, 5], fontsize=fontsize)
-    axs[1][4].set_xticks([0, 5])
-    axs[1][4].set_xticklabels([0, 5], fontsize=fontsize)
+    # axs[1][4].set_xticks([0, 5])
+    # axs[1][4].set_xticklabels([0, 5], fontsize=fontsize)
     # axs[1][5].set_xticks([0, 5])
     # axs[1][5].set_xticklabels([0, 5], fontsize=fontsize)
 
@@ -2666,28 +2666,28 @@ def plot_mag_field_compare_new(points, colors_scatter):
     axs[0][1].xaxis.set_minor_locator(MultipleLocator(1))
     axs[0][2].xaxis.set_minor_locator(MultipleLocator(1))
     axs[0][3].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[0][4].xaxis.set_minor_locator(MultipleLocator(1))
+    # axs[0][4].xaxis.set_minor_locator(MultipleLocator(1))
     # axs[0][5].xaxis.set_minor_locator(MultipleLocator(1))
 
     axs[0][0].yaxis.set_minor_locator(MultipleLocator(1))
     axs[0][1].yaxis.set_minor_locator(MultipleLocator(1))
     axs[0][2].yaxis.set_minor_locator(MultipleLocator(1))
     axs[0][3].yaxis.set_minor_locator(MultipleLocator(1))
-    axs[0][4].yaxis.set_minor_locator(MultipleLocator(1))
+    # axs[0][4].yaxis.set_minor_locator(MultipleLocator(1))
     # axs[0][5].yaxis.set_minor_locator(MultipleLocator(1))
 
-    # axs[1][0].xaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][0].xaxis.set_minor_locator(MultipleLocator(1))
     axs[1][1].xaxis.set_minor_locator(MultipleLocator(1))
     axs[1][2].xaxis.set_minor_locator(MultipleLocator(1))
     axs[1][3].xaxis.set_minor_locator(MultipleLocator(1))
-    axs[1][4].xaxis.set_minor_locator(MultipleLocator(1))
+    # axs[1][4].xaxis.set_minor_locator(MultipleLocator(1))
     # axs[1][5].xaxis.set_minor_locator(MultipleLocator(1))
 
-    # axs[1][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[1][0].yaxis.set_minor_locator(MultipleLocator(1))
     axs[1][1].yaxis.set_minor_locator(MultipleLocator(1))
     axs[1][2].yaxis.set_minor_locator(MultipleLocator(1))
     axs[1][3].yaxis.set_minor_locator(MultipleLocator(1))
-    axs[1][4].yaxis.set_minor_locator(MultipleLocator(1))
+    # axs[1][4].yaxis.set_minor_locator(MultipleLocator(1))
     # axs[1][5].yaxis.set_minor_locator(MultipleLocator(1))
 
     axs[0][0].set_ylabel('slit position [arcsec]', fontsize=fontsize)
@@ -2761,16 +2761,16 @@ def plot_mag_field_compare_new(points, colors_scatter):
         transform=axs[0][3].transAxes,
         fontsize=fontsize
     )
-    axs[0][4].text(
-        0.03, 1.2,
-        r'WFA (H$\alpha\pm1.5\AA$)',
-        transform=axs[0][4].transAxes,
-        fontsize=fontsize
-    )
-    axs[0][4].text(
+    # axs[1][0].text(
+    #     0.03, 1.2,
+    #     r'WFA (H$\alpha\pm1.5\AA$)',
+    #     transform=axs[1][0].transAxes,
+    #     fontsize=fontsize
+    # )
+    axs[1][0].text(
         0.05, 0.95,
-        r'(e)',
-        transform=axs[0][4].transAxes,
+        r'(e) WFA (H$\alpha\pm1.5\AA$)',
+        transform=axs[1][0].transAxes,
         fontsize=fontsize
     )
 
@@ -2786,24 +2786,24 @@ def plot_mag_field_compare_new(points, colors_scatter):
         transform=axs[1][1].transAxes,
         fontsize=fontsize
     )
-    axs[1][2].text(
-        0.05, 0.95,
-        r'|(c)|$-$|(b)|',
-        transform=axs[1][2].transAxes,
-        fontsize=fontsize
-    )
     axs[1][3].text(
         0.05, 0.95,
-        r'|(d)|$-$|(a)|',
+        r'|(c)|$-$|(b)|',
         transform=axs[1][3].transAxes,
         fontsize=fontsize
     )
-    axs[1][4].text(
-        0.05, 0.95,
-        r'|(e)|$-$|(a)|',
-        transform=axs[1][4].transAxes,
-        fontsize=fontsize
-    )
+    # axs[1][3].text(
+    #     0.05, 0.95,
+    #     r'|(d)|$-$|(a)|',
+    #     transform=axs[1][3].transAxes,
+    #     fontsize=fontsize
+    # )
+    # axs[1][4].text(
+    #     0.05, 0.95,
+    #     r'|(e)|$-$|(a)|',
+    #     transform=axs[1][4].transAxes,
+    #     fontsize=fontsize
+    # )
     # axs[1][5].text(
     #     0.05, 0.95,
     #     r'|(f)|$-$|(a)|',
@@ -2811,8 +2811,8 @@ def plot_mag_field_compare_new(points, colors_scatter):
     #     fontsize=fontsize
     # )
 
-    axs[1][0].axis(False)
-    plt.subplots_adjust(left=0.06, bottom=0.07, right=0.99, top=0.9, wspace=0.25, hspace=0.2)
+    axs[1][2].axis(False)
+    plt.subplots_adjust(left=0.08, bottom=0.07, right=0.99, top=0.9, wspace=0.01, hspace=0.2)
 
     write_path = Path('/home/harsh/Spinor Paper/')
 
