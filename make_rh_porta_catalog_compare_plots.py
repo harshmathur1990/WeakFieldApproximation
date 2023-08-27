@@ -171,19 +171,75 @@ def make_line_core_image(porta_file, wavefile, start_x, end_x, start_y, end_y):
     f.close()
 
 
+
+def make_compare_two_frequency_grids():
+
+    base_path = Path('/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/')
+
+    f1 = h5py.File(base_path / 'MULTI3D_H_Bifrost_s_385_0_0_3_1_791_profs.h5', 'r')
+
+    f2 = h5py.File(base_path / 'MULTI3D_H_Bifrost_s_385_0_0_3_1_441_profs.h5', 'r')
+
+    print(f1['stokes_I'].shape)
+
+    print(f2['stokes_I'].shape)
+    wbpath = Path('/home/harsh/CourseworkRepo/PORTA/tests/multilevel-module/')
+
+    wave_791 = np.loadtxt(wbpath / 'wave_791.txt')
+
+    wave_1141 = np.loadtxt(wbpath / 'wave_441.txt')
+
+    wave_791 = wave_791[:, 1][::-1]
+
+    wave_1141 = wave_1141[:, 1][::-1]
+
+    wv_791 = np.array(vac_to_air(wave_791 * u.angstrom))
+
+    wv_1141 = np.array(vac_to_air(wave_1141 * u.angstrom))
+
+    ind_791 = np.where((wv_791 >= 6560) & (wv_791 <= 6566))[0]
+
+    ind_1141 = np.where((wv_1141 >= 6560) & (wv_1141 <= 6566))[0]
+
+    fig, axs = plt.subplots(2, 1, figsize=(7, 7))
+
+    axs[0].plot(wv_791[ind_791], f1['stokes_I'][ind_791, 1, 1], color='green')
+
+    axs[0].plot(wv_1141[ind_1141], f2['stokes_I'][ind_1141, 1, 1], color='black')
+
+    axs[1].plot(wv_791[ind_791], f1['stokes_V'][ind_791, 1, 1] / f1['stokes_I'][ind_791, 1, 1], color='green')
+
+    axs[1].plot(wv_1141[ind_1141], f2['stokes_V'][ind_1141, 1, 1] / f2['stokes_I'][ind_1141, 1, 1], color='black')
+
+    axs[0].scatter(wv_791[ind_791], f1['stokes_I'][ind_791, 1, 1], color='green', s=6)
+
+    axs[0].scatter(wv_1141[ind_1141], f2['stokes_I'][ind_1141, 1, 1], color='black', s=6)
+
+    axs[1].scatter(wv_791[ind_791], f1['stokes_V'][ind_791, 1, 1] / f1['stokes_I'][ind_791, 1, 1], color='green', s=6)
+
+    axs[1].scatter(wv_1141[ind_1141], f2['stokes_V'][ind_1141, 1, 1] / f2['stokes_I'][ind_1141, 1, 1], color='black',
+                   s=6)
+
+    fig.tight_layout()
+
+    fig.savefig(base_path / 'freq_compaare.pdf', format='pdf')
+
+
 if __name__ == '__main__':
-    make_comparison_plots(
-        [
-            # ('H_FALC_11_11_profs.h5', 5, 5, 'output_falc.txt', 'FALC 5x5 PORTA'),
-            # ('H_FALC_profs_3x3.h5', 1, 1, 'output_falc.txt', 'FALC 3x3 PORTA'),
-            # ('H_FALC_21_21_profs.h5', 10, 10, 'output_falc.txt', 'FALC 21x21 PORTA'),
-            # ('H_FALC_61_61_profs.h5', 30, 30, 'output_falc.txt', 'FALC 61x61 PORTA'),
-            ('combined_output_profs.h5', 100, 100, 'wave_ha.txt', 'Bifrost 61x61 PORTA')
-        ],
-        catalog_plot=True,
-        falc_plot=True,
-        bifrost_plot=True,
-        bifrost_coords=[(230, 230)]
-    )
+    # make_comparison_plots(
+    #     [
+    #         ('H_FALC_11_11_profs.h5', 5, 5, 'output_falc.txt', 'FALC 5x5 PORTA'),
+    #         ('H_FALC_profs_3x3.h5', 1, 1, 'output_falc.txt', 'FALC 3x3 PORTA'),
+    #         ('H_FALC_21_21_profs.h5', 10, 10, 'output_falc.txt', 'FALC 21x21 PORTA'),
+    #         ('H_FALC_61_61_profs.h5', 30, 30, 'output_falc.txt', 'FALC 61x61 PORTA'),
+            # ('combined_output_profs.h5', 100, 100, 'wave_ha.txt', 'Bifrost 61x61 PORTA')
+        # ],
+        # catalog_plot=True,
+        # falc_plot=True,
+        # bifrost_plot=True,
+        # bifrost_coords=[(230, 230)]
+    # )
 
     # make_line_core_image('H_Bifrost_180_60_61_3_profs.h5', 'wave_ha.txt', 200, 261, 200, 261)
+
+    make_compare_two_frequency_grids()

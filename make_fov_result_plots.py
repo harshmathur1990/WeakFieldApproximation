@@ -13,7 +13,8 @@ import queue
 from matplotlib.colors import LinearSegmentedColormap
 from weak_field_approx import prepare_calculate_blos, prepare_calculate_blos_rh15d
 from prepare_data import *
-from lightweaver.utils import vac_to_air
+# from lightweaver.utils import vac_to_air
+from specutils.utils.wcs_utils import vac_to_air
 from scipy import stats as st
 
 
@@ -4001,25 +4002,25 @@ if __name__ == '__main__':
     # plot_stokes_parameters(cut_indice, new_points, colors)
     # plot_spatial_variation_of_profiles(cut_indice, points, colors, factor_ca_list, factor_ha_list)
     # plot_profiles()
-    points = [
-        (12, 49),
-        (12, 40),
-        (12, 34),
-        (12, 31),
-        (12, 18),
-        (8, 53),
-        (8, 50),
-        (8, 37),
-        (8, 31),
-        (8, 9),
-    ]
-    colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
-    new_points = list()
-    for point in points:
-        new_points.append((point[0], 60 - point[1]))
+    # points = [
+    #     (12, 49),
+    #     (12, 40),
+    #     (12, 34),
+    #     (12, 31),
+    #     (12, 18),
+    #     (8, 53),
+    #     (8, 50),
+    #     (8, 37),
+    #     (8, 31),
+    #     (8, 9),
+    # ]
+    # colors = ['blueviolet', 'blue', 'dodgerblue', 'orange', 'brown', 'green', 'darkslateblue', 'purple', 'mediumvioletred', 'darkolivegreen']
+    # new_points = list()
+    # for point in points:
+    #     new_points.append((point[0], 60 - point[1]))
     # make_output_param_plots(new_points, colors)
     # plot_mag_field_compare()
-    plot_mag_field_compare_new(new_points, colors)
+    # plot_mag_field_compare_new(new_points, colors)
     #make_mag_field_scatter_plots()
     # points = [
     #     (12, 49),
@@ -4058,40 +4059,44 @@ if __name__ == '__main__':
     #     make_forward_synthesis_plots(base_path / filename, points, colors, name)
     # infer_uncertainties()
 
-    # pi = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
+    pi = Path('/home/harsh/SpinorNagaraju/maps_2_scan10/stic/processed_inputs/')
     #
-    # data_file = pi / 'aligned_Ca_Ha_stic_profiles.nc'
+    data_file = pi / 'aligned_Ca_Ha_stic_profiles.nc'
     #
-    # cs_files = [
-    #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_SiI_8536.h5',
-    #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_FeI_8538.h5',
-    #     pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_CaII_8542.h5'
-    # ]
+    cs_files = [
+        pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_SiI_8536.h5',
+        pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_FeI_8538.h5',
+        pi / 'alignedspectra_scan2_map10_Ca.fits_stray_corrected_CaII_8542.h5'
+    ]
     #
-    # hs_file = pi / 'alignedspectra_scan2_map10_Ha.fits_stray_corrected.h5'
+    hs_file = pi / 'alignedspectra_scan2_map10_Ha.fits_stray_corrected.h5'
     #
-    # cut_indice = 14
+    cut_indice = 14
     #
-    # points = [
-    #     51,
-    #     50,
-    # ]
-    # factor_ca_list = [
-    #     (-1, -1, -1),
-    #     (-1, -1, -1),
-    # ]
-    # factor_ha_list = [
-    #     (-10, -1),
-    #     (-10, -1),
-    # ]
-    # points_ha = [
-    #     50,
-    #     51
-    # ]
+    points = [
+        51,
+        50,
+    ]
+    factor_ca_list = [
+        (-1, -1, -1),
+        (-1, -1, -1),
+    ]
+    factor_ha_list = [
+        (-10, -1),
+        (-10, -1),
+    ]
+    points_ha = [
+        50,
+        51
+    ]
     #
-    # colors_p = ['green', 'darkslateblue', 'purple', 'mediumvioletred']
-    # colors = ["green", "blue", "white", "darkmagenta", "red"]
+    colors_p = ['green', 'darkslateblue', 'purple', 'mediumvioletred']
+    colors = ["green", "blue", "white", "darkmagenta", "red"]
     # plot_stokes_parameters(cut_indice, [], [], colors=colors, data_file=data_file, vertical_cut=[30, 60], ca_v=[-0.003, 0.003], ha_v=[-0.002, 0.002])
-    # plot_spatial_variation_of_profiles(cut_indice, points, colors_p, factor_ca_list, factor_ha_list, data_file=data_file, cs_files=cs_files, hs_file=hs_file, mean_prof=True, points_ha=points_ha)
+    plot_spatial_variation_of_profiles(
+        cut_indice, points, colors_p, factor_ca_list, factor_ha_list,
+        data_file=data_file, cs_files=cs_files, hs_file=hs_file,
+        mean_prof=True, points_ha=points_ha
+    )
 
     # make_response_function_opp_polarity_plot()
