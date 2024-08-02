@@ -2,7 +2,7 @@ import sys
 sys.path.insert(1, '/home/harsh/CourseworkRepo/stic/example')
 # sys.path.insert(1, '/home/harsh/stic/example')
 import numpy as np
-import sunpy.io.fits
+import sunpy.io
 from helita.sim import rh15d
 from pathlib import Path
 # from lightweaver.witt import witt
@@ -46,11 +46,11 @@ def make_atmosphere(
         snap
     )
 
-    data, header = sunpy.io.fits.read(
+    data, header = sunpy.io.read_file(
         foldername / temp_file
     )[0]
 
-    height, _ = sunpy.io.fits.read(
+    height, _ = sunpy.io.read_file(
         foldername / temp_file
     )[1]
 
@@ -77,7 +77,7 @@ def make_atmosphere(
         simulation_name, snap
     )
 
-    data, header = sunpy.io.fits.read(
+    data, header = sunpy.io.read_file(
         foldername / vz_file
     )[0]
 
@@ -93,7 +93,7 @@ def make_atmosphere(
         simulation_name, snap
     )
 
-    data, header = sunpy.io.fits.read(
+    data, header = sunpy.io.read_file(
         foldername / vx_file
     )[0]
 
@@ -109,7 +109,7 @@ def make_atmosphere(
         simulation_name, snap
     )
 
-    data, header = sunpy.io.fits.read(
+    data, header = sunpy.io.read_file(
         foldername / vy_file
     )[0]
 
@@ -135,7 +135,7 @@ def make_atmosphere(
                 simulation_name, i, snap
             )
 
-            data, header = sunpy.io.fits.read(
+            data, header = sunpy.io.read_file(
                 foldername / nhfile
             )[0]
 
@@ -152,7 +152,7 @@ def make_atmosphere(
             simulation_name, snap
         )
 
-        data, header = sunpy.io.fits.read(
+        data, header = sunpy.io.read_file(
                 foldername / nefile
             )[0]
 
@@ -171,7 +171,7 @@ def make_atmosphere(
             simulation_name, snap
         )
 
-        data, header = sunpy.io.fits.read(
+        data, header = sunpy.io.read_file(
             foldername / pg_file
         )[0]
 
@@ -193,7 +193,7 @@ def make_atmosphere(
         simulation_name, snap
     )
 
-    data, header = sunpy.io.fits.read(
+    data, header = sunpy.io.read_file(
             foldername / bxfile
         )[0]
 
@@ -209,7 +209,7 @@ def make_atmosphere(
         simulation_name, snap
     )
 
-    data, header = sunpy.io.fits.read(
+    data, header = sunpy.io.read_file(
             foldername / byfile
         )[0]
 
@@ -225,7 +225,7 @@ def make_atmosphere(
         simulation_name, snap
     )
 
-    data, header = sunpy.io.fits.read(
+    data, header = sunpy.io.read_file(
             foldername / bzfile
         )[0]
 
@@ -291,13 +291,13 @@ if __name__ == '__main__':
     # )
 
     make_atmosphere(
-        foldername='/home/harsh/en024048_hion/atmos/',
+        foldername='/run/media/harsh/5de85c60-8e85-4cc8-89e6-c74a83454760/en024048_hion/atmos/',
         simulation_name='en024048_hion',
         snap=385,
         start_x=0, end_x=504,
         start_y=0, end_y=504,
-        height_min_in_m=-1020.996 * 1e3,
-        height_max_in_m=15000 * 1e3,
+        height_min_in_m=-np.inf * 1e3,
+        height_max_in_m=np.inf * 1e3,
         simulation_code_name='BIFROST',
         lte=False
     )
